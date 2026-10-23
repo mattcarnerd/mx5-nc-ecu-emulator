@@ -273,3 +273,28 @@ A successful diagnostic cannot establish flash safety or roadworthiness.
 The application does not communicate with vehicles or write ECU firmware.
 
 MIT licence. See CONTRIBUTING.md.
+
+## B31 — capture the first real blocker after Port E (local ROM only)
+
+The original LF9VEB binary is not included in this repository. On a Windows
+computer holding your **own** full ROM image, from the source checkout run:
+
+```powershell
+python -m ecu_workbench --rom "C:\\ROMs\\LF9VEB.bin" --reset power --nmi high --steps 300 --baseline --report baseline.json
+python -m ecu_workbench.trace_review baseline.json --output review.json
+python -m ecu_workbench --rom "C:\\ROMs\\LF9VEB.bin" --reset power --nmi high --steps 300 --report detailed.json
+```
+
+The baseline and review contain ROM hashes, execution state, and a short
+instruction trace; `detailed.json` additionally contains a peripheral trace
+to confirm that the original `PEDR` word write was actually executed.
+Inspect reports before sharing: diagnostics can contain firmware-derived
+addresses, values and calibration-identifying metadata, though **not a copy
+of the ROM**. Do **not** commit any original manufacturer ROM or private
+files. If you're sharing evidence, the `review.json` summary is safest.
+
+Previously observed before B30: 76 attempted instructions; stop at
+`0x00000CAE` on `MOV.W` to `PEDR 0xFFFFF754` with `0xFFFF`.
+Since B30 modelled that register, its next real stop is **unknown until a
+local ROM diagnostic is run**. Instruction-count increases alone do not
+demonstrate a completed boot, nor conclusively prove a particular write.
