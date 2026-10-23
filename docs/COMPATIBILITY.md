@@ -52,3 +52,34 @@ market. Verify models, ECU family changes and ROM formats before expanding.
   https://www.mazdaecu.eu/mazda-mx-5/mazda-mx-5-nc/2008-2.0-mzr-a-t-stage5-lffe/
 
 Repository must not contain any third-party stock ROM image.
+
+## B26 — local ROM evidence inventory
+
+Create a **local** JSON file (not in Git) such as `private-roms.json`:
+
+```json
+{
+  "entries": [
+    {"path": "roms/my-ecu.bin", "family": "unknown", "hardware_profile": "unknown"},
+    {"path": "roms/nc2.bin", "family": "NC2", "calibration_id": "example-id",
+     "provenance": "ECU sticker + readout notes",
+     "hardware_profile": "SH7058", "hardware_evidence": "physical board inspection"}
+  ]
+}
+```
+
+Run `python -m ecu_workbench.rom_manifest private-roms.json --output inventory.json`.
+The command reads local files, calculates SHA-256, and exports **only metadata**:
+family, trace/provenance claims, hash, byte count, and status; no paths or firmware
+bytes appear in the report. Missing files report `not_available`; present files
+without verified board evidence report `candidate`. A `verified_profile`
+requires a named hardware profile **and** explicit hardware evidence.
+`boot_trace_tested` is an **assertion from the operator** needing both that
+evidence and the original local file; it never asserts a completed boot.
+
+Neither a SHA-256 hash, calibration ID, filename nor 1 MiB file length
+verifies hardware. Treat any manually declared identity or trace evidence as
+unverified until independently checked. The CLI is an **inventory tool**, not
+a firmware validator. Keep private input paths and output files out of Git.
+The first supported scenario remains the single independently held LF9VEB
+reset trace; NC1/NC2/NC3 hardware coverage is **still unknown**.
