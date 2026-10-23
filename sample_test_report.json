@@ -1,0 +1,10 @@
+{
+  "product": "MX-5 ECU Workbench",
+  "engine": "Limited SH-2E instruction subset",
+  "ecu_executed": false,
+  "ecu_hardware_validated": false,
+  "scenarios": 360,
+  "pass": 360,
+  "fail": 0,
+  "scope": "Targeted V7 hooks only; synthetic/example result, not independent hardware validation"
+}
