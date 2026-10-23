@@ -51,10 +51,11 @@ registers. Its NMI pin defaults to **unknown** rather than inventing a
 hardware state. The optional local-ROM integration test uses
 `MX5_NC_TEST_ROM`, and does not ship copyrighted manufacturer ROMs.
 
-With an independently obtained LF9VEB ROM, the prior NMI-high experiment
-executed **46 startup instructions**, then stopped at an unmodelled
-Port B register (`0xFFFFF738`). This is an incomplete startup trace,
-**not** evidence that the firmware booted.
+With an independently obtained LF9VEB ROM, **B01** executed 46 startup
+instructions and stopped at PBDR `0xFFFFF738`. With **B02** PBDR
+register-latch support, the same power reset / NMI-high test executes
+**59 instructions** and then stops at the still-unmodelled Port C data
+register (PCDR) `0xFFFFF73E`. Neither run constitutes a booted ECU.
 
 For the current one-pass development sequence, see the **[prioritised backlog](BACKLOG.md)** and its linked GitHub issues.
 
@@ -83,6 +84,27 @@ power reset at 300 maximum steps produces:
 
 These are **reset-execution diagnostics, not completed ECU boots**. Future
 changes to the instruction engine must be compared against this baseline.
+
+## B02 — SH7058 Port B data register
+
+The [Renesas SH7058 Rev 3.00 hardware manual](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual)
+sections **22.3.1–22.3.2**, tables 22.3 and 22.4, defines
+`PBDR` at `0xFFFFF738`, 8- and 16-bit access, and a power-on
+reset value of `0x0000`. Port B is little-known outside the ECU;
+the CPU and bus accesses here use **big-endian** byte order.
+
+The emulator now tracks the PBDR latch and the known bits after
+power-on or manual reset, supports separate upper/lower byte writes,
+and logs all supported writes without pretending to drive a vehicle pin.
+Reading PBDR bits with `PBIOR` set to input requires **external pin
+levels**, which B03 will model. Such reads fail with `missing_input`,
+not an invented zero or arbitrary pin value. Wrong access widths fail
+explicitly. `PBPR` and external circuitry remain unmodelled.
+
+With LF9VEB, NMI explicitly high and a 300-instruction cap:
+**B01 46 instructions -> B02 59 instructions**, next stop is an
+unmodelled 16-bit PCDR write `0xFFFFF73E`. This is still *partial
+firmware startup*, not a functional virtual ECU.
 
 ## Engineering priorities
 

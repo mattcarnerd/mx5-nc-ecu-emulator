@@ -14,6 +14,10 @@ ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
 PERIPHERAL_BASE, PERIPHERAL_LIMIT = 0xFFFFC000, 0x100000000
 
+# Renesas SH7058 Rev 3.00, sections 22.3.1-22.3.2, Tables 22.3/22.4.
+PBDR_ADDRESS = 0xFFFFF738
+PBIOR_ADDRESS = 0xFFFFF730
+
 class BootStop(Exception):
     def __init__(self, kind: str, detail: str, *, address: Optional[int] = None, width: Optional[int] = None, access: Optional[str] = None, value: Optional[int] = None):
         self.kind, self.detail = kind, detail
@@ -83,6 +87,12 @@ class BootBus:
         self.pfc = {addr:(default if power_on else None) for addr,(_,default) in PFC_REGISTERS.items()}
         # PADR output data latch; no external pin driver/input model yet.
         self.padr = 0 if power_on else None
+        # PBDR is a 16-bit stored output latch, not the external pin register.
+        # Power-on reset clears it; manual reset need not define its state.
+        # Track known bytes so a manual-reset byte write does not falsely
+        # initialise the untouched half of the register.
+        self.pbdr = 0
+        self.pbdr_known_mask = 0xFFFF if power_on else 0
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
@@ -100,11 +110,64 @@ class BootBus:
         if PERIPHERAL_BASE <= a and a+width <= PERIPHERAL_LIMIT:
             return 'peripheral',a
         raise BootStop('unmapped_memory',f'Unmapped {access} at 0x{a:08X}',address=a,width=width,access=access,value=value)
+    @staticmethod
+    def _pbdr_mask(a: int, width: int) -> int:
+        # SH7058 section 22.3.1 specifies 8/16-bit accesses. Big endian:
+        # 0xFFFFF738 is PB15..PB8, 0xFFFFF739 is PB7..PB0.
+        if width == 2 and a == PBDR_ADDRESS:
+            return 0xFFFF
+        if width == 1 and a == PBDR_ADDRESS:
+            return 0xFF00
+        if width == 1 and a == PBDR_ADDRESS + 1:
+            return 0x00FF
+        raise BootStop('unsupported_access_size',
+                       f'PBDR permits only aligned 8/16-bit access at 0x{a:08X}',
+                       address=a, width=width)
+
+    def _pbdr_read(self, address: int, width: int) -> int:
+        mask = self._pbdr_mask(address, width)
+        # Renesas Table 22.4: when a PBIOR bit is 0, reading PBDR
+        # samples the physical pin, NOT the output latch. B03 will
+        # implement external Port B pin states explicitly.
+        directions = self.pfc[PBIOR_ADDRESS]
+        if directions is None:
+            raise BootStop('unknown_peripheral_reset_state',
+                           'PBIOR preserved state is unknown; cannot interpret PBDR read',
+                           address=address, width=width, access='read')
+        if directions & mask != mask:
+            raise BootStop('missing_input',
+                           'PBDR input-mode bits require external Port B pin levels',
+                           address=address, width=width, access='read')
+        if self.pbdr_known_mask & mask != mask:
+            raise BootStop('unknown_peripheral_reset_state',
+                           'PBDR output latch contains unknown bits after manual reset',
+                           address=address, width=width, access='read')
+        value = (self.pbdr & mask) >> (8 if mask == 0xFF00 else 0)
+        self.peripheral_trace.append({'register':'PBDR','access':'read',
+                                      'value':value,'width':width,
+                                      'scope':'output_latch_not_pin_levels'})
+        return value
+
+    def _pbdr_write(self, address: int, width: int, value: int) -> None:
+        mask = self._pbdr_mask(address, width)
+        shifted = ((value & 0xFF) << 8) if mask == 0xFF00 else value
+        self.pbdr = ((self.pbdr & ~mask) | (shifted & mask)) & 0xFFFF
+        self.pbdr_known_mask |= mask
+        # Writes latch data regardless of pin direction/mux. Do NOT
+        # assume a physical output or invented input state.
+        self.peripheral_trace.append({'register':'PBDR','access':'write',
+                                      'value':value & ((1 << (8 * width)) - 1),
+                                      'width':width,'known_mask':f'0x{self.pbdr_known_mask:04X}',
+                                      'scope':'output_latch_only',
+                                      'note':'External pin state and timer/serial mux not modelled'})
+
     def read(self, a: int, width: int) -> int:
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'read')
         if region=='rom':return int.from_bytes(self.image.data[off:off+width], 'big')
         if region=='peripheral':
+            if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
+                return self._pbdr_read(off, width)
             if off == 0xFFFFF70B and width == 1:
                 if self.syscr2 is None:
                     raise BootStop('unknown_peripheral_reset_state','SYSCR2 state unknown after manual reset',address=off,width=1,access='read')
@@ -149,6 +212,8 @@ class BootBus:
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'write',value)
         if region=='peripheral':
+            if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
+                return self._pbdr_write(off, width, value)
             if off == 0xFFFFF70A and width == 2:
                 if (value >> 8) & 0xFF != 0x3C:
                     raise BootStop('invalid_peripheral_write','SYSCR2 requires 0x3C upper write key',address=off,width=2,access='write',value=value)
