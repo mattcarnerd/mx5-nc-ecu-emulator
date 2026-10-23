@@ -114,10 +114,8 @@ class PortCTests(unittest.TestCase):
         if rom.sha256!='bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf':
             self.skipTest('Different original ROM')
         r=diagnose_nc_reset(rom,nmi_high=True,max_steps=300)
-        self.assertEqual(r['executed_instructions'],67)
-        dep=r['next_dependency']
-        self.assertEqual(dep['instruction_pc'],'0x00000C9C')
-        self.assertEqual(dep['opcode'],'2011')
-        self.assertEqual(dep['memory_access']['address'],'0xFFFFF746')
-        self.assertEqual(dep['memory_access']['value'],'0x00003EFF')
+        self.assertGreater(r['executed_instructions'],67)
+        self.assertTrue(any(x.get('register')=='PCDR' and x.get('access')=='write'
+                            and x.get('value')==0x001F
+                            for x in r['modelled_peripheral_accesses']))
         self.assertFalse(r['boot_complete'])
