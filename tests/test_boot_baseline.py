@@ -76,9 +76,12 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(report["rom"]["sha256"], rom.sha256)
         self.assertFalse(report["result"]["boot_complete"])
         if rom.sha256 == "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf":
-            self.assertEqual(report["result"]["executed_instructions"], 76)
-            self.assertEqual(report["result"]["pc_at_stop"], "0x00000CB0")
-            self.assertEqual(report["result"]["first_unsupported_peripheral"]["address"], "0xFFFFF754")
+            # B30 implemented PEDR; a previous Port E stop is not today's
+            # expected next failure. Do not assert an invented next PC.
+            self.assertGreater(report["result"]["executed_instructions"], 76)
+            unsupported = report["result"]["first_unsupported_peripheral"]
+            if unsupported:
+                self.assertNotEqual(unsupported["address"], "0xFFFFF754")
 
 
 if __name__ == "__main__":
