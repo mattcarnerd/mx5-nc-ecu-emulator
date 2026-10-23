@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (23 October 2026):** B30 synthetic CI and Windows prerelease verified at `2817ba8`; its private LF9VEB post-Port-E regression remains outstanding. B26 local inventory implementation has been committed but its CI/release are being verified. 7 of 30 one-pass tickets formally closed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
+**Current status (23 October 2026):** B30 Port E synthetic tests and Windows EXE pass, but the genuine post-PEDR LF9VEB trace is **not yet measured** because the private ROM is not available in this environment. B26 local ROM manifest passed CI and has Windows prerelease `v0.2.0-dev.25.1`. B17 central Port B/C/D/E routing and regression suite are committed and CI-verified at the code/test stage; final documentation/test-update release is being checked. NC1/NC2/NC3 hardware identification is still unverified. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
 
 ## Working agreement — one issue = one development pass
 
@@ -27,20 +27,15 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## Backlog review log
 
-| 2026-10-23 | B26 (implementation pending verification) | Local-only SHA-256 inventory and synthetic validation tests added. **No changes** to immediate priority order until the Port E LF9VEB trace and B26 CI/release are verified. Retain B17 next after B26, defer unobserved CPU/FPU work, and avoid hardware-profile claims from file sizes or filenames. Existing #33 covers B26; no duplicate issue. |
-
-
-| 2026-10-23 | B30 (implementation awaiting verification) | Port E PEDR latch handler and synthetic tests committed. The previously observed next stop is PEDR at 0xFFFFF754; a new private LF9VEB baseline has **not yet been measured**. Retain B26 as next planned inventory and B17 as refactor; do not add speculative GPIO tickets or claim a further boot milestone. **B30 remains open pending CI test confirmation, Windows release, and real-ROM regression.** |
-
-
-| When | Completed item | Evidence and decisions |
+| When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
+| 2026-10-23 | B17 — GPIO routing refactor (release verification in progress) | Explicit register router now dispatches B/C/D/E; focused synthetic regressions cover endianness, write guards, reserved bits, unknown inputs, manual reset and unknown addresses. Existing tests passed on code and test commits. Four **obsolete optional LF9VEB exact-stop assertions** were updated to verify earlier observed Port C/D/E writes without pretending to know the post-Port-E stop. **No changes** to existing CPU/FPU prioritisation: wait for the next authentic LF9VEB blocker, then promote the existing corresponding task; do not invent a new GPIO ticket. B06 and later CPU groups remain evidence-led. |
+| 2026-10-23 | B26 — release verified | GitHub Actions run 39975588758 passed tests/build/publication, Windows prerelease `v0.2.0-dev.25.1`. Hardware profiles still require independent evidence and no private NC1/NC2/NC3 ROMs were available here. **No changes** to adjacent priorities; B17 was next. |
+| 2026-10-23 | B30 — CI/release verified, authentic trace pending | Port E PEDR handler and synthetic tests passed after signed-immediate test fix at commit `2817ba8`; Windows prerelease `v0.2.0-dev.21.1`. Previous true LF9VEB stop at PC `0x00000CAE`, opcode `2151`, PEDR `0xFFFFF754`, word `0xFFFF` was recorded **before** implementing Port E. Genuine next blocker cannot be stated without the private original ROM. |
 | 2026-10-23 | B04 (retrospective review after B01–B04) | LF9VEB blocker confirmed: `MOV.W R0,@R2` at `0x00000C8C`, write `0x001F` to PCDR `0xFFFFF73E`. Keep B05 next for reset/NMI regression protection. **Promote and narrow existing B18 to P0, immediately after B05**; no duplicate Port C ticket. **Promote B26 to P1**, early hardware-family/ROM inventory. **Defer B13–B15 FPU to P2** until a real executed ROM needs those instructions. All other tickets retain current scope; revisit CPU instruction ordering when the next blocker is known. |
-| 2026-10-23 | B05 | **No priority changes.** Tested power/manual reset × all NMI states, separated missing physical NMI pin from unknown manual-reset ICR latch, and made GUI report generation headless/testable. Original LF9VEB power-on/NMI-high remains 59 attempted instructions, stopping on PCDR `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). B18/Port C remains the next P0 task; B26 NC hardware-family manifest remains after it; deferred FPU instruction work stays unobserved. No duplicates or additional tasks justified. |
-
-| 2026-10-23 | B18 | **New blocker and new task B29 / #36.** SH7058 PCDR model verified against tables 22.5–22.6. LF9VEB NMI-high startup advanced from 59 to 67 attempted instructions without any invented physical pin levels. Next authentic stop: PDDR `0xFFFFF746`, opcode `2011` at `0x00000C9C`, 16-bit write `0x3EFF`. Add P0 B29 immediately before B26; do not duplicate existing B17 refactor. Defer unobserved CPU/FPU features. Total backlog now 29 items. |
-
-| 2026-10-23 | B29 | **New blocker and B30 added (#37).** Original LF9VEB NMI-high reset advances from 67 to **76 attempted instructions**: previous PDDR `0xFFFFF746` 16-bit `0x3EFF` write now executes, next unmodelled PEDR `0xFFFFF754` at opcode `2151`, PC `0x00000CAE`, write `0xFFFF`. B30 is next P0, B26 inventory after, **B17 peripheral-registry refactor promoted from P2 to P1 after B26** because separate Port B/C/D/E implementations are proliferating. CPU/FPU tasks remain evidence-driven. No duplicate GPIO ticket. 30 total, 7 completed. |
+| 2026-10-23 | B05 | **No priority changes.** Tested power/manual reset × all NMI states, separated missing physical NMI pin from unknown manual-reset ICR latch, and made GUI report generation headless/testable. Original LF9VEB power-on/NMI-high remained 59 attempted instructions, stopping on PCDR `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). |
+| 2026-10-23 | B18 | Genuine LF9VEB advanced from 59 to 67 attempted instructions; next PDDR at `0xFFFFF746`, opcode `2011` at `0x00000C9C`, write `0x3EFF`. Add B29 (#36) before B26; defer unobserved CPU/FPU features. |
+| 2026-10-23 | B29 | Genuine LF9VEB advanced from 67 to 76 attempted instructions; next PEDR at `0xFFFFF754`, opcode `2151` at `0x00000CAE`, write `0xFFFF`. Add B30 (#37), promote existing B17 to P1 after B26, no duplicate GPIO ticket. 30 tasks in backlog. |
 
 ## High-level parent workstreams
 
@@ -50,7 +45,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## P0 — Unblock the observed LF9VEB startup failure
 
-Highest confidence, immediate work. **Next: verify B30 against private LF9VEB; B26 inventory is implemented pending CI/release, followed by B17 peripheral refactor**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
+Highest confidence, immediate work. **Next evidence task: verify post-B30 LF9VEB execution using a privately held ROM.** B26 and B17 implementation/release work now exists; further CPU/peripheral implementation should follow the first genuine new stop. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -65,7 +60,7 @@ Highest confidence, immediate work. **Next: verify B30 against private LF9VEB; B
 
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
-**After B05/B18, prioritise B26** (local NC1/NC2/NC3 hardware-family inventory). Implement other CPU instruction groups only when supported by an observed ROM trace or essential verified prerequisite; the rows below are an inventory, **not** a commitment to implement every group in numeric order.
+**B26 and B17 are implemented.** Re-evaluate the remaining CPU instruction groups after a new original-ROM startup trace. Implement other CPU instruction groups only when supported by an observed ROM trace or essential verified prerequisite; the rows below are an inventory, **not** a commitment to implement every group in numeric order.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
