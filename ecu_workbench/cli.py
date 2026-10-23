@@ -27,6 +27,10 @@ def main(argv=None):
                         help="Physical PC4..PC0 pin levels (hex); omit to leave unknown")
     parser.add_argument("--port-c-known-mask", type=lambda s: int(s,0), default=0x001F,
                         help="Known PC4..PC0 physical pin bits, default 0x001F if provided")
+    parser.add_argument("--port-d-pins", type=lambda s: int(s,0),
+                        help="Explicit 16-bit Port D physical register levels (omit for unknown)")
+    parser.add_argument("--port-d-known-mask", type=lambda s: int(s,0), default=0xFFFF,
+                        help="Known Port D physical bit mask (default 0xFFFF if supplied)")
     parser.add_argument("--steps", type=int, default=300,
                         help="Maximum number of real instructions to execute (1..100000)")
     parser.add_argument("--report", help="Save diagnostic JSON at this location")
@@ -45,6 +49,7 @@ def main(argv=None):
                 image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
                 port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                 port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
+                port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,
             )
         else:
             result = {
@@ -54,6 +59,7 @@ def main(argv=None):
                     image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
                     port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                     port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
+                    port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,
                 ),
             }
         output = json.dumps(result, indent=2)

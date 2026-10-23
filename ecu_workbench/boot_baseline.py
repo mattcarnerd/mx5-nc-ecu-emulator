@@ -17,6 +17,7 @@ def capture_boot_baseline(
     nmi_high: bool | None = None,
     port_b_pin_values: int | None = None, port_b_pin_known_mask: int = 0xFFFF,
     port_c_pin_values: int | None = None, port_c_pin_known_mask: int = 0x001F,
+    port_d_pin_values: int | None = None, port_d_pin_known_mask: int = 0xFFFF,
 ) -> dict:
     """Return a stable JSON-serialisable record of a bounded startup attempt.
 
@@ -34,6 +35,7 @@ def capture_boot_baseline(
         rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high,
         port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask,
         port_c_pin_values=port_c_pin_values, port_c_pin_known_mask=port_c_pin_known_mask,
+        port_d_pin_values=port_d_pin_values, port_d_pin_known_mask=port_d_pin_known_mask,
     )
     trace = run.get("trace", [])
     stop = run.get("stop", {})
@@ -59,6 +61,10 @@ def capture_boot_baseline(
     if port_c_pin_values is not None:
         input_settings["port_c_pin_values"] = f"0x{port_c_pin_values:04X}"
         input_settings["port_c_pin_known_mask"] = f"0x{port_c_pin_known_mask:04X}"
+
+    if port_d_pin_values is not None:
+        input_settings["port_d_pin_values"] = f"0x{port_d_pin_values:04X}"
+        input_settings["port_d_pin_known_mask"] = f"0x{port_d_pin_known_mask:04X}"
 
     return {
         "schema_version": BASELINE_SCHEMA_VERSION,
