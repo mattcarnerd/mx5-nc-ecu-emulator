@@ -4,10 +4,11 @@ import argparse
 import json
 from pathlib import Path
 from .core import ROMImage, compare
+from .nc_rom import assess_nc_rom
 from .sh2 import SH2Subset
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Offline ECU Workbench (reads any binary ROM)")
+    parser = argparse.ArgumentParser(description="Mazda MX-5 NC engine ECU Workbench (NC ROM emulation under development)")
     parser.add_argument("--rom", required=True, help="Any nonempty binary file")
     parser.add_argument("--compare", help="A second binary to compare")
     parser.add_argument("--hex-offset", type=lambda x:int(x,0), default=0)
@@ -20,7 +21,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         rom = ROMImage.from_file(args.rom)
-        result = {"image": rom.inspect(), "hexdump": rom.hexdump(args.hex_offset, min(args.hex_length,4096))}
+        result = {"image": rom.inspect(), "nc_rom_assessment": assess_nc_rom(rom).as_dict(), "hexdump": rom.hexdump(args.hex_offset, min(args.hex_length,4096))}
         if args.compare:
             result["comparison"] = compare(rom, ROMImage.from_file(args.compare))
         if args.sh2_step:

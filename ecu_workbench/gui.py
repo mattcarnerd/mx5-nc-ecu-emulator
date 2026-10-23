@@ -8,13 +8,14 @@ import json
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 from .core import ROMImage, compare
+from .nc_rom import assess_nc_rom
 from .sh2 import SH2Subset
 
 
 class Workbench(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("ECU Workbench — Universal ROM Inspector")
+        self.title("MX-5 NC ECU Workbench — ROM inspection")
         self.geometry("1000x760")
         self.minsize(740, 560)
         self.rom: ROMImage | None = None
@@ -32,7 +33,7 @@ class Workbench(tk.Tk):
         ttk.Label(root, text="ECU Workbench", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
             root,
-            text="Inspect and compare any binary ROM. CPU execution requires a compatible backend and valid memory mapping.",
+            text="Target: any valid MX-5 NC ECU ROM. Current version inspects ROMs; full NC ECU emulation is not yet available.",
         ).pack(anchor="w", pady=(2, 10))
 
         toolbar = ttk.Frame(root)
@@ -56,7 +57,7 @@ class Workbench(tk.Tk):
         self.details = self._text(inspect_frame)
         self._display(
             self.details,
-            "Open a ROM of any length, from any ECU or other device.\n\n"
+            "Open an MX-5 NC engine ECU ROM, or an unknown binary for preliminary inspection.\n\n"
             "The program will show the byte count, SHA-256, entropy and hex view. "
             "Use Compare with ROM for a byte-level diff.\n\n"
             "Opening a ROM is NOT equivalent to emulating its ECU or validating a calibration."
@@ -128,7 +129,7 @@ class Workbench(tk.Tk):
             return
         try:
             position = int(self.offset.get(), 0)
-            self.report = {"image": self.rom.inspect()}
+            self.report = {"image": self.rom.inspect(), "nc_rom_assessment": assess_nc_rom(self.rom).as_dict()}
             if self.other is not None:
                 self.report["comparison"] = compare(self.rom, self.other)
             self._display(
