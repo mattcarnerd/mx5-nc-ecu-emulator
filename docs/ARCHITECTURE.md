@@ -52,6 +52,28 @@ The **only** supported firmware phase is the limited reset diagnostic. No
 locally held LF9VEB binary is included in this repository, so the current
 post-Port-E genuine ROM stop remains unverified.
 
+## B33 — observed Port F PFDR register
+
+A user-generated **non-reference** NC ROM diagnostic (SHA-256
+`8a54527361db7d813b2c758f0a8b326575c5850e46159de135177b1edb44d0e2`)
+confirmed the Port E `0xFFFF` write and then stopped after 83 attempted
+instructions at SH7058 `PFDR 0xFFFFF74E`. Attempted opcode `2351` at
+`0x00000CBC` requested a 16-bit `0xFFFF` write. The SHA-256 **differs**
+from the previous original LF9VEB reference hash; this report is not proof
+that the original LF9VEB has the same next stop.
+
+`ecu_workbench/port_f.py` models the documented SH7058 Rev.3 §22.7
+8/16-bit Port F data latch, power-on zero and preserved unknown manual-reset
+state. The register is handled by the peripheral router. `PFIOR`
+controls whether read values reflect output latches or **explicitly provided**
+external pin levels; missing input levels cause a diagnostic stop. POD
+can tri-state PF0–PF4, but POD, alternate pins, and physical port outputs
+remain **unmodelled**. The write succeeding does not establish any
+physical output event or completed ECU boot.
+
+Renesas reference: https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual
+(sections 22.7.1–22.7.2, tables 22.11–22.12).
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:
