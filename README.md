@@ -199,7 +199,7 @@ To provide optional simulated inputs, use `--port-c-pins 0x15` and
 Windows application. By default all external Port C pin levels are unknown.
 
 Original LF9VEB, power reset, NMI high, 300-instruction maximum:
-**67 attempted instructions**, stopping on `MOV.W R0,@R0` (opcode
+**67 attempted instructions**, stopping on `MOV.W R1,@R0` (opcode
 `2011`, instruction address `0x00000C9C`) writing `0x3EFF` to
 unmodelled **Port D PDDR** at `0xFFFFF746`. This remains a reset
 diagnostic, not a working ECU. The next priority is B29/Port D.
