@@ -232,7 +232,7 @@ class Workbench(tk.Tk):
         if not path:
             return
         try:
-            Path(path).write_text(json.dumps(reduced, indent=2, sort_keys=True) + "\\n",
+            Path(path).write_text(json.dumps(reduced, indent=2, sort_keys=True) + "\n",
                                   encoding="utf-8")
         except OSError as exc:
             messagebox.showerror("Cannot save blocker report", str(exc))
