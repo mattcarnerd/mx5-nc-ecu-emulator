@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status after B29 (23 October 2026):** 7 of 30 one-pass tickets completed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
+**Last verified status after B29 (23 October 2026); B30 code pending verification:** 7 of 30 one-pass tickets completed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
 
 ## Working agreement — one issue = one development pass
 
@@ -26,6 +26,9 @@ A task is **not complete** until its implementation, tests, release **and** back
 Do this **automatically as part of handling a "do next task" request**. The user should not need to request a separate review. This is a per-development-pass checklist, not a promise of unattended future execution.
 
 ## Backlog review log
+
+| 2026-10-23 | B30 (implementation awaiting verification) | Port E PEDR latch handler and synthetic tests committed. The previously observed next stop is PEDR at 0xFFFFF754; a new private LF9VEB baseline has **not yet been measured**. Retain B26 as next planned inventory and B17 as refactor; do not add speculative GPIO tickets or claim a further boot milestone. **B30 remains open pending CI test confirmation, Windows release, and real-ROM regression.** |
+
 
 | When | Completed item | Evidence and decisions |
 |---|---|---|
