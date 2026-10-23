@@ -1,52 +1,73 @@
-# MX-5 ECU Workbench (early prototype)
+# ECU Workbench — format-agnostic ROM inspector and emulator research project
 
-A standalone, **offline**, shareable desktop tool for testing experimental Mazda
-MX-5 NC `LF9VEB` SH7058 firmware hooks. It executes **actual V7 hook instruction
-bytes** using a deliberately small SH-2E instruction-subset interpreter, checks
-register preservation and compares observed branch/map routing with expected
-behaviour.
+**Load any ROM**: open arbitrary nonempty binary files, regardless of manufacturer,
+calibration ID, file extension or size. The program identifies the file by hash,
+inspects it in hex, and compares it byte-by-byte with another image.
 
-**Not a full ECU emulator.** It does not emulate the complete processor,
-interrupts, peripherals or whole Mazda firmware. The live RAM variable meanings
-have not been verified on an ECU, and passing tests do not establish flash safety.
-No flashing, vehicle programming or OBD connectivity is included.
+**Important:** *Loading any ROM is not the same as emulating any ROM.* Firmware
+execution is processor-specific. The current optional interpreter supports
+only a small subset of SuperH SH-2 integer instructions and requires an
+explicit load address and program counter. Full processor, RAM, peripheral,
+engine, or ECU simulation has **not** been implemented. Unsupported
+instructions stop; they are never guessed.
 
-## Run locally
+The project started with Mazda MX-5 NC research, but the core loader and
+comparison engine have **no Mazda or LF9VEB assumptions**.
 
-Requires Python 3.11 or later. No third-party packages for the app.
+## Features
 
-- GUI: `python -m ecu_workbench`
-- CLI: `python -m ecu_workbench --rom path/to/your/V7.bin --rpm 4500 --pedal 0 --enabled 1 --trigger 4000 --flag 1 --trace`
-- Sweep: `python -m ecu_workbench --rom path/to/your/V7.bin --sweep --report audit.json`
-- Synthetic tests: `python -m unittest discover -s tests -v`
+| Capability | Current state |
+| --- | --- |
+| Open arbitrary binary images | Available |
+| SHA-256, file size, entropy, ASCII and hex dump | Available |
+| Compare files of different sizes | Available |
+| Export inspection and comparison report to JSON | Available |
+| Desktop GUI (Windows / Tkinter) | Implemented, Windows build pending CI |
+| Limited SH-2 instruction stepping | Experimental; not complete CPU emulation |
+| Configurable ECU profiles and memory/peripheral models | Planned |
+| Emulate any manufacturer or processor | Not available |
+| Read/write or flash a vehicle ECU | Not included |
 
-For optional integration tests, set the `MX5_V7_TEST_ROM` environment variable
-to the path of a separately obtained V7 research ROM. No Mazda ROM is distributed.
+## Run from Python
 
-## Coverage
+Python 3.11+; standard library only for running the app.
 
-- Requires a 1,048,576-byte LF9VEB ROM with expected V7 hook layout.
-- Executes the targeted DFCO, eight spark and three fuel-map hooks, including
-  a shared-pointer pass-through regression case.
-- Checks routing, branch decisions and select register/stack invariants.
-- Fails closed on unsupported instructions and unmapped reads.
-- Exports JSON report with ROM SHA-256, without embedding the binary.
+```powershell
+python -m ecu_workbench
+python -m ecu_workbench --rom "C:\\path\\to\\your\\own\\rom.bin"
+python -m ecu_workbench --rom stock.bin --compare tuned.bin --report changes.json
+```
 
-**Unverified input assumptions:** RAM `0xFFFF6DD8` (RPM),
-`0xFFFF6D1C` (pedal) and `0xFFFF739C` (DFCO flag).
+Optional, explicitly selected limited SH-2 instruction stepping:
 
-## Windows distribution
+```powershell
+python -m ecu_workbench --rom firmware.bin --sh2-step --pc 0x100 --base 0x0 --steps 50
+```
 
-`.github/workflows/build-windows.yml` runs tests and builds a portable Windows
-executable with PyInstaller; look under the GitHub Actions workflow artifacts.
-Keep this repo free of `.bin`, `.patch`, proprietary ECU definitions and flash dumps.
+To run tests:
 
-## Roadmap
+```powershell
+python -m unittest discover -s tests -v
+```
 
-Replace the limited instruction engine with Ghidra's SH-2E p-code execution,
-add precise memory/peripheral models, verify live RAM variables, and perform
-differential tests against factory code. Workbench is a research tool only.
+The desktop application lets you inspect and compare images without using
+the CLI. The project's Windows GitHub Actions build produces a downloadable
+workflow artifact when the build succeeds.
 
-Reference: https://ghidra.re/ghidra_docs/GhidraClass/Debugger/B2-Emulation.html
+## Extensibility roadmap
 
-See CONTRIBUTING.md; MIT licence.
+1. Generic, read-only file loading, hashes and comparisons — **implemented**.
+2. Pluggable architecture profiles with explicit CPU/memory mappings.
+3. Verified SH-2E execution engine, then additional architecture backends.
+4. Configurable hardware peripheral, sensor and interrupt models.
+5. Whole-firmware differential execution and reproducible tests.
+
+## Safety, copyright and privacy
+
+- The application **never flashes, edits or writes vehicle firmware**.
+- Do not upload proprietary ECU ROMs or calibration definitions into the repository.
+- ROMs are opened locally by the user; JSON reports include hashes and selected
+  sample bytes, but do not embed full ROM images.
+- A passing instruction test is not a certificate of safe ECU operation.
+
+Contributions are welcome under the MIT licence. See CONTRIBUTING.md.

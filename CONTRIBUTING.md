@@ -1,8 +1,14 @@
-# Contributing
+# Contributing to ECU Workbench
 
-Bug reports, additional **synthetic** SH instruction fixtures, instruction
-coverage, test scripts and UI improvements are welcome. Don't upload factory
-or remapped Mazda .bin files, vendor XML definitions or copyrighted manuals.
+The goal is to support **any binary file for inspection**, with optional
+processor-specific emulators and verified ECU profiles.
 
-A passing simulation does not mean an ECU flash is safe. No flashing or ECU
-programming functionality is included in this research tool.
+Good contributions include architecture decoders, synthetic test fixtures,
+static analysis, RAM/peripheral models, UI improvements and regression tests.
+Keep processor-specific assumptions isolated, never hard-code a Mazda
+calibration ID into the universal loader.
+
+Please do not commit copyrighted firmware, factory ROMs, proprietary XML
+definitions, client vehicle data or firmware dumps. Use synthetic binaries
+in unit tests. Passing a simulation does not prove hardware compatibility,
+and ECU flashing is not part of this repository.

@@ -1,10 +1,14 @@
 {
-  "product": "MX-5 ECU Workbench",
-  "engine": "Limited SH-2E instruction subset",
-  "ecu_executed": false,
-  "ecu_hardware_validated": false,
-  "scenarios": 360,
-  "pass": 360,
-  "fail": 0,
-  "scope": "Targeted V7 hooks only; synthetic/example result, not independent hardware validation"
+  "product": "ECU Workbench",
+  "source": "synthetic fixture",
+  "application_version": "0.1.0",
+  "mode": "ROM inspection",
+  "image": {
+    "name": "example.bin",
+    "size_bytes": 6,
+    "sha256": "synthetic-only",
+    "program_architecture": "unknown"
+  },
+  "hardware_validated": false,
+  "note": "Illustration only, not a real ROM test"
 }
