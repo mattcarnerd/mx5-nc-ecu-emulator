@@ -15,3 +15,18 @@ other specialist tools, not this emulator.
 Only contribute legally reusable code and synthetic fixtures. Do not commit
 OEM ROMs, vendor definitions, VINs, security keys or proprietary calibration
 data. A simulation passing does not certify a ROM for use on a real vehicle.
+
+## Task completion and backlog review
+
+For each GitHub issue completed in a development pass:
+
+- Implement the bounded functionality and unit tests; retain optional local-ROM regression tests.
+- Rerun the current real-ROM reset trace where locally available, and inspect the precise new instruction/hardware blocker.
+- **Review the complete open backlog every single time**: change priority/dependencies, narrow or split an issue, add new tickets for actual gaps, and avoid duplicate issues. Note explicitly when no changes are justified.
+- Record the review decision in [BACKLOG.md](BACKLOG.md), keeping that file's order aligned with GitHub issue titles and priorities.
+- Verify that automated tests passed and a new Windows EXE was published under [Releases](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases).
+- Link commit, CI, release and the backlog review outcome in the issue **before marking it complete**.
+
+This review happens in the same development pass as each finished task; it
+must not rely on the user asking for a separate review. See the
+[mandatory post-task process and decision log](BACKLOG.md).
