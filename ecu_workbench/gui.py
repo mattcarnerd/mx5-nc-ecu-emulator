@@ -82,8 +82,10 @@ class Workbench(tk.Tk):
         tabs = ttk.Notebook(panel)
         tabs.pack(fill="both", expand=True)
         self.summary = self._tab(tabs, "Boot status")
+        self.blocker = self._tab(tabs, "Next dependency")
         self.trace = self._tab(tabs, "Firmware instruction trace")
         self.peripherals = self._tab(tabs, "Hardware accesses")
+        self._set(self.blocker, "Load a ROM and run the diagnostic to identify a blocker.")
         self._set(
             self.summary,
             "This tool executes the ROM's actual instructions from its reset vector.\n\n"
@@ -138,6 +140,7 @@ class Workbench(tk.Tk):
                 "A plausible ROM size is not proof that the image is a valid NC ROM.",
             )
             self._set(self.trace, "No execution trace yet.")
+            self._set(self.blocker, "No startup diagnostic yet.")
             self._set(self.peripherals, "No simulated peripheral accesses yet.")
         except (OSError, ValueError) as exc:
             messagebox.showerror("Cannot load ROM", str(exc))
@@ -176,11 +179,20 @@ class Workbench(tk.Tk):
                 "reset_vectors": result.get("vectors"),
                 "pc_at_stop": result.get("pc_at_stop"),
                 "stop_reason": stop,
+                "next_dependency": result.get("next_dependency"),
                 "modelled_peripheral_access_count": len(result.get("modelled_peripheral_accesses", [])),
                 "next_step": "Implement missing CPU/peripheral behaviour, then rerun this ROM.",
                 "warning": "An instruction limit or clean stop is NOT a successful ECU boot.",
             }
             self._set(self.summary, json.dumps(overview, indent=2))
+            dependency = result.get("next_dependency")
+            if dependency is not None:
+                prefix = ("Next missing dependency or stop condition:\n\n"
+                          if dependency.get("is_dependency_blocker")
+                          else "Instruction budget reached — not an ECU boot or hardware failure:\n\n")
+                self._set(self.blocker, prefix + json.dumps(dependency, indent=2))
+            else:
+                self._set(self.blocker, "No stop dependency is available.")
             trace = result.get("trace", [])
             self._set(self.trace, "\n".join(
                 f"{t.get('pc', '?')}    {t.get('opcode', '?')}  {'[delay slot]' if t.get('delay_slot') else ''}"

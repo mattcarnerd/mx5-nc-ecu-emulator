@@ -69,6 +69,7 @@ def capture_boot_baseline(
             "pc_at_stop": run.get("pc_at_stop"),
             "last_fetched_pc": run.get("last_fetched_pc"),
             "stop": stop,
+            "next_dependency": run.get("next_dependency"),
             "first_unsupported_peripheral": unsupported,
             "trace_tail": trace[-TRACE_TAIL_LENGTH:],
             "boot_complete": False,

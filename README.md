@@ -131,6 +131,32 @@ this work makes input handling accurate; it does not artificially progress
 firmware boot. NMI is the *separate* non-maskable interrupt input monitored
 through ICR bit 15 (NMIL); default interrupt-edge selection is falling edge.
 
+## B04 — precise firmware startup blockers
+
+The main JSON diagnostic and the desktop **Next dependency** tab now report:
+
+- Category of stop: unsupported CPU instruction, unmodelled hardware,
+  required external pin level, uninitialised RAM, invalid ROM/vector, or
+  instruction budget reached. These are deliberately distinct.
+- **Failing instruction address**, **fetched opcode** and delay-slot flag,
+  independently of the CPU's **PC at stop**, which may have advanced.
+- Attempted memory access direction (`read`/`write`/`fetch`), address,
+  size and written value when the bus supplies that information.
+- The **16 instructions preceding the failing instruction**, excluding
+  the attempted failing instruction itself. For an instruction-fetch
+  failure there is no invented opcode.
+- `is_dependency_blocker: false` when the instruction limit is reached,
+  rather than claiming the ECU booted or inventing missing hardware.
+
+The compact `--baseline` JSON also includes `result.next_dependency`.
+Existing `pc_at_stop`, raw `stop` and `trace` fields remain for compatibility.
+
+For the unmodified LF9VEB ROM (power-on reset, NMI high), B04 reports
+**opcode `2201` at instruction PC `0x00000C8C`**, a 16-bit write of
+`0x001F` to unmodelled Port C data register `0xFFFFF73E`.
+The existing 59-instruction startup stop remains unchanged. This reporting
+improvement does **not** implement Port C or complete ECU boot.
+
 ## Engineering priorities
 
 1. Model the missing Port B hardware input/output behaviour with verified

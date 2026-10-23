@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import hashlib
 from typing import Optional
 from .core import ROMImage
+from .boot_reporting import explain_stop
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -323,16 +324,22 @@ class NCBootDiagnostic:
         self.known_sr_value=0xF0
         self.vbr=0
         self.executed=0;self.trace=[]
+        self._active_instruction=None
+        self._fetch_pc=None
     def reg(self,n):
         v=self.r[n]
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
         return v
     def execute(self, *, delay_slot: bool=False):
         pc=self.pc
+        self._fetch_pc=pc
+        self._active_instruction=None
         op=self.bus.read(pc,2)
         n,m=(op>>8)&15,(op>>4)&15
         self.pc=(pc+2)&0xFFFFFFFF
-        self.trace.append({'pc':f'0x{pc:08X}','opcode':f'{op:04X}','delay_slot':delay_slot})
+        entry={'pc':f'0x{pc:08X}','opcode':f'{op:04X}','delay_slot':delay_slot}
+        self.trace.append(entry)
+        self._active_instruction=entry
         self.executed+=1
         if op==0x0009: return None
         if (op&0xF000)==0xE000:  # mov #imm,Rn
@@ -412,6 +419,9 @@ class NCBootDiagnostic:
                     self.pc=target
             except BootStop as e:
                 stop=e.report();break
+        dependency=explain_stop(stop, trace=self.trace,
+                                active_instruction=self._active_instruction,
+                                fetch_pc=self._fetch_pc)
         return {
             'engine':'SH7058 reset diagnostic (partial SH-2 integer instruction subset)',
             'rom_sha256':hashlib.sha256(self.bus.image.data).hexdigest(),
@@ -430,6 +440,7 @@ class NCBootDiagnostic:
             'pr_at_stop':None if self.pr is None else f'0x{self.pr:08X}',
             'executed_instructions':self.executed,
             'stop':stop,
+            'next_dependency':dependency,
             'trace':self.trace[-min(100,len(self.trace)):],
             'modelled_peripheral_accesses':self.bus.peripheral_trace,
             'boot_complete':False,
@@ -444,4 +455,6 @@ def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi
                                 port_b_pin_known_mask=port_b_pin_known_mask).run(max_steps=max_steps)
     except BootStop as e:
         return {'engine':'SH7058 reset diagnostic','profile':'sh7058-1m-readonly','reset':reset,'nmi_high':nmi_high,
-                'stop':e.report(),'boot_complete':False}
+                'stop':e.report(),
+                'next_dependency':explain_stop(e.report(),trace=[]),
+                'boot_complete':False}
