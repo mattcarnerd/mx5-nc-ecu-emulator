@@ -66,6 +66,6 @@ class PortETests(unittest.TestCase):
         data[0x10C:0x110]=PEDR_ADDRESS.to_bytes(4,'big')
         d=NCBootDiagnostic(ROMImage('synthetic',bytes(data)))
         result=d.run(4)
-        self.assertEqual(d.bus.port_e.data,0x00FF)
+        self.assertEqual(d.bus.port_e.data,0xFFFF)
         self.assertEqual(result['stop']['reason'],'instruction_limit')
         self.assertFalse(result['boot_complete'])
