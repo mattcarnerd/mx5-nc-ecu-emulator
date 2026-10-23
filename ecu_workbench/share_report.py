@@ -86,6 +86,13 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
                      a.get("register") == "PEDR" and a.get("access") == "write" and
                      a.get("width") == 2 and a.get("value") == 0xFFFF]
     observed_port_e_write = bool(port_e_writes)
+    # B33: record the exact newly observed Port F startup write; never
+    # infer the write from instruction count or from the register model.
+    observed_port_f_write = any(
+        isinstance(a, dict) and a.get("register") == "PFDR"
+        and a.get("access") == "write" and a.get("width") == 2
+        and a.get("value") == 0xFFFF for a in accesses
+    )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
                       and limit == 300 and provided is False)
     dependency = boot.get("next_dependency")
@@ -133,6 +140,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
             "memory_access": dependency_memory,
         },
         "pedr_word_write_ffff_in_peripheral_trace": observed_port_e_write,
+        "pfdr_word_write_ffff_in_peripheral_trace": observed_port_f_write,
         "assessment": assessment,
         "boot_complete": False,
         "warning": "This is a reduced diagnostic report, not ROM authenticity proof or a completed ECU boot. No ROM bytes, filenames, file paths or full instruction traces included.",
