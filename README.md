@@ -41,6 +41,7 @@ packages). Windows binaries are built by GitHub Actions.
 python -m ecu_workbench
 python -m ecu_workbench --rom original.bin --reset power --steps 300
 python -m ecu_workbench --rom original.bin --reset power --nmi high --steps 300 --report boot.json
+python -m ecu_workbench --rom original.bin --baseline --reset power --nmi high --steps 300 --report baseline.json
 python -m unittest discover -s tests -v
 ```
 
@@ -56,6 +57,32 @@ Port B register (`0xFFFFF738`). This is an incomplete startup trace,
 **not** evidence that the firmware booted.
 
 For the current one-pass development sequence, see the **[prioritised backlog](BACKLOG.md)** and its linked GitHub issues.
+
+## B01 — reproducible reset baseline
+
+Use `--baseline` to save a small deterministic JSON snapshot containing the
+ROM SHA-256, image size, reset/NMI settings, instruction count, stop PC,
+stop reason, last 16 executed instructions and first unsupported peripheral
+access if one was encountered. It includes **no ROM bytes or file path**.
+Identical firmware and input settings yield identical baseline JSON.
+
+```powershell
+python -m ecu_workbench --rom "C:\\path\\to\\lf9veb.bin" --baseline --reset power --nmi high --steps 300 --report baseline.json
+```
+
+Optional private-ROM integration check: set `MX5_NC_TEST_ROM` to a local ROM
+path before running the unit tests. On the locally held original LF9VEB ROM
+(SHA-256 `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`),
+power reset at 300 maximum steps produces:
+
+| Simulated NMI | Instructions | Stop reason | PC at stop |
+| --- | ---: | --- | --- |
+| unknown | 23 | `missing_input`, ICR NMI read `0xFFFFED18` | `0x00000C4A` |
+| high | 46 | `unmodelled_peripheral`, Port B write `0xFFFFF738` | `0x00000C74` |
+| low | 300 | `instruction_limit` while NMI polling | `0x00000C4C` |
+
+These are **reset-execution diagnostics, not completed ECU boots**. Future
+changes to the instruction engine must be compared against this baseline.
 
 ## Engineering priorities
 

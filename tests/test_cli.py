@@ -25,6 +25,32 @@ class BootCLITests(unittest.TestCase):
             self.assertFalse(report["nc_boot"]["boot_complete"])
             self.assertNotIn("comparison", report)
 
+
+    def test_baseline_cli_and_report_match(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "fixture.bin"
+            result_path = Path(tmp) / "baseline.json"
+            data = bytearray(0x100000)
+            for index, value in enumerate((0x100, 0xFFFFBFA0, 0x100, 0xFFFFBFA0)):
+                data[index * 4:index * 4 + 4] = value.to_bytes(4, "big")
+            data[0x100:0x102] = bytes.fromhex("0009")
+            path.write_bytes(data)
+            args = ["--rom", str(path), "--baseline", "--steps", "1",
+                    "--nmi", "high", "--report", str(result_path)]
+            outputs = []
+            for _ in range(2):
+                stdout = StringIO()
+                with redirect_stdout(stdout):
+                    self.assertEqual(main(args), 0)
+                outputs.append(stdout.getvalue())
+            self.assertEqual(outputs[0], outputs[1])
+            self.assertEqual(outputs[-1], result_path.read_text(encoding="utf-8"))
+            report = json.loads(outputs[0])
+            self.assertEqual(report["kind"], "nc_sh7058_reset_baseline")
+            self.assertEqual(report["inputs"]["nmi"], "high")
+            self.assertEqual(report["result"]["executed_instructions"], 1)
+            self.assertFalse(report["result"]["boot_complete"])
+
     def test_compare_option_no_longer_accepted(self):
         with self.assertRaises(SystemExit) as raised:
             main(["--rom", "test.bin", "--compare", "other.bin"])

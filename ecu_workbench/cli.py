@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
+from .boot_baseline import capture_boot_baseline
 from .nc_rom import assess_nc_rom
 
 
@@ -21,6 +22,8 @@ def main(argv=None):
     parser.add_argument("--steps", type=int, default=300,
                         help="Maximum number of real instructions to execute (1..100000)")
     parser.add_argument("--report", help="Save diagnostic JSON at this location")
+    parser.add_argument("--baseline", action="store_true",
+                        help="Emit deterministic compact reset baseline JSON (instead of detailed diagnostics)")
     args = parser.parse_args(argv)
 
     if not 1 <= args.steps <= 100000:
@@ -28,16 +31,19 @@ def main(argv=None):
 
     try:
         image = ROMImage.from_file(args.rom)
-        result = {
-            "image": image.inspect(),
-            "nc_rom_assessment": assess_nc_rom(image).as_dict(),
-            "nc_boot": diagnose_nc_reset(
-                image,
-                reset=args.reset,
-                max_steps=args.steps,
-                nmi_high={"unknown": None, "high": True, "low": False}[args.nmi],
-            ),
-        }
+        pin = {"unknown": None, "high": True, "low": False}[args.nmi]
+        if args.baseline:
+            result = capture_boot_baseline(
+                image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
+            )
+        else:
+            result = {
+                "image": image.inspect(),
+                "nc_rom_assessment": assess_nc_rom(image).as_dict(),
+                "nc_boot": diagnose_nc_reset(
+                    image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
+                ),
+            }
         output = json.dumps(result, indent=2)
         if args.report:
             Path(args.report).write_text(output + "\n", encoding="utf-8")
