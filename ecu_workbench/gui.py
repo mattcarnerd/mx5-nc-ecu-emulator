@@ -10,6 +10,7 @@ from tkinter import ttk, filedialog, messagebox
 from .core import ROMImage, compare
 from .nc_rom import assess_nc_rom
 from .sh2 import SH2Subset
+from .nc_boot import diagnose_nc_reset
 
 
 class Workbench(tk.Tk):
@@ -25,6 +26,8 @@ class Workbench(tk.Tk):
         self.pc = tk.StringVar(value="0x0")
         self.base = tk.StringVar(value="0x0")
         self.steps = tk.StringVar(value="100")
+        self.nmi_setting = tk.StringVar(value="unknown")
+        self.reset_setting = tk.StringVar(value="power")
         self._layout()
 
     def _layout(self):
@@ -78,6 +81,13 @@ class Workbench(tk.Tk):
             text="Limited SH-2 instruction subset ONLY. Does not model a full ECU, RAM, peripherals or interrupts.\n"
                  "Unsupported instructions halt. You must supply a valid PC and ROM load address."
         ).pack(anchor="w", pady=(0, 8))
+        boot_row = ttk.Frame(cpu_frame)
+        boot_row.pack(fill="x", pady=(2, 8))
+        ttk.Label(boot_row, text="NC reset:").pack(side="left")
+        ttk.Combobox(boot_row, textvariable=self.reset_setting, values=("power", "manual"), state="readonly", width=9).pack(side="left", padx=4)
+        ttk.Label(boot_row, text="Simulated NMI pin:").pack(side="left", padx=(8, 0))
+        ttk.Combobox(boot_row, textvariable=self.nmi_setting, values=("unknown", "high", "low"), state="readonly", width=10).pack(side="left", padx=4)
+        ttk.Button(boot_row, text="Diagnose NC startup", command=self.run_nc_boot).pack(side="left", padx=8)
         self.cpu_output = self._text(cpu_frame)
 
     def _text(self, parent):
@@ -154,6 +164,22 @@ class Workbench(tk.Tk):
             self._display(self.cpu_output, json.dumps(result, indent=2))
         except ValueError as exc:
             messagebox.showerror("Invalid CPU test settings", str(exc))
+
+    def run_nc_boot(self):
+        if self.rom is None:
+            messagebox.showinfo("Load ROM", "Open an NC engine ECU ROM first.")
+            return
+        try:
+            result = diagnose_nc_reset(
+                self.rom, reset=self.reset_setting.get(),
+                max_steps=int(self.steps.get()),
+                nmi_high={"unknown": None, "high": True, "low": False}[self.nmi_setting.get()])
+            if self.report is None:
+                self.report = {}
+            self.report["nc_boot"] = result
+            self._display(self.cpu_output, json.dumps(result, indent=2))
+        except (KeyError, ValueError) as exc:
+            messagebox.showerror("Boot diagnostic", str(exc))
 
     def save_report(self):
         if not self.report:

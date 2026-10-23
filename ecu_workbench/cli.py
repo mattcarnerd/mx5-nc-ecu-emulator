@@ -6,6 +6,7 @@ from pathlib import Path
 from .core import ROMImage, compare
 from .nc_rom import assess_nc_rom
 from .sh2 import SH2Subset
+from .nc_boot import diagnose_nc_reset
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Mazda MX-5 NC engine ECU Workbench (NC ROM emulation under development)")
@@ -13,6 +14,9 @@ def main(argv=None):
     parser.add_argument("--compare", help="A second binary to compare")
     parser.add_argument("--hex-offset", type=lambda x:int(x,0), default=0)
     parser.add_argument("--hex-length", type=lambda x:int(x,0), default=128)
+    parser.add_argument("--nc-boot", action="store_true", help="Run SH7058 reset-vector boot diagnostic (partial, read-only)")
+    parser.add_argument("--reset", choices=["power","manual"], default="power")
+    parser.add_argument("--nmi", choices=["unknown","high","low"], default="unknown", help="Explicit NMI pin level, unknown by default")
     parser.add_argument("--sh2-step", action="store_true", help="Opt-in partial SH-2 interpreter")
     parser.add_argument("--pc", type=lambda x:int(x,0))
     parser.add_argument("--base", type=lambda x:int(x,0), default=0)
@@ -24,6 +28,10 @@ def main(argv=None):
         result = {"image": rom.inspect(), "nc_rom_assessment": assess_nc_rom(rom).as_dict(), "hexdump": rom.hexdump(args.hex_offset, min(args.hex_length,4096))}
         if args.compare:
             result["comparison"] = compare(rom, ROMImage.from_file(args.compare))
+        if args.nc_boot:
+            result["nc_boot"] = diagnose_nc_reset(
+                rom, reset=args.reset, max_steps=args.steps,
+                nmi_high={"high": True, "low": False, "unknown": None}[args.nmi])
         if args.sh2_step:
             if args.pc is None:
                 parser.error("--sh2-step requires --pc (use --base for ROM mapping)")

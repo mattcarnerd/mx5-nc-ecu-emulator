@@ -96,3 +96,29 @@ emulator. The next release should reflect this revised product definition.
 - This project never edits/flashes vehicle firmware or connects to a car.
 
 MIT licence. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## SH7058 reset-vector boot diagnostic (experimental)
+
+Run the real instructions at the ROM's power-on or manual reset vector. The
+read-only model provides 1 MiB flash, 48 KiB RAM, partial SH-2 instruction
+decoding, and a small documented subset of BSC, clock, interrupt and port
+registers. It stops at unmodelled hardware or unsupported opcodes rather
+than silently fabricating ECU behaviour. It is **not yet a booting ECU**.
+
+```powershell
+python -m ecu_workbench --rom your-nc.bin --nc-boot --reset power --steps 300
+python -m ecu_workbench --rom your-nc.bin --nc-boot --reset power --nmi high --steps 300 --report boot.json
+```
+
+The GUI exposes **Diagnose NC startup** under Experimental CPU test,
+with selectable power/manual reset and NMI input. NMI is unknown by default.
+The optional integration test uses a locally supplied ROM through the
+`MX5_NC_TEST_ROM` environment variable; no manufacturer ROM is committed.
+
+On the separately held LF9VEB research ROM, **explicit simulated NMI-high**
+reached 46 actual instructions before stopping at the unmodelled Port B data
+register at `0xFFFFF738`. Other ROMs or pin inputs may stop earlier.
+This does not prove a ROM boots, is correctly identified, or is safe to flash.
+
+Hardware references: [Renesas SH7058 Rev. 3.00](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual),
+sections 5, 6, 7, 9, 21 and 22.
