@@ -55,6 +55,8 @@ executed **46 startup instructions**, then stopped at an unmodelled
 Port B register (`0xFFFFF738`). This is an incomplete startup trace,
 **not** evidence that the firmware booted.
 
+For the current one-pass development sequence, see the **[prioritised backlog](BACKLOG.md)** and its linked GitHub issues.
+
 ## Engineering priorities
 
 1. Model the missing Port B hardware input/output behaviour with verified
