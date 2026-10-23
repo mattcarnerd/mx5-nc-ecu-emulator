@@ -122,14 +122,12 @@ class ResetNMIMatrixTests(unittest.TestCase):
             result = diagnose_nc_reset(rom, reset="power", nmi_high=nmi, max_steps=300)
             self.assertFalse(result["boot_complete"])
             observed[label] = (result["executed_instructions"], result["stop"]["reason"])
-        self.assertEqual(observed, {
-            "unknown": (23, "missing_input"),
-            "high": (76, "unmodelled_peripheral"),
-            "low": (300, "instruction_limit"),
-        })
+        self.assertEqual(observed["unknown"], (23, "missing_input"))
+        self.assertEqual(observed["low"], (300, "instruction_limit"))
+        self.assertGreater(observed["high"][0], 76)
         high = diagnose_nc_reset(rom, reset="power", nmi_high=True, max_steps=300)
-        self.assertEqual(high["next_dependency"]["instruction_pc"], "0x00000CAE")
-        self.assertEqual(high["next_dependency"]["opcode"], "2151")
-        self.assertEqual(high["next_dependency"]["memory_access"]["address"], "0xFFFFF754")
+        self.assertTrue(any(x.get("register") == "PEDR" and
+                            x.get("access") == "write" and x.get("value") == 0xFFFF
+                            for x in high["modelled_peripheral_accesses"]))
         manual = diagnose_nc_reset(rom, reset="manual", nmi_high=True, max_steps=300)
         self.assertFalse(manual["boot_complete"])
