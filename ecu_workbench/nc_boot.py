@@ -11,6 +11,7 @@ from typing import Optional
 from .core import ROMImage
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
+from .port_e import PortE, PEDR_ADDRESS
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -81,7 +82,8 @@ class BootBus:
     def __init__(self, image: ROMImage, *, power_on: bool=True, nmi_high: Optional[bool]=None,
                  port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
                  port_c_pin_values: Optional[int]=None, port_c_pin_known_mask: int=PC_VALID_MASK,
-                 port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF):
+                 port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF,
+                 port_e_pin_values: Optional[int]=None, port_e_pin_known_mask: int=0xFFFF):
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
@@ -109,6 +111,9 @@ class BootBus:
         self.port_d = PortD(power_on=power_on, pfc=self.pfc, trace=self.peripheral_trace,
                             stop_type=BootStop, pin_values=port_d_pin_values,
                             pin_known_mask=port_d_pin_known_mask)
+        self.port_e = PortE(power_on=power_on, pfc=self.pfc, trace=self.peripheral_trace,
+                            stop_type=BootStop, pin_values=port_e_pin_values,
+                            pin_known_mask=port_e_pin_known_mask)
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
@@ -277,6 +282,8 @@ class BootBus:
         return value
 
     def read(self, a: int, width: int) -> int:
+        if a == PEDR_ADDRESS and width == 4:
+            self.port_e._mask(a,width,'read')
         if a in (PDDR_ADDRESS, PDPR_ADDRESS) and width == 4:
             self.port_d._mask(a,width,a,'Port D','read')
         if a == PCDR_ADDRESS and width == 4:
@@ -287,6 +294,8 @@ class BootBus:
         region,off=self._region(a,width,'read')
         if region=='rom':return int.from_bytes(self.image.data[off:off+width], 'big')
         if region=='peripheral':
+            if off in (PEDR_ADDRESS,PEDR_ADDRESS+1):
+                return self.port_e.read(off,width)
             if off in (PDDR_ADDRESS,PDDR_ADDRESS+1,PDPR_ADDRESS,PDPR_ADDRESS+1):
                 return self.port_d.read(off,width)
             if PCDR_ADDRESS <= off <= PCDR_ADDRESS + 1:
@@ -345,6 +354,8 @@ class BootBus:
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
     def write(self, a:int,width:int,value:int):
+        if a == PEDR_ADDRESS and width == 4:
+            self.port_e._mask(a,width,'write')
         if a in (PDDR_ADDRESS,PDPR_ADDRESS) and width == 4:
             self.port_d._mask(a,width,a,'Port D','write')
         if a == PCDR_ADDRESS and width == 4:
@@ -354,6 +365,8 @@ class BootBus:
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'write',value)
         if region=='peripheral':
+            if off in (PEDR_ADDRESS,PEDR_ADDRESS+1):
+                return self.port_e.write(off,width,value)
             if off in (PDDR_ADDRESS,PDDR_ADDRESS+1,PDPR_ADDRESS,PDPR_ADDRESS+1):
                 return self.port_d.write(off,width,value)
             if PCDR_ADDRESS <= off <= PCDR_ADDRESS + 1:
