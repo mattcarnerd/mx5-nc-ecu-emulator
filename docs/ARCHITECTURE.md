@@ -31,6 +31,27 @@ to individual ROM binaries merely to make them pass tests.
    NC ROMs; compare outputs and identify unsupported hardware dependencies,
    crashes, uninitialised reads and timeouts.
 
+## B17 peripheral data-register routing
+
+`ecu_workbench/peripheral_router.py` provides an explicit address registry for
+already implemented Port B/C/D/E data and physical-pin registers. Each
+two-byte register covers its word address and the individual high/low byte
+addresses, consistent with the SH7058 big-endian bus. There is no default
+zero-valued register: unregistered accesses fall through to the existing
+`unmodelled_peripheral` stop.
+
+The router delegates actual read/write semantics to the existing B/C/D/E
+handlers (including Port D/E classes), preserving reset-known masks, pin
+direction/mux caveats, read-only physical-pin registers, reserved bits and
+diagnostic traces. It checks documented invalid 32-bit access **before** the
+bus alignment check, retaining existing error categories and details. It
+does not drive pins or simulate new hardware. Synthetic routing tests run
+alongside the original reset and peripheral suites.
+
+The **only** supported firmware phase is the limited reset diagnostic. No
+locally held LF9VEB binary is included in this repository, so the current
+post-Port-E genuine ROM stop remains unverified.
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:
