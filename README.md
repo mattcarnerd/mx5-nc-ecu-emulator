@@ -72,8 +72,16 @@ See [architecture](docs/ARCHITECTURE.md) and
 
 ## Distribution and safety
 
-GitHub Releases contain early Windows development builds. Earlier releases
-were ROM viewer prototypes; the current code deliberately removes comparison.
+**[Download the latest Windows EXE from GitHub Releases](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases)**.
+Open the newest development pre-release, expand **Assets**, then click
+`MX5-NC-ECU-Emulator.exe` for a direct download (or the Windows ZIP).
+**You do not need to use the Actions / Artifacts page.**
+
+Every successful push to `main` automatically builds and publishes a
+uniquely versioned Windows development pre-release with the EXE, ZIP and
+SHA-256 checksum file. Pull requests run tests without publishing a release.
+Earlier releases were ROM viewer prototypes; the current code deliberately
+removes comparison.
 No factory or modified ROM binaries are included in this repository.
 A successful diagnostic cannot establish flash safety or roadworthiness.
 The application does not communicate with vehicles or write ECU firmware.
