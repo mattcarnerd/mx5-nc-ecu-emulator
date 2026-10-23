@@ -12,6 +12,7 @@ from .core import ROMImage
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
 from .port_e import PortE, PEDR_ADDRESS
+from .peripheral_router import PeripheralRouter
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -114,6 +115,21 @@ class BootBus:
         self.port_e = PortE(power_on=power_on, pfc=self.pfc, trace=self.peripheral_trace,
                             stop_type=BootStop, pin_values=port_e_pin_values,
                             pin_known_mask=port_e_pin_known_mask)
+        # Register only known GPIO addresses; the original handlers retain
+        # width, reset, reserved-bit and physical-input checks.
+        self.port_router = PeripheralRouter()
+        self.port_router.add_word(name='PBDR',base=PBDR_ADDRESS,
+                                  read=self._pbdr_read,write=self._pbdr_write)
+        self.port_router.add_word(name='PBPR',base=PBPR_ADDRESS,
+                                  read=self._pbpr_read,write=self._pbpr_write)
+        self.port_router.add_word(name='PCDR',base=PCDR_ADDRESS,
+                                  read=self._pcdr_read,write=self._pcdr_write)
+        self.port_router.add_word(name='PDDR',base=PDDR_ADDRESS,
+                                  read=self.port_d.read,write=self.port_d.write)
+        self.port_router.add_word(name='PDPR',base=PDPR_ADDRESS,
+                                  read=self.port_d.read,write=self.port_d.write)
+        self.port_router.add_word(name='PEDR',base=PEDR_ADDRESS,
+                                  read=self.port_e.read,write=self.port_e.write)
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
@@ -181,6 +197,12 @@ class BootBus:
                                       'value': value, 'width': width,
                                       'scope': 'explicit_external_pin_levels'})
         return value
+
+    def _pbpr_write(self, address: int, width: int, value: int) -> None:
+        self._port_b_mask(address, width, PBPR_ADDRESS, 'PBPR')
+        raise BootStop('read_only_peripheral',
+                       'PBPR always samples physical pins and cannot be written',
+                       address=address, width=width, access='write', value=value)
 
     def _pbdr_read(self, address: int, width: int) -> int:
         mask = self._pbdr_mask(address, width)
