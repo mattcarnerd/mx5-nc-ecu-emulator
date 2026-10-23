@@ -17,6 +17,7 @@ PERIPHERAL_BASE, PERIPHERAL_LIMIT = 0xFFFFC000, 0x100000000
 # Renesas SH7058 Rev 3.00, sections 22.3.1-22.3.2, Tables 22.3/22.4.
 PBDR_ADDRESS = 0xFFFFF738
 PBIOR_ADDRESS = 0xFFFFF730
+PBPR_ADDRESS = 0xFFFFF782  # physical Port B pin levels, 16-bit read-only
 
 class BootStop(Exception):
     def __init__(self, kind: str, detail: str, *, address: Optional[int] = None, width: Optional[int] = None, access: Optional[str] = None, value: Optional[int] = None):
@@ -72,7 +73,8 @@ PFC_REGISTERS = {
 }
 
 class BootBus:
-    def __init__(self, image: ROMImage, *, power_on: bool=True, nmi_high: Optional[bool]=None):
+    def __init__(self, image: ROMImage, *, power_on: bool=True, nmi_high: Optional[bool]=None,
+                 port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF):
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
@@ -93,6 +95,7 @@ class BootBus:
         # initialise the untouched half of the register.
         self.pbdr = 0
         self.pbdr_known_mask = 0xFFFF if power_on else 0
+        self.set_port_b_pin_levels(port_b_pin_values, port_b_pin_known_mask)
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
@@ -124,28 +127,67 @@ class BootBus:
                        f'PBDR permits only aligned 8/16-bit access at 0x{a:08X}',
                        address=a, width=width)
 
+    def set_port_b_pin_levels(self, values: Optional[int], known_mask: int = 0xFFFF) -> None:
+        """Explicit 16-bit physical pin levels; bits absent from mask are unknown."""
+        if type(known_mask) is not int or not 0 <= known_mask <= 0xFFFF:
+            raise ValueError("port_b_pin_known_mask must be a 16-bit integer")
+        if values is not None and (type(values) is not int or not 0 <= values <= 0xFFFF):
+            raise ValueError("port_b_pin_values must be None or a 16-bit integer")
+        self.port_b_pin_values = 0 if values is None else values
+        self.port_b_pin_known_mask = 0 if values is None else known_mask
+
+    @staticmethod
+    def _port_b_mask(address: int, width: int, base_address: int, name: str) -> int:
+        if width == 2 and address == base_address: return 0xFFFF
+        if width == 1 and address == base_address: return 0xFF00
+        if width == 1 and address == base_address + 1: return 0x00FF
+        raise BootStop('unsupported_access_size',
+                       f'{name} permits only aligned 8/16-bit accesses at 0x{address:08X}',
+                       address=address, width=width)
+
+    def _port_b_physical_bits(self, mask: int, address: int, width: int) -> int:
+        if self.port_b_pin_known_mask & mask != mask:
+            missing = mask & ~self.port_b_pin_known_mask
+            raise BootStop('missing_input',
+                           f'Unknown physical Port B pin levels for bits 0x{missing:04X}',
+                           address=address, width=width, access='read')
+        return self.port_b_pin_values & mask
+
+    def _pbpr_read(self, address: int, width: int) -> int:
+        # SH7058 Rev 3.00 section 22.3.3: PBPR is always physical pin
+        # levels, even for outputs. Do not derive them from PBDR.
+        mask = self._port_b_mask(address, width, PBPR_ADDRESS, 'PBPR')
+        physical = self._port_b_physical_bits(mask, address, width)
+        value = physical >> (8 if mask == 0xFF00 else 0)
+        self.peripheral_trace.append({'register': 'PBPR', 'access': 'read',
+                                      'value': value, 'width': width,
+                                      'scope': 'explicit_external_pin_levels'})
+        return value
+
     def _pbdr_read(self, address: int, width: int) -> int:
         mask = self._pbdr_mask(address, width)
-        # Renesas Table 22.4: when a PBIOR bit is 0, reading PBDR
-        # samples the physical pin, NOT the output latch. B03 will
-        # implement external Port B pin states explicitly.
         directions = self.pfc[PBIOR_ADDRESS]
         if directions is None:
             raise BootStop('unknown_peripheral_reset_state',
                            'PBIOR preserved state is unknown; cannot interpret PBDR read',
                            address=address, width=width, access='read')
-        if directions & mask != mask:
-            raise BootStop('missing_input',
-                           'PBDR input-mode bits require external Port B pin levels',
-                           address=address, width=width, access='read')
-        if self.pbdr_known_mask & mask != mask:
+        # SH7058 Table 22.4: PBIOR=0 reads physical input; PBIOR=1
+        # returns the data latch. Other mux behaviour isn't claimed.
+        external_mask = mask & ~directions
+        latch_mask = mask & directions
+        external = self._port_b_physical_bits(external_mask, address, width) if external_mask else 0
+        if self.pbdr_known_mask & latch_mask != latch_mask:
             raise BootStop('unknown_peripheral_reset_state',
                            'PBDR output latch contains unknown bits after manual reset',
                            address=address, width=width, access='read')
-        value = (self.pbdr & mask) >> (8 if mask == 0xFF00 else 0)
-        self.peripheral_trace.append({'register':'PBDR','access':'read',
-                                      'value':value,'width':width,
-                                      'scope':'output_latch_not_pin_levels'})
+        combined = external | (self.pbdr & latch_mask)
+        value = (combined & mask) >> (8 if mask == 0xFF00 else 0)
+        self.peripheral_trace.append({'register': 'PBDR', 'access': 'read',
+                                      'value': value, 'width': width,
+                                      'physical_input_mask': f'0x{external_mask:04X}',
+                                      'latch_mask': f'0x{latch_mask:04X}',
+                                      'scope': ('output_latch_not_pin_levels' if external_mask == 0 else
+                                                'mixed_pin_and_latch_values')})
         return value
 
     def _pbdr_write(self, address: int, width: int, value: int) -> None:
@@ -162,10 +204,14 @@ class BootBus:
                                       'note':'External pin state and timer/serial mux not modelled'})
 
     def read(self, a: int, width: int) -> int:
+        if a == PBPR_ADDRESS and width == 4:
+            self._port_b_mask(a, width, PBPR_ADDRESS, 'PBPR')
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'read')
         if region=='rom':return int.from_bytes(self.image.data[off:off+width], 'big')
         if region=='peripheral':
+            if PBPR_ADDRESS <= off <= PBPR_ADDRESS + 1:
+                return self._pbpr_read(off, width)
             if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
                 return self._pbdr_read(off, width)
             if off == 0xFFFFF70B and width == 1:
@@ -209,9 +255,16 @@ class BootBus:
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
     def write(self, a:int,width:int,value:int):
+        if a == PBPR_ADDRESS and width == 4:
+            self._port_b_mask(a, width, PBPR_ADDRESS, 'PBPR')
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'write',value)
         if region=='peripheral':
+            if PBPR_ADDRESS <= off <= PBPR_ADDRESS + 1:
+                self._port_b_mask(off, width, PBPR_ADDRESS, 'PBPR')
+                raise BootStop('read_only_peripheral',
+                               'PBPR always samples physical pins and cannot be written',
+                               address=off, width=width, access='write', value=value)
             if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
                 return self._pbdr_write(off, width, value)
             if off == 0xFFFFF70A and width == 2:
@@ -250,11 +303,13 @@ class NCBootDiagnostic:
 
     Not cycle accurate, no interrupt execution, and no fabricated peripheral state.
     """
-    def __init__(self, rom: ROMImage, *, reset: str='power', nmi_high: Optional[bool]=None):
+    def __init__(self, rom: ROMImage, *, reset: str='power', nmi_high: Optional[bool]=None,
+                 port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF):
         if len(rom.data) != ROM_LIMIT:
             raise BootStop('unsupported_image_size','SH7058 1 MiB full-flash profile requires exactly 1,048,576 bytes')
         if reset not in ('power','manual'): raise ValueError('reset must be power or manual')
-        self.bus=BootBus(rom,power_on=(reset=="power"),nmi_high=nmi_high); self.vectors=ResetVectors.read(rom.data); self.reset=reset
+        self.bus=BootBus(rom,power_on=(reset=="power"),nmi_high=nmi_high,
+                         port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask); self.vectors=ResetVectors.read(rom.data); self.reset=reset
         self.pc=self.vectors.power_pc if reset=='power' else self.vectors.manual_pc
         sp=self.vectors.power_sp if reset=='power' else self.vectors.manual_sp
         if self.pc & 1 or not (ROM_BASE <= self.pc < ROM_LIMIT):
@@ -364,6 +419,9 @@ class NCBootDiagnostic:
             'profile':'sh7058-1m-readonly',
             'reset':self.reset,
             'nmi_high':self.bus.nmi_high,
+            'port_b_explicit_pins':None if self.bus.port_b_pin_known_mask == 0 else {
+                'value':f'0x{self.bus.port_b_pin_values:04X}',
+                'known_mask':f'0x{self.bus.port_b_pin_known_mask:04X}'},
             'vectors':self.vectors.as_dict(),
             'initial_sp':f'0x{(self.vectors.power_sp if self.reset=="power" else self.vectors.manual_sp):08X}',
             'sr_known_bits':{'mask':'0x000000F0','value':'0x000000F0'},
@@ -378,9 +436,12 @@ class NCBootDiagnostic:
             'note':'Not a complete SH7058 emulator; never assume firmware boots from this result.'
         }
 
-def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi_high: Optional[bool]=None) -> dict:
+def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi_high: Optional[bool]=None,
+                      port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF) -> dict:
     try:
-        return NCBootDiagnostic(rom,reset=reset,nmi_high=nmi_high).run(max_steps=max_steps)
+        return NCBootDiagnostic(rom, reset=reset, nmi_high=nmi_high,
+                                port_b_pin_values=port_b_pin_values,
+                                port_b_pin_known_mask=port_b_pin_known_mask).run(max_steps=max_steps)
     except BootStop as e:
         return {'engine':'SH7058 reset diagnostic','profile':'sh7058-1m-readonly','reset':reset,'nmi_high':nmi_high,
                 'stop':e.report(),'boot_complete':False}

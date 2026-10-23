@@ -19,6 +19,10 @@ def main(argv=None):
     parser.add_argument("--reset", choices=("power", "manual"), default="power")
     parser.add_argument("--nmi", choices=("unknown", "high", "low"), default="unknown",
                         help="Simulated NMI pin; unknown fails closed")
+    parser.add_argument("--port-b-pins", type=lambda s: int(s, 0),
+                        help="Explicit 16-bit physical Port B levels, e.g. 0x1234; omitted means unknown")
+    parser.add_argument("--port-b-known-mask", type=lambda s: int(s, 0), default=0xFFFF,
+                        help="Mask of Port B pin levels explicitly known (default: 0xFFFF if supplied)")
     parser.add_argument("--steps", type=int, default=300,
                         help="Maximum number of real instructions to execute (1..100000)")
     parser.add_argument("--report", help="Save diagnostic JSON at this location")
@@ -35,6 +39,7 @@ def main(argv=None):
         if args.baseline:
             result = capture_boot_baseline(
                 image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
+                port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
             )
         else:
             result = {
@@ -42,6 +47,7 @@ def main(argv=None):
                 "nc_rom_assessment": assess_nc_rom(image).as_dict(),
                 "nc_boot": diagnose_nc_reset(
                     image, reset=args.reset, max_steps=args.steps, nmi_high=pin,
+                    port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                 ),
             }
         output = json.dumps(result, indent=2)

@@ -26,6 +26,8 @@ class Workbench(tk.Tk):
         self.reset = tk.StringVar(value="power")
         self.nmi = tk.StringVar(value="unknown")
         self.steps = tk.StringVar(value="300")
+        self.port_b_pins = tk.StringVar(value="")
+        self.port_b_mask = tk.StringVar(value="0xFFFF")
         self.filename = tk.StringVar(value="No ROM loaded")
         self.status = tk.StringVar(value="Load an NC engine ECU ROM to begin.")
         self._build_ui()
@@ -64,6 +66,13 @@ class Workbench(tk.Tk):
         )
         self.run_button.pack(side="right")
         self.run_button.state(["disabled"])
+
+        pin_controls = ttk.Frame(panel)
+        pin_controls.pack(fill="x", pady=(0, 8))
+        ttk.Label(pin_controls, text="Port B physical pins (hex; blank = unknown)").pack(side="left")
+        ttk.Entry(pin_controls, textvariable=self.port_b_pins, width=12).pack(side="left", padx=(5, 12))
+        ttk.Label(pin_controls, text="Known-bit mask").pack(side="left")
+        ttk.Entry(pin_controls, textvariable=self.port_b_mask, width=12).pack(side="left", padx=5)
 
         ttk.Label(
             panel, textvariable=self.status, font=("Segoe UI", 11, "bold"),
@@ -146,6 +155,8 @@ class Workbench(tk.Tk):
                 reset=self.reset.get(),
                 nmi_high={"unknown": None, "high": True, "low": False}[self.nmi.get()],
                 max_steps=maximum,
+                port_b_pin_values=(int(self.port_b_pins.get(), 0) if self.port_b_pins.get().strip() else None),
+                port_b_pin_known_mask=int(self.port_b_mask.get(), 0),
             )
             self.report = {
                 "image": self.rom.inspect(),
@@ -161,6 +172,7 @@ class Workbench(tk.Tk):
                 "instructions_executed": instructions,
                 "reset": result.get("reset"),
                 "nmi_high": result.get("nmi_high"),
+                "port_b_explicit_pins": result.get("port_b_explicit_pins"),
                 "reset_vectors": result.get("vectors"),
                 "pc_at_stop": result.get("pc_at_stop"),
                 "stop_reason": stop,

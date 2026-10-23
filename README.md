@@ -106,6 +106,31 @@ With LF9VEB, NMI explicitly high and a 300-instruction cap:
 unmodelled 16-bit PCDR write `0xFFFFF73E`. This is still *partial
 firmware startup*, not a functional virtual ECU.
 
+### B03 — Port B external input simulation
+
+Renesas SH7058 Rev 3.00, §§22.3.1–22.3.3: **PBDR** (`0xFFFFF738`)
+combines input-mode physical pin readings with output-mode stored latch values.
+**PBPR** (`0xFFFFF782`) is a read-only register that always returns the
+physical Port B pin levels, even when output latches contain other values.
+Both registers permit 8-bit or 16-bit accesses.
+
+**No pin levels are supplied by default.** Unsupported reads stop as
+`missing_input`. For offline research, pass explicitly chosen 16-bit
+physical levels and optionally specify which individual bits are known:
+
+```powershell
+python -m ecu_workbench --rom original.bin --nmi high --port-b-pins 0x12A5 --port-b-known-mask 0x00FF --steps 300
+```
+
+A known-bit mask of `0x00FF` means PB7–PB0 are supplied; PB15–PB8
+remain unknown. Hex values are **synthetic test inputs**, not a claim about
+Mazda's actual ECU wiring. The desktop app exposes the same inputs.
+The original LF9VEB power-on / NMI-high startup still reaches the
+unmodelled **Port C data register at `0xFFFFF73E` after 59 instructions**:
+this work makes input handling accurate; it does not artificially progress
+firmware boot. NMI is the *separate* non-maskable interrupt input monitored
+through ICR bit 15 (NMIL); default interrupt-edge selection is falling edge.
+
 ## Engineering priorities
 
 1. Model the missing Port B hardware input/output behaviour with verified

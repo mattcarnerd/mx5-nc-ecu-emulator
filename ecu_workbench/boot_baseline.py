@@ -15,6 +15,7 @@ TRACE_TAIL_LENGTH = 16
 def capture_boot_baseline(
     rom: ROMImage, *, reset: str = "power", max_steps: int = 300,
     nmi_high: bool | None = None,
+    port_b_pin_values: int | None = None, port_b_pin_known_mask: int = 0xFFFF,
 ) -> dict:
     """Return a stable JSON-serialisable record of a bounded startup attempt.
 
@@ -30,6 +31,7 @@ def capture_boot_baseline(
 
     run = diagnose_nc_reset(
         rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high,
+        port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask,
     )
     trace = run.get("trace", [])
     stop = run.get("stop", {})
@@ -45,6 +47,13 @@ def capture_boot_baseline(
             "opcode": last_instruction.get("opcode"),
         }
 
+    input_settings = {"reset": reset,
+                      "nmi": "unknown" if nmi_high is None else ("high" if nmi_high else "low"),
+                      "max_steps": max_steps}
+    if port_b_pin_values is not None:
+        input_settings["port_b_pin_values"] = f"0x{port_b_pin_values:04X}"
+        input_settings["port_b_pin_known_mask"] = f"0x{port_b_pin_known_mask:04X}"
+
     return {
         "schema_version": BASELINE_SCHEMA_VERSION,
         "kind": "nc_sh7058_reset_baseline",
@@ -52,11 +61,7 @@ def capture_boot_baseline(
             "sha256": rom.sha256,
             "size_bytes": rom.size,
         },
-        "inputs": {
-            "reset": reset,
-            "nmi": "unknown" if nmi_high is None else ("high" if nmi_high else "low"),
-            "max_steps": max_steps,
-        },
+        "inputs": input_settings,
         "result": {
             "reset_vectors": run.get("vectors"),
             "initial_sp": run.get("initial_sp"),
