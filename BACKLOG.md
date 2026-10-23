@@ -27,6 +27,8 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## Backlog review log
 
+| 2026-10-23 | B31 / #38 — private-ROM blocker report workflow (CI/release pending) | Added read-only baseline reviewer, synthetic tests and local LF9VEB instructions. **Priority change:** B31 inserted at P0 as an evidence-gathering prerequisite before more speculative hardware/CPU work. B30's original ROM regression remains unresolved: the actual ROM is unavailable here. B06 onwards stays evidence-driven; B17/B26 are complete and not duplicated. No claim of an authentic next failure, firmware boot or simulated engine operation. |
+
 | When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
 | 2026-10-23 | B17 — GPIO routing refactor verified | Explicit register router now dispatches B/C/D/E; focused synthetic regressions cover endianness, write guards, reserved bits, unknown inputs, manual reset and unknown addresses. Latest full synthetic regression/build/release [run 39988080961](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/actions/runs/39988080961) succeeded and published [v0.2.0-dev.35.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.35.1). Four **obsolete optional LF9VEB exact-stop assertions** were updated to verify earlier observed Port C/D/E writes without pretending to know the post-Port-E stop. **No changes** to existing CPU/FPU prioritisation: wait for the next authentic LF9VEB blocker, then promote the existing corresponding task; do not invent a new GPIO ticket. B06 and later CPU groups remain evidence-led. |
@@ -35,7 +37,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 | 2026-10-23 | B04 (retrospective review after B01–B04) | LF9VEB blocker confirmed: `MOV.W R0,@R2` at `0x00000C8C`, write `0x001F` to PCDR `0xFFFFF73E`. Keep B05 next for reset/NMI regression protection. **Promote and narrow existing B18 to P0, immediately after B05**; no duplicate Port C ticket. **Promote B26 to P1**, early hardware-family/ROM inventory. **Defer B13–B15 FPU to P2** until a real executed ROM needs those instructions. All other tickets retain current scope; revisit CPU instruction ordering when the next blocker is known. |
 | 2026-10-23 | B05 | **No priority changes.** Tested power/manual reset × all NMI states, separated missing physical NMI pin from unknown manual-reset ICR latch, and made GUI report generation headless/testable. Original LF9VEB power-on/NMI-high remained 59 attempted instructions, stopping on PCDR `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). |
 | 2026-10-23 | B18 | Genuine LF9VEB advanced from 59 to 67 attempted instructions; next PDDR at `0xFFFFF746`, opcode `2011` at `0x00000C9C`, write `0x3EFF`. Add B29 (#36) before B26; defer unobserved CPU/FPU features. |
-| 2026-10-23 | B29 | Genuine LF9VEB advanced from 67 to 76 attempted instructions; next PEDR at `0xFFFFF754`, opcode `2151` at `0x00000CAE`, write `0xFFFF`. Add B30 (#37), promote existing B17 to P1 after B26, no duplicate GPIO ticket. 30 tasks in backlog. |
+| 2026-10-23 | B29 | Genuine LF9VEB advanced from 67 to 76 attempted instructions; next PEDR at `0xFFFFF754`, opcode `2151` at `0x00000CAE`, write `0xFFFF`. Add B30 (#37), promote existing B17 to P1 after B26, no duplicate GPIO ticket. 30 tasks at that review; B31 added later. |
 
 ## High-level parent workstreams
 
@@ -45,7 +47,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## P0 — Unblock the observed LF9VEB startup failure
 
-Highest confidence, immediate work. **Next evidence task: verify post-B30 LF9VEB execution using a privately held ROM.** B26 and B17 implementation/release work now exists; further CPU/peripheral implementation should follow the first genuine new stop. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
+Highest confidence, immediate work. **B31 provides a local report-review workflow; next evidence task remains running LF9VEB after B30 on a privately held ROM.** B26 and B17 implementation/release work now exists; further CPU/peripheral implementation should follow the first genuine new stop. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -57,6 +59,8 @@ Highest confidence, immediate work. **Next evidence task: verify post-B30 LF9VEB
 | **[B18](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/21)** | Implement verified Port C data register **PCDR `0xFFFFF73E`** (8/16-bit, PC0–PC4; reserved bits read zero; physical pin values explicit) | Pass synthetic reset/width/pin tests; LF9VEB must proceed beyond the real 59-instruction PCDR write without fake pins | B05 |
 | **[B29](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/36)** | Implement observed Port D data register **PDDR `0xFFFFF746`** | Verify 14 physical bits and modes; pass the real `0x3EFF` write and report next genuine blocker | B18 |
 | **[B30](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/37)** | Implement observed Port E data register **PEDR `0xFFFFF754`** | Register reset/read/write tests; no fabricated POD pin or physical outputs; advance LF9VEB past observed `0xFFFF` write | B29 |
+
+| **[B31](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/38)** | Local evidence reviewer for post-Port-E LF9VEB startup | Given locally produced baseline JSON, classify the historic Port E blocker vs other stops without exposing firmware or claiming boot | B30, B17 |
 
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
