@@ -157,6 +157,30 @@ For the unmodified LF9VEB ROM (power-on reset, NMI high), B04 reports
 The existing 59-instruction startup stop remains unchanged. This reporting
 improvement does **not** implement Port C or complete ECU boot.
 
+## B05 — reset and NMI regression safety
+
+The synthetic regression matrix runs both **power-on** and **manual reset**
+with NMI **unknown / high / low** (six combinations), preserving each reset
+vector and stack pointer. Tests verify the two different ICR blockers:
+unknown **physical NMI** input after power-on reset is `missing_input`,
+whereas **undefined ICR control state after manual reset** is
+`unknown_peripheral_reset_state` even when the NMI pin was supplied.
+Known NMI input never implies other reset-preserved hardware bits are known.
+
+A new pure, tkinter-independent `present_reset_diagnostic()` function drives
+the Windows GUI's status, summary, dependency and trace panels. Its output
+always says **ECU boot NOT verified**: a bounded instruction run, an invalid
+image or even an optimistic source field cannot turn the current partial CPU
+interpreter into a booted ECU. The displayed count means **attempted/fetched**
+instructions, not necessarily successfully completed ones.
+
+The regression suite includes an optional real-ROM matrix, enabled by
+`MX5_NC_TEST_ROM`. It records only hashes and diagnostic values; the OEM
+ROM is never stored in GitHub. Original LF9VEB with power-on reset,
+300-instruction limit remains: unknown NMI -> 23 (`missing_input`),
+high -> 59 (Port C PCDR `0xFFFFF73E`), low -> 300
+(`instruction_limit`). These results are **not ECU boots**.
+
 ## Engineering priorities
 
 1. Model the missing Port B hardware input/output behaviour with verified

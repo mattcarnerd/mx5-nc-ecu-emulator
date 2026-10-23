@@ -240,8 +240,17 @@ class BootBus:
                 self.peripheral_trace.append({'register':f'IPR{chr(65+(off-0xFFFFED00)//2)}','access':'read','value':v})
                 return v
             if width == 2 and off == 0xFFFFED18:
-                if self.nmi_high is None or self.icr_control is None:
-                    raise BootStop('missing_input','ICR read needs explicitly simulated NMI pin level and known ICR control state',address=off,width=width,access='read')
+                # A known physical NMI pin does not make a preserved
+                # manual-reset ICR control latch known. Diagnose each
+                # missing dependency separately rather than inventing state.
+                if self.icr_control is None:
+                    raise BootStop('unknown_peripheral_reset_state',
+                                   'ICR control state is unknown after manual reset',
+                                   address=off,width=width,access='read')
+                if self.nmi_high is None:
+                    raise BootStop('missing_input',
+                                   'ICR NMIL bit needs an explicitly simulated NMI pin level',
+                                   address=off,width=width,access='read')
                 v=(self.icr_control & 0x7FFF) | (0x8000 if self.nmi_high else 0)
                 self.peripheral_trace.append({'register':'ICR','access':'read','value':v,'nmi_high':self.nmi_high})
                 return v

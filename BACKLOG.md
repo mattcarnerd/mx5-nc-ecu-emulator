@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status after B04 (23 October 2026):** 4 of the 28 one-pass tickets completed. With the original LF9VEB ROM and NMI explicitly high, startup reaches **59 attempted instructions** before a documented 16-bit PCDR write at `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). Neither this nor the earlier 46-instruction result constitutes a successful ECU boot. NC1/NC2/NC3 ECU hardware and ROM profiles still require independent verification.
+**Current status after B05 (23 October 2026):** 5 of the 28 one-pass tickets completed. With the original LF9VEB ROM and NMI explicitly high, startup reaches **59 attempted instructions** before a documented 16-bit PCDR write at `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). Neither this nor the earlier 46-instruction result constitutes a successful ECU boot. NC1/NC2/NC3 ECU hardware and ROM profiles still require independent verification.
 
 ## Working agreement — one issue = one development pass
 
@@ -30,6 +30,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 | When | Completed item | Evidence and decisions |
 |---|---|---|
 | 2026-10-23 | B04 (retrospective review after B01–B04) | LF9VEB blocker confirmed: `MOV.W R0,@R2` at `0x00000C8C`, write `0x001F` to PCDR `0xFFFFF73E`. Keep B05 next for reset/NMI regression protection. **Promote and narrow existing B18 to P0, immediately after B05**; no duplicate Port C ticket. **Promote B26 to P1**, early hardware-family/ROM inventory. **Defer B13–B15 FPU to P2** until a real executed ROM needs those instructions. All other tickets retain current scope; revisit CPU instruction ordering when the next blocker is known. |
+| 2026-10-23 | B05 | **No priority changes.** Tested power/manual reset × all NMI states, separated missing physical NMI pin from unknown manual-reset ICR latch, and made GUI report generation headless/testable. Original LF9VEB power-on/NMI-high remains 59 attempted instructions, stopping on PCDR `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). B18/Port C remains the next P0 task; B26 NC hardware-family manifest remains after it; deferred FPU instruction work stays unobserved. No duplicates or additional tasks justified. |
 
 ## High-level parent workstreams
 

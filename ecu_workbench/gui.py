@@ -12,6 +12,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
+from .boot_presenter import present_reset_diagnostic
 from .nc_rom import assess_nc_rom
 
 
@@ -166,42 +167,19 @@ class Workbench(tk.Tk):
                 "nc_rom_assessment": assess_nc_rom(self.rom).as_dict(),
                 "nc_boot": result,
             }
-            stop = result.get("stop", {})
-            reason = stop.get("reason", "unknown")
-            instructions = result.get("executed_instructions", 0)
-            self.status.set(f"Stopped: {reason} — {instructions} instructions executed; ECU boot NOT verified.")
-            overview = {
-                "boot_complete": result.get("boot_complete", False),
-                "instructions_executed": instructions,
-                "reset": result.get("reset"),
-                "nmi_high": result.get("nmi_high"),
-                "port_b_explicit_pins": result.get("port_b_explicit_pins"),
-                "reset_vectors": result.get("vectors"),
-                "pc_at_stop": result.get("pc_at_stop"),
-                "stop_reason": stop,
-                "next_dependency": result.get("next_dependency"),
-                "modelled_peripheral_access_count": len(result.get("modelled_peripheral_accesses", [])),
-                "next_step": "Implement missing CPU/peripheral behaviour, then rerun this ROM.",
-                "warning": "An instruction limit or clean stop is NOT a successful ECU boot.",
-            }
-            self._set(self.summary, json.dumps(overview, indent=2))
-            dependency = result.get("next_dependency")
+            presentation = present_reset_diagnostic(result)
+            self.status.set(presentation["status"])
+            self._set(self.summary, json.dumps(presentation["summary"], indent=2))
+            dependency = presentation["dependency"]
             if dependency is not None:
-                prefix = ("Next missing dependency or stop condition:\n\n"
-                          if dependency.get("is_dependency_blocker")
-                          else "Instruction budget reached — not an ECU boot or hardware failure:\n\n")
-                self._set(self.blocker, prefix + json.dumps(dependency, indent=2))
+                self._set(
+                    self.blocker,
+                    presentation["dependency_title"] + "\n\n" + json.dumps(dependency, indent=2),
+                )
             else:
-                self._set(self.blocker, "No stop dependency is available.")
-            trace = result.get("trace", [])
-            self._set(self.trace, "\n".join(
-                f"{t.get('pc', '?')}    {t.get('opcode', '?')}  {'[delay slot]' if t.get('delay_slot') else ''}"
-                for t in trace
-            ) if trace else "No instructions executed.")
-            self._set(
-                self.peripherals,
-                json.dumps(result.get("modelled_peripheral_accesses", []), indent=2),
-            )
+                self._set(self.blocker, presentation["dependency_title"] + "\n\nNo further details.")
+            self._set(self.trace, presentation["trace_text"])
+            self._set(self.peripherals, json.dumps(presentation["peripherals"], indent=2))
         except (KeyError, ValueError) as exc:
             messagebox.showerror("Invalid diagnostic settings", str(exc))
 
