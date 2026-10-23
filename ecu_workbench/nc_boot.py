@@ -304,28 +304,14 @@ class BootBus:
         return value
 
     def read(self, a: int, width: int) -> int:
-        if a == PEDR_ADDRESS and width == 4:
-            self.port_e._mask(a,width,'read')
-        if a in (PDDR_ADDRESS, PDPR_ADDRESS) and width == 4:
-            self.port_d._mask(a,width,a,'Port D','read')
-        if a == PCDR_ADDRESS and width == 4:
-            self._pcdr_mask(a,width,'read')
-        if a == PBPR_ADDRESS and width == 4:
-            self._port_b_mask(a, width, PBPR_ADDRESS, 'PBPR')
+        self.port_router.guard_32bit(a,width,access='read')
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'read')
         if region=='rom':return int.from_bytes(self.image.data[off:off+width], 'big')
         if region=='peripheral':
-            if off in (PEDR_ADDRESS,PEDR_ADDRESS+1):
-                return self.port_e.read(off,width)
-            if off in (PDDR_ADDRESS,PDDR_ADDRESS+1,PDPR_ADDRESS,PDPR_ADDRESS+1):
-                return self.port_d.read(off,width)
-            if PCDR_ADDRESS <= off <= PCDR_ADDRESS + 1:
-                return self._pcdr_read(off,width)
-            if PBPR_ADDRESS <= off <= PBPR_ADDRESS + 1:
-                return self._pbpr_read(off, width)
-            if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
-                return self._pbdr_read(off, width)
+            routed = self.port_router.read(off,width)
+            if routed is not PeripheralRouter.UNHANDLED:
+                return routed
             if off == 0xFFFFF70B and width == 1:
                 if self.syscr2 is None:
                     raise BootStop('unknown_peripheral_reset_state','SYSCR2 state unknown after manual reset',address=off,width=1,access='read')
@@ -376,30 +362,13 @@ class BootBus:
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
     def write(self, a:int,width:int,value:int):
-        if a == PEDR_ADDRESS and width == 4:
-            self.port_e._mask(a,width,'write')
-        if a in (PDDR_ADDRESS,PDPR_ADDRESS) and width == 4:
-            self.port_d._mask(a,width,a,'Port D','write')
-        if a == PCDR_ADDRESS and width == 4:
-            self._pcdr_mask(a,width,'write')
-        if a == PBPR_ADDRESS and width == 4:
-            self._port_b_mask(a, width, PBPR_ADDRESS, 'PBPR')
+        self.port_router.guard_32bit(a,width,access='write',value=value)
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'write',value)
         if region=='peripheral':
-            if off in (PEDR_ADDRESS,PEDR_ADDRESS+1):
-                return self.port_e.write(off,width,value)
-            if off in (PDDR_ADDRESS,PDDR_ADDRESS+1,PDPR_ADDRESS,PDPR_ADDRESS+1):
-                return self.port_d.write(off,width,value)
-            if PCDR_ADDRESS <= off <= PCDR_ADDRESS + 1:
-                return self._pcdr_write(off,width,value)
-            if PBPR_ADDRESS <= off <= PBPR_ADDRESS + 1:
-                self._port_b_mask(off, width, PBPR_ADDRESS, 'PBPR')
-                raise BootStop('read_only_peripheral',
-                               'PBPR always samples physical pins and cannot be written',
-                               address=off, width=width, access='write', value=value)
-            if PBDR_ADDRESS <= off <= PBDR_ADDRESS + 1:
-                return self._pbdr_write(off, width, value)
+            routed = self.port_router.write(off,width,value)
+            if routed is not PeripheralRouter.UNHANDLED:
+                return routed
             if off == 0xFFFFF70A and width == 2:
                 if (value >> 8) & 0xFF != 0x3C:
                     raise BootStop('invalid_peripheral_write','SYSCR2 requires 0x3C upper write key',address=off,width=2,access='write',value=value)
