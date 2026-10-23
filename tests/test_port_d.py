@@ -143,9 +143,11 @@ class PortDTests(unittest.TestCase):
         if rom.sha256!='bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf':
             self.skipTest('Test ROM is not the original LF9VEB')
         result=diagnose_nc_reset(rom,nmi_high=True,max_steps=300)
-        self.assertEqual(result['executed_instructions'],76)
-        self.assertEqual(result['next_dependency']['instruction_pc'],'0x00000CAE')
-        self.assertEqual(result['next_dependency']['opcode'],'2151')
-        self.assertEqual(result['next_dependency']['memory_access']['address'],'0xFFFFF754')
-        self.assertEqual(result['next_dependency']['memory_access']['value'],'0x0000FFFF')
+        self.assertGreater(result['executed_instructions'],76)
+        self.assertTrue(any(x.get('register')=='PDDR' and x.get('access')=='write'
+                            and x.get('value')==0x3EFF
+                            for x in result['modelled_peripheral_accesses']))
+        self.assertTrue(any(x.get('register')=='PEDR' and x.get('access')=='write'
+                            and x.get('value')==0xFFFF
+                            for x in result['modelled_peripheral_accesses']))
         self.assertFalse(result['boot_complete'])
