@@ -29,6 +29,8 @@ class Workbench(tk.Tk):
         self.steps = tk.StringVar(value="300")
         self.port_b_pins = tk.StringVar(value="")
         self.port_b_mask = tk.StringVar(value="0xFFFF")
+        self.port_c_pins = tk.StringVar(value="")
+        self.port_c_mask = tk.StringVar(value="0x001F")
         self.filename = tk.StringVar(value="No ROM loaded")
         self.status = tk.StringVar(value="Load an NC engine ECU ROM to begin.")
         self._build_ui()
@@ -74,6 +76,12 @@ class Workbench(tk.Tk):
         ttk.Entry(pin_controls, textvariable=self.port_b_pins, width=12).pack(side="left", padx=(5, 12))
         ttk.Label(pin_controls, text="Known-bit mask").pack(side="left")
         ttk.Entry(pin_controls, textvariable=self.port_b_mask, width=12).pack(side="left", padx=5)
+        c_controls = ttk.Frame(panel)
+        c_controls.pack(fill="x", pady=(0,8))
+        ttk.Label(c_controls,text="Port C PC4..PC0 (hex, blank=unknown)").pack(side="left")
+        ttk.Entry(c_controls,textvariable=self.port_c_pins,width=10).pack(side="left",padx=(5,12))
+        ttk.Label(c_controls,text="Known bits").pack(side="left")
+        ttk.Entry(c_controls,textvariable=self.port_c_mask,width=10).pack(side="left",padx=5)
 
         ttk.Label(
             panel, textvariable=self.status, font=("Segoe UI", 11, "bold"),
@@ -161,6 +169,8 @@ class Workbench(tk.Tk):
                 max_steps=maximum,
                 port_b_pin_values=(int(self.port_b_pins.get(), 0) if self.port_b_pins.get().strip() else None),
                 port_b_pin_known_mask=int(self.port_b_mask.get(), 0),
+                port_c_pin_values=(int(self.port_c_pins.get(),0) if self.port_c_pins.get().strip() else None),
+                port_c_pin_known_mask=int(self.port_c_mask.get(),0),
             )
             self.report = {
                 "image": self.rom.inspect(),

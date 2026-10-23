@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status after B05 (23 October 2026):** 5 of the 28 one-pass tickets completed. With the original LF9VEB ROM and NMI explicitly high, startup reaches **59 attempted instructions** before a documented 16-bit PCDR write at `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). Neither this nor the earlier 46-instruction result constitutes a successful ECU boot. NC1/NC2/NC3 ECU hardware and ROM profiles still require independent verification.
+**Current status after B18 (23 October 2026):** 6 of 29 one-pass tickets completed. LF9VEB with power reset, NMI high and no invented pin levels now reaches **67 attempted instructions** and stops at unmodelled Port D PDDR (`0xFFFFF746`, 16-bit write `0x3EFF`, opcode `2011` at `0x00000C9C`). Earlier Port C blocker was resolved. This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
 
 ## Working agreement — one issue = one development pass
 
@@ -32,6 +32,8 @@ Do this **automatically as part of handling a "do next task" request**. The user
 | 2026-10-23 | B04 (retrospective review after B01–B04) | LF9VEB blocker confirmed: `MOV.W R0,@R2` at `0x00000C8C`, write `0x001F` to PCDR `0xFFFFF73E`. Keep B05 next for reset/NMI regression protection. **Promote and narrow existing B18 to P0, immediately after B05**; no duplicate Port C ticket. **Promote B26 to P1**, early hardware-family/ROM inventory. **Defer B13–B15 FPU to P2** until a real executed ROM needs those instructions. All other tickets retain current scope; revisit CPU instruction ordering when the next blocker is known. |
 | 2026-10-23 | B05 | **No priority changes.** Tested power/manual reset × all NMI states, separated missing physical NMI pin from unknown manual-reset ICR latch, and made GUI report generation headless/testable. Original LF9VEB power-on/NMI-high remains 59 attempted instructions, stopping on PCDR `0xFFFFF73E` (opcode `2201` at `0x00000C8C`). B18/Port C remains the next P0 task; B26 NC hardware-family manifest remains after it; deferred FPU instruction work stays unobserved. No duplicates or additional tasks justified. |
 
+| 2026-10-23 | B18 | **New blocker and new task B29 / #36.** SH7058 PCDR model verified against tables 22.5–22.6. LF9VEB NMI-high startup advanced from 59 to 67 attempted instructions without any invented physical pin levels. Next authentic stop: PDDR `0xFFFFF746`, opcode `2011` at `0x00000C9C`, 16-bit write `0x3EFF`. Add P0 B29 immediately before B26; do not duplicate existing B17 refactor. Defer unobserved CPU/FPU features. Total backlog now 29 items. |
+
 ## High-level parent workstreams
 
 - [#1 — NC hardware families and ROM variants](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/1)
@@ -40,7 +42,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## P0 — Unblock the observed LF9VEB startup failure
 
-Highest confidence, immediate work. **Next: B05, then B18 (PCDR)**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
+Highest confidence, immediate work. **Next: B29 (Port D PDDR), then B26 (NC ROM hardware-family inventory)**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -50,6 +52,7 @@ Highest confidence, immediate work. **Next: B05, then B18 (PCDR)**. Implement on
 | **[B04](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/7)** | Surface precise next startup blocker | Last executed PC, opcode, access and reason in CLI/GUI | B01 |
 | **[B05](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/8)** | Protect power/manual reset and NMI regression paths | Synthetic test matrix; no false `boot_complete` | B01–B04 |
 | **[B18](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/21)** | Implement verified Port C data register **PCDR `0xFFFFF73E`** (8/16-bit, PC0–PC4; reserved bits read zero; physical pin values explicit) | Pass synthetic reset/width/pin tests; LF9VEB must proceed beyond the real 59-instruction PCDR write without fake pins | B05 |
+| **[B29](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/36)** | Implement observed Port D data register **PDDR `0xFFFFF746`** | Verify 14 physical bits and modes; pass the real `0x3EFF` write and report next genuine blocker | B18 |
 
 ## P1 — Verify ECU families, then implement observed CPU gaps
 

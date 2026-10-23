@@ -29,6 +29,7 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
         "reset": report.get("reset"),
         "nmi_high": report.get("nmi_high"),
         "port_b_explicit_pins": report.get("port_b_explicit_pins"),
+        "port_c_explicit_pins": report.get("port_c_explicit_pins"),
         "reset_vectors": report.get("vectors"),
         "pc_at_stop": report.get("pc_at_stop"),
         "stop_reason": stop,

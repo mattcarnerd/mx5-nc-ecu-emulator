@@ -54,8 +54,9 @@ hardware state. The optional local-ROM integration test uses
 With an independently obtained LF9VEB ROM, **B01** executed 46 startup
 instructions and stopped at PBDR `0xFFFFF738`. With **B02** PBDR
 register-latch support, the same power reset / NMI-high test executes
-**59 instructions** and then stops at the still-unmodelled Port C data
-register (PCDR) `0xFFFFF73E`. Neither run constitutes a booted ECU.
+**59 instructions** and then stopped at Port C PCDR `0xFFFFF73E`.
+With **B18**, the same ROM advances to **67 attempted instructions** and
+stops at unmodelled Port D PDDR `0xFFFFF746`. None is a completed boot.
 
 For the current one-pass development sequence, see the **[prioritised backlog](BACKLOG.md)** and its linked GitHub issues.
 
@@ -180,6 +181,31 @@ ROM is never stored in GitHub. Original LF9VEB with power-on reset,
 300-instruction limit remains: unknown NMI -> 23 (`missing_input`),
 high -> 59 (Port C PCDR `0xFFFFF73E`), low -> 300
 (`instruction_limit`). These results are **not ECU boots**.
+
+## B18 — Port C PCDR (SH7058 Rev 3.00)
+
+PCDR (`0xFFFFF73E`) implements PC4..PC0 as a 16-bit data register
+with 8- and 16-bit access. Power-on reset clears the data latch;
+manual reset preserves unknown previous state until initialised.
+Bits 15..5 always read zero and must be written zero.
+
+Reads follow Renesas Table 22.6: PCIOR=0 returns **physical pin state**
+and requires explicit input values; PCIOR=1 returns the **stored data latch**.
+Serial alternate-function routing is not simulated. Writes do not imply
+the physical vehicle pin has changed.
+
+To provide optional simulated inputs, use `--port-c-pins 0x15` and
+`--port-c-known-mask 0x1F` on the CLI, or the Port C fields in the
+Windows application. By default all external Port C pin levels are unknown.
+
+Original LF9VEB, power reset, NMI high, 300-instruction maximum:
+**67 attempted instructions**, stopping on `MOV.W R0,@R0` (opcode
+`2011`, instruction address `0x00000C9C`) writing `0x3EFF` to
+unmodelled **Port D PDDR** at `0xFFFFF746`. This remains a reset
+diagnostic, not a working ECU. The next priority is B29/Port D.
+
+Source: [Renesas SH7058 hardware manual](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual),
+§22.4 (tables 22.5–22.6).
 
 ## Engineering priorities
 

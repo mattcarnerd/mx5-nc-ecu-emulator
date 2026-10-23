@@ -76,9 +76,9 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(report["rom"]["sha256"], rom.sha256)
         self.assertFalse(report["result"]["boot_complete"])
         if rom.sha256 == "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf":
-            self.assertEqual(report["result"]["executed_instructions"], 59)
-            self.assertEqual(report["result"]["pc_at_stop"], "0x00000C8E")
-            self.assertEqual(report["result"]["first_unsupported_peripheral"]["address"], "0xFFFFF73E")
+            self.assertEqual(report["result"]["executed_instructions"], 67)
+            self.assertEqual(report["result"]["pc_at_stop"], "0x00000C9E")
+            self.assertEqual(report["result"]["first_unsupported_peripheral"]["address"], "0xFFFFF746")
 
 
 if __name__ == "__main__":
