@@ -1,73 +1,98 @@
-# ECU Workbench — format-agnostic ROM inspector and emulator research project
+# MX-5 NC ECU Workbench
 
-**Load any ROM**: open arbitrary nonempty binary files, regardless of manufacturer,
-calibration ID, file extension or size. The program identifies the file by hash,
-inspects it in hex, and compares it byte-by-byte with another image.
+**Goal: execute any valid Mazda MX-5 NC engine-ECU ROM in a faithful virtual NC ECU.**
 
-**Important:** *Loading any ROM is not the same as emulating any ROM.* Firmware
-execution is processor-specific. The current optional interpreter supports
-only a small subset of SuperH SH-2 integer instructions and requires an
-explicit load address and program counter. Full processor, RAM, peripheral,
-engine, or ECU simulation has **not** been implemented. Unsupported
-instructions stop; they are never guessed.
+The target is **the NC generation (approximately 2005/2006–2015): NC1, NC2 and
+NC3; 1.8L/2.0L; manual/automatic; applicable market/calibration variants; and
+stock and modified engine-ECU firmware**. The emulator must not depend on
+whether a particular calibration (e.g. LF9VEB) has an XML definition or a
+per-ROM patch. Each supported ECU hardware family is described once, then ROMs
+from that family run under the same processor/memory/peripheral model.
 
-The project started with Mazda MX-5 NC research, but the core loader and
-comparison engine have **no Mazda or LF9VEB assumptions**.
+**This is the intended compatibility target, not a statement that every NC ROM
+currently runs.** The existing v0.1 application is a ROM inspector/differ with
+an experimental *partial* SH-2 instruction interpreter. Whole-firmware
+execution, an accurate SH7058 model, interrupt scheduling, RAM/peripheral
+emulation, CAN/diagnostics, and engine input simulation are not implemented.
 
-## Features
+## Product boundaries
 
-| Capability | Current state |
+- **In scope:** Mazda MX-5 NC engine ECUs and their valid full/modified firmware,
+  including variations that require distinct, documented ECU hardware profiles.
+- **Not a goal:** generic all-manufacturer/all-processor firmware emulation,
+  transmission-controller ROMs, tune editing, ROM patching, or ECU flashing.
+- **Compatibility means execution**, not simply opening the file or extracting
+  its calibration ID.
+- NCFlash and ROMDrop can remain separate ROM editing/flashing tools; this
+  project's purpose is *emulation and repeatable offline firmware testing*.
+
+## What works in the current development version
+
+| Capability | Status |
 | --- | --- |
-| Open arbitrary binary images | Available |
-| SHA-256, file size, entropy, ASCII and hex dump | Available |
-| Compare files of different sizes | Available |
-| Export inspection and comparison report to JSON | Available |
-| Desktop GUI (Windows / Tkinter) | Implemented, Windows build pending CI |
-| Limited SH-2 instruction stepping | Experimental; not complete CPU emulation |
-| Configurable ECU profiles and memory/peripheral models | Planned |
-| Emulate any manufacturer or processor | Not available |
-| Read/write or flash a vehicle ECU | Not included |
+| Read a local ROM, SHA-256, entropy and hex dump | Available |
+| Compare factory and modified binary files | Available |
+| Assess common 1 MiB NC image size | Heuristic only; **not identity validation** |
+| Export JSON inspection/diff report | Available |
+| Basic Windows GUI | Implemented |
+| Step a few SH-2 instructions | Experimental, incomplete |
+| Confirm valid NC ROM identity/checksum/hardware profile | Not implemented |
+| Execute entire original/modified NC firmware | Not implemented |
+| Run virtual engine sensors, timers, interrupts, CAN and diagnostics | Not implemented |
+| Flash ECU or communicate with vehicle | Deliberately not included |
 
-## Run from Python
+The loader will still *open* other binary files so that unknown NC dumps can
+be inspected, but it must label them as **unrecognised** rather than promising
+to emulate them.
 
-Python 3.11+; standard library only for running the app.
+## How we reach full NC ROM coverage
+
+1. **ROM format & variant evidence:** catalogue ECU hardware, CPU IDs, ROM
+   layouts, boot paths, RAM/peripheral maps and calibration IDs across
+   NC1/NC2/NC3, 1.8/2.0, transmission and markets. Do not infer identity
+   merely from a 1 MiB file length.
+2. **Faithful processor:** replace the experimental interpreter with a tested
+   SH-2E/SH7058 CPU execution backend; implement delay slots, exceptions,
+   floating-point behaviour and a proper address space.
+3. **Virtual ECU board:** model memory, timers, ADCs, crank/cam inputs,
+   injector/coil outputs, CAN, watchdog, interrupts and other dependencies
+   of the real ROM. Separate hardware differences from firmware IDs.
+4. **Boot and operate:** start firmware using realistic reset vectors and
+   defaults; simulate engine states and record actual firmware outputs.
+5. **Cross-ROM acceptance:** run a reproducible boot/idle/RPM-change/decel
+   suite on a representative set of legally obtained stock and modified NC
+   engine ROMs. Each new ROM must either run or yield a precise documented
+   missing-hardware/unsupported-format reason—not need hand-patched code.
+
+See [Architecture](docs/ARCHITECTURE.md) and
+[Compatibility](docs/COMPATIBILITY.md).
+
+## Run the current prototype
+
+Requires Python 3.11+ and its standard library.
 
 ```powershell
 python -m ecu_workbench
-python -m ecu_workbench --rom "C:\\path\\to\\your\\own\\rom.bin"
-python -m ecu_workbench --rom stock.bin --compare tuned.bin --report changes.json
-```
-
-Optional, explicitly selected limited SH-2 instruction stepping:
-
-```powershell
-python -m ecu_workbench --rom firmware.bin --sh2-step --pc 0x100 --base 0x0 --steps 50
-```
-
-To run tests:
-
-```powershell
+python -m ecu_workbench --rom path/to/nc.bin
+python -m ecu_workbench --rom stock.bin --compare modified.bin --report comparison.json
 python -m unittest discover -s tests -v
 ```
 
-The desktop application lets you inspect and compare images without using
-the CLI. The project's Windows GitHub Actions build produces a downloadable
-workflow artifact when the build succeeds.
+Opt-in partial instruction stepping remains available for research only:
 
-## Extensibility roadmap
+```powershell
+python -m ecu_workbench --rom sample.bin --sh2-step --pc 0x100 --base 0x0 --steps 50
+```
 
-1. Generic, read-only file loading, hashes and comparisons — **implemented**.
-2. Pluggable architecture profiles with explicit CPU/memory mappings.
-3. Verified SH-2E execution engine, then additional architecture backends.
-4. Configurable hardware peripheral, sensor and interrupt models.
-5. Whole-firmware differential execution and reproducible tests.
+Windows binaries are available through GitHub releases. Old releases labelled
+"universal ROM inspector" represent the earlier scope, not a working NC
+emulator. The next release should reflect this revised product definition.
 
 ## Safety, copyright and privacy
 
-- The application **never flashes, edits or writes vehicle firmware**.
-- Do not upload proprietary ECU ROMs or calibration definitions into the repository.
-- ROMs are opened locally by the user; JSON reports include hashes and selected
-  sample bytes, but do not embed full ROM images.
-- A passing instruction test is not a certificate of safe ECU operation.
+- All ROM analysis takes place locally; no manufacturer ROMs are distributed.
+- Do not commit proprietary ROMs, vendor definitions, VINs or security keys.
+- A successful offline test never by itself proves a ROM is safe to flash.
+- This project never edits/flashes vehicle firmware or connects to a car.
 
-Contributions are welcome under the MIT licence. See CONTRIBUTING.md.
+MIT licence. Contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
