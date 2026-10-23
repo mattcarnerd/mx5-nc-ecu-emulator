@@ -1,20 +1,17 @@
-# Contributing to the MX-5 NC ECU emulator
+# Contributing to the MX-5 NC ECU Emulator
 
-Our goal is to run **any valid Mazda MX-5 NC engine ECU ROM** against a virtual
-NC ECU, irrespective of calibration ID. This is *not* a general-purpose
-multi-brand ECU emulation project.
+**One virtual NC ECU, any valid NC engine-ECU ROM.** Do not hard-code
+calibration IDs or modify ROMs simply to pass emulator tests.
 
-Priority contributions: verified NC ECU hardware/CPU research (NC1/NC2/NC3),
-ROM-format identification, SH7058/SH-2E instruction tests, peripheral/interrupt
-models, synthetic and legally reusable test vectors, deterministic engine
-scenario fixtures, bug reports and regression harnesses.
+Contributions we need most:
+- Evidence-backed NC hardware register, CPU and board documentation.
+- Tested SH7058 / SH-2E instruction coverage and reset/exception semantics.
+- Carefully specified ECU peripheral, interrupt and sensor models.
+- Repeatable reset/boot/idle/RPM/deceleration fixtures and traces.
 
-Keep ECU hardware profiles independent of individual calibration IDs.
-Do **not** implement separate ignition, fuel, throttle or DFCO logic for
-different ROMs: the goal is to run the actual firmware instructions.
+ROM comparison, map editing, ROM patching and flashing belong in NCFlash or
+other specialist tools, not this emulator.
 
-Please do not commit copyrighted ECU firmware, proprietary definitions,
-VINs or security access keys. Record a ROM hash and hardware details instead
-of uploading ROM contents. No flashing capability belongs in this project.
-
-Passing the emulator's tests does not establish roadworthiness or flashing safety.
+Only contribute legally reusable code and synthetic fixtures. Do not commit
+OEM ROMs, vendor definitions, VINs, security keys or proprietary calibration
+data. A simulation passing does not certify a ROM for use on a real vehicle.

@@ -1,45 +1,47 @@
-"""CLI for binary inspection and opt-in limited SuperH instruction stepping."""
+"""Execute a bounded NC ROM reset-vector diagnostic. No ROM comparisons."""
 from __future__ import annotations
+
 import argparse
 import json
 from pathlib import Path
-from .core import ROMImage, compare
-from .nc_rom import assess_nc_rom
-from .sh2 import SH2Subset
+
+from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
+from .nc_rom import assess_nc_rom
+
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Mazda MX-5 NC engine ECU Workbench (NC ROM emulation under development)")
-    parser.add_argument("--rom", required=True, help="Any nonempty binary file")
-    parser.add_argument("--compare", help="A second binary to compare")
-    parser.add_argument("--hex-offset", type=lambda x:int(x,0), default=0)
-    parser.add_argument("--hex-length", type=lambda x:int(x,0), default=128)
-    parser.add_argument("--nc-boot", action="store_true", help="Run SH7058 reset-vector boot diagnostic (partial, read-only)")
-    parser.add_argument("--reset", choices=["power","manual"], default="power")
-    parser.add_argument("--nmi", choices=["unknown","high","low"], default="unknown", help="Explicit NMI pin level, unknown by default")
-    parser.add_argument("--sh2-step", action="store_true", help="Opt-in partial SH-2 interpreter")
-    parser.add_argument("--pc", type=lambda x:int(x,0))
-    parser.add_argument("--base", type=lambda x:int(x,0), default=0)
-    parser.add_argument("--steps", type=int, default=100)
-    parser.add_argument("--report", help="Write JSON report to this path")
+    parser = argparse.ArgumentParser(
+        description="MX-5 NC ECU Emulator — experimental reset/boot diagnostic"
+    )
+    parser.add_argument("--rom", required=True, help="Local NC engine-ECU ROM image")
+    parser.add_argument("--reset", choices=("power", "manual"), default="power")
+    parser.add_argument("--nmi", choices=("unknown", "high", "low"), default="unknown",
+                        help="Simulated NMI pin; unknown fails closed")
+    parser.add_argument("--steps", type=int, default=300,
+                        help="Maximum number of real instructions to execute (1..100000)")
+    parser.add_argument("--report", help="Save diagnostic JSON at this location")
     args = parser.parse_args(argv)
+
+    if not 1 <= args.steps <= 100000:
+        parser.error("--steps must be between 1 and 100000")
+
     try:
-        rom = ROMImage.from_file(args.rom)
-        result = {"image": rom.inspect(), "nc_rom_assessment": assess_nc_rom(rom).as_dict(), "hexdump": rom.hexdump(args.hex_offset, min(args.hex_length,4096))}
-        if args.compare:
-            result["comparison"] = compare(rom, ROMImage.from_file(args.compare))
-        if args.nc_boot:
-            result["nc_boot"] = diagnose_nc_reset(
-                rom, reset=args.reset, max_steps=args.steps,
-                nmi_high={"high": True, "low": False, "unknown": None}[args.nmi])
-        if args.sh2_step:
-            if args.pc is None:
-                parser.error("--sh2-step requires --pc (use --base for ROM mapping)")
-            result["sh2_subset"] = SH2Subset(rom,args.pc,args.base).run(args.steps)
-        output = json.dumps(result,indent=2)
+        image = ROMImage.from_file(args.rom)
+        result = {
+            "image": image.inspect(),
+            "nc_rom_assessment": assess_nc_rom(image).as_dict(),
+            "nc_boot": diagnose_nc_reset(
+                image,
+                reset=args.reset,
+                max_steps=args.steps,
+                nmi_high={"unknown": None, "high": True, "low": False}[args.nmi],
+            ),
+        }
+        output = json.dumps(result, indent=2)
         if args.report:
-            Path(args.report).write_text(output+"\n",encoding="utf-8")
+            Path(args.report).write_text(output + "\n", encoding="utf-8")
         print(output)
         return 0
-    except (OSError,ValueError) as ex:
-        parser.exit(2,f"ERROR: {ex}\n")
+    except (OSError, ValueError) as exc:
+        parser.exit(2, f"ERROR: {exc}\n")

@@ -1,199 +1,199 @@
-"""Read-only Tkinter interface for any binary ROM.
+"""Windows desktop front-end for executing NC ECU reset diagnostics.
 
-This GUI does not flash ECUs, edit ROMs, or assume a processor architecture.
+This is a diagnostic runner, not an engine simulator. All hardware inputs
+must be explicit; missing peripherals halt execution instead of faking results.
 """
 from __future__ import annotations
 
 import json
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from .core import ROMImage, compare
-from .nc_rom import assess_nc_rom
-from .sh2 import SH2Subset
+from pathlib import Path
+from tkinter import filedialog, messagebox, ttk
+
+from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
+from .nc_rom import assess_nc_rom
 
 
 class Workbench(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("MX-5 NC ECU Workbench — ROM inspection")
-        self.geometry("1000x760")
-        self.minsize(740, 560)
+        self.title("MX-5 NC ECU Emulator — experimental boot")
+        self.geometry("1000x710")
+        self.minsize(740, 540)
         self.rom: ROMImage | None = None
-        self.other: ROMImage | None = None
         self.report: dict | None = None
-        self.offset = tk.StringVar(value="0x0")
-        self.pc = tk.StringVar(value="0x0")
-        self.base = tk.StringVar(value="0x0")
-        self.steps = tk.StringVar(value="100")
-        self.nmi_setting = tk.StringVar(value="unknown")
-        self.reset_setting = tk.StringVar(value="power")
-        self._layout()
+        self.reset = tk.StringVar(value="power")
+        self.nmi = tk.StringVar(value="unknown")
+        self.steps = tk.StringVar(value="300")
+        self.filename = tk.StringVar(value="No ROM loaded")
+        self.status = tk.StringVar(value="Load an NC engine ECU ROM to begin.")
+        self._build_ui()
 
-    def _layout(self):
-        root = ttk.Frame(self, padding=15)
-        root.pack(fill="both", expand=True)
-        ttk.Label(root, text="ECU Workbench", font=("Segoe UI", 18, "bold")).pack(anchor="w")
+    def _build_ui(self):
+        panel = ttk.Frame(self, padding=16)
+        panel.pack(fill="both", expand=True)
+        ttk.Label(panel, text="MX-5 NC Virtual ECU", font=("Segoe UI", 18, "bold")).pack(anchor="w")
         ttk.Label(
-            root,
-            text="Target: any valid MX-5 NC ECU ROM. Current version inspects ROMs; full NC ECU emulation is not yet available.",
-        ).pack(anchor="w", pady=(2, 10))
+            panel,
+            text="Boot real NC firmware from its reset vector. Full engine simulation is not implemented.",
+        ).pack(anchor="w", pady=(2, 12))
 
-        toolbar = ttk.Frame(root)
-        toolbar.pack(fill="x")
-        ttk.Button(toolbar, text="Open ROM…", command=self.open_rom).pack(side="left")
-        ttk.Button(toolbar, text="Compare with ROM…", command=self.open_comparison).pack(side="left", padx=8)
-        ttk.Button(toolbar, text="Save JSON report…", command=self.save_report).pack(side="right")
+        file_row = ttk.Frame(panel)
+        file_row.pack(fill="x", pady=(0, 10))
+        ttk.Button(file_row, text="Load NC ROM…", command=self.load_rom).pack(side="left")
+        ttk.Label(file_row, textvariable=self.filename).pack(side="left", padx=(12, 0))
+        ttk.Button(file_row, text="Save diagnostic JSON…", command=self.save_report).pack(side="right")
 
-        tabs = ttk.Notebook(root)
-        tabs.pack(fill="both", expand=True, pady=(12, 0))
-        inspect_frame = ttk.Frame(tabs, padding=12)
-        cpu_frame = ttk.Frame(tabs, padding=12)
-        tabs.add(inspect_frame, text="Inspect / Compare")
-        tabs.add(cpu_frame, text="Experimental CPU test")
+        hardware = ttk.LabelFrame(panel, text="Virtual hardware settings", padding=10)
+        hardware.pack(fill="x", pady=(0, 8))
+        ttk.Label(hardware, text="Reset").pack(side="left")
+        ttk.Combobox(
+            hardware, textvariable=self.reset, values=("power", "manual"),
+            state="readonly", width=9,
+        ).pack(side="left", padx=(5, 14))
+        ttk.Label(hardware, text="NMI pin").pack(side="left")
+        ttk.Combobox(
+            hardware, textvariable=self.nmi, values=("unknown", "high", "low"),
+            state="readonly", width=10,
+        ).pack(side="left", padx=(5, 14))
+        ttk.Label(hardware, text="Max instructions").pack(side="left")
+        ttk.Entry(hardware, textvariable=self.steps, width=9).pack(side="left", padx=(5, 14))
+        self.run_button = ttk.Button(
+            hardware, text="Run startup diagnostic", command=self.run_boot,
+        )
+        self.run_button.pack(side="right")
+        self.run_button.state(["disabled"])
 
-        row = ttk.Frame(inspect_frame)
-        row.pack(fill="x", pady=(0, 8))
-        ttk.Label(row, text="Hex offset").pack(side="left")
-        ttk.Entry(row, textvariable=self.offset, width=14).pack(side="left", padx=(6, 8))
-        ttk.Button(row, text="Show 256 bytes", command=self.inspect).pack(side="left")
-        self.details = self._text(inspect_frame)
-        self._display(
-            self.details,
-            "Open an MX-5 NC engine ECU ROM, or an unknown binary for preliminary inspection.\n\n"
-            "The program will show the byte count, SHA-256, entropy and hex view. "
-            "Use Compare with ROM for a byte-level diff.\n\n"
-            "Opening a ROM is NOT equivalent to emulating its ECU or validating a calibration."
+        ttk.Label(
+            panel, textvariable=self.status, font=("Segoe UI", 11, "bold"),
+            wraplength=900,
+        ).pack(fill="x", anchor="w", pady=(6, 9))
+
+        tabs = ttk.Notebook(panel)
+        tabs.pack(fill="both", expand=True)
+        self.summary = self._tab(tabs, "Boot status")
+        self.trace = self._tab(tabs, "Firmware instruction trace")
+        self.peripherals = self._tab(tabs, "Hardware accesses")
+        self._set(
+            self.summary,
+            "This tool executes the ROM's actual instructions from its reset vector.\n\n"
+            "The emulator currently supports only a small portion of the SH7058 CPU and "
+            "virtual peripherals. It stops on unknown hardware instead of guessing.\n\n"
+            "Until a full firmware main loop and engine-input model run successfully, "
+            "this is NOT a booted or operational ECU.",
         )
 
-        cpu_controls = ttk.Frame(cpu_frame)
-        cpu_controls.pack(fill="x", pady=(0, 8))
-        for name, variable in (
-            ("Start PC", self.pc),
-            ("ROM base address", self.base),
-            ("Max steps", self.steps),
-        ):
-            ttk.Label(cpu_controls, text=name).pack(side="left", padx=(8, 4))
-            ttk.Entry(cpu_controls, textvariable=variable, width=12).pack(side="left")
-        ttk.Button(cpu_controls, text="Step", command=self.step).pack(side="left", padx=8)
-        ttk.Label(
-            cpu_frame,
-            text="Limited SH-2 instruction subset ONLY. Does not model a full ECU, RAM, peripherals or interrupts.\n"
-                 "Unsupported instructions halt. You must supply a valid PC and ROM load address."
-        ).pack(anchor="w", pady=(0, 8))
-        boot_row = ttk.Frame(cpu_frame)
-        boot_row.pack(fill="x", pady=(2, 8))
-        ttk.Label(boot_row, text="NC reset:").pack(side="left")
-        ttk.Combobox(boot_row, textvariable=self.reset_setting, values=("power", "manual"), state="readonly", width=9).pack(side="left", padx=4)
-        ttk.Label(boot_row, text="Simulated NMI pin:").pack(side="left", padx=(8, 0))
-        ttk.Combobox(boot_row, textvariable=self.nmi_setting, values=("unknown", "high", "low"), state="readonly", width=10).pack(side="left", padx=4)
-        ttk.Button(boot_row, text="Diagnose NC startup", command=self.run_nc_boot).pack(side="left", padx=8)
-        self.cpu_output = self._text(cpu_frame)
-
-    def _text(self, parent):
-        holder = ttk.Frame(parent)
-        holder.pack(fill="both", expand=True)
-        text = tk.Text(holder, wrap="none", font=("Consolas", 10))
-        sy = ttk.Scrollbar(holder, orient="vertical", command=text.yview)
-        sx = ttk.Scrollbar(holder, orient="horizontal", command=text.xview)
-        text.configure(yscrollcommand=sy.set, xscrollcommand=sx.set)
-        text.grid(row=0, column=0, sticky="nsew")
-        sy.grid(row=0, column=1, sticky="ns")
-        sx.grid(row=1, column=0, sticky="ew")
-        holder.rowconfigure(0, weight=1)
-        holder.columnconfigure(0, weight=1)
-        return text
+    def _tab(self, tabs, title):
+        tab = ttk.Frame(tabs)
+        tabs.add(tab, text=title)
+        tab.rowconfigure(0, weight=1)
+        tab.columnconfigure(0, weight=1)
+        display = tk.Text(tab, wrap="none", font=("Consolas", 10))
+        yscroll = ttk.Scrollbar(tab, orient="vertical", command=display.yview)
+        display.configure(yscrollcommand=yscroll.set)
+        display.grid(row=0, column=0, sticky="nsew", padx=(4, 0), pady=4)
+        yscroll.grid(row=0, column=1, sticky="ns", pady=4)
+        return display
 
     @staticmethod
-    def _display(box, value: str):
-        box.delete("1.0", "end")
-        box.insert("1.0", value)
+    def _set(output, content):
+        output.configure(state="normal")
+        output.delete("1.0", "end")
+        output.insert("1.0", content)
+        output.configure(state="disabled")
 
-    def open_rom(self):
-        path = filedialog.askopenfilename(filetypes=[("All files", "*.*")])
+    def load_rom(self):
+        path = filedialog.askopenfilename(
+            title="Load an NC engine ECU ROM",
+            filetypes=(("ROM files", "*.bin *.rom *.hex"), ("All files", "*.*")),
+        )
         if not path:
             return
         try:
             image = ROMImage.from_file(path)
+            assessment = assess_nc_rom(image)
             self.rom = image
-            self.other = None
-            self.inspect()
+            self.report = None
+            self.filename.set(image.name)
+            self.status.set("ROM loaded — firmware not running.")
+            self.run_button.state(["!disabled"])
+            self._set(
+                self.summary,
+                f"File: {image.name}\n"
+                f"Size: {image.size:,} bytes\n"
+                f"SHA-256: {image.sha256}\n"
+                f"ROM screening: {assessment.status}\n\n"
+                f"{assessment.explanation}\n\n"
+                "Click Run startup diagnostic to execute from the ROM's reset vector.\n"
+                "A plausible ROM size is not proof that the image is a valid NC ROM.",
+            )
+            self._set(self.trace, "No execution trace yet.")
+            self._set(self.peripherals, "No simulated peripheral accesses yet.")
         except (OSError, ValueError) as exc:
-            messagebox.showerror("Open ROM failed", str(exc))
+            messagebox.showerror("Cannot load ROM", str(exc))
 
-    def open_comparison(self):
+    def run_boot(self):
         if self.rom is None:
-            messagebox.showinfo("Load first ROM", "Open a ROM before selecting a comparison.")
+            messagebox.showinfo("Load a ROM", "Select an NC ECU ROM first.")
             return
-        path = filedialog.askopenfilename(filetypes=[("All files", "*.*")])
+        try:
+            maximum = int(self.steps.get())
+            if not 1 <= maximum <= 100000:
+                raise ValueError("Maximum instructions must be between 1 and 100000")
+            result = diagnose_nc_reset(
+                self.rom,
+                reset=self.reset.get(),
+                nmi_high={"unknown": None, "high": True, "low": False}[self.nmi.get()],
+                max_steps=maximum,
+            )
+            self.report = {
+                "image": self.rom.inspect(),
+                "nc_rom_assessment": assess_nc_rom(self.rom).as_dict(),
+                "nc_boot": result,
+            }
+            stop = result.get("stop", {})
+            reason = stop.get("reason", "unknown")
+            instructions = result.get("executed_instructions", 0)
+            self.status.set(f"Stopped: {reason} — {instructions} instructions executed; ECU boot NOT verified.")
+            overview = {
+                "boot_complete": result.get("boot_complete", False),
+                "instructions_executed": instructions,
+                "reset": result.get("reset"),
+                "nmi_high": result.get("nmi_high"),
+                "reset_vectors": result.get("vectors"),
+                "pc_at_stop": result.get("pc_at_stop"),
+                "stop_reason": stop,
+                "modelled_peripheral_access_count": len(result.get("modelled_peripheral_accesses", [])),
+                "next_step": "Implement missing CPU/peripheral behaviour, then rerun this ROM.",
+                "warning": "An instruction limit or clean stop is NOT a successful ECU boot.",
+            }
+            self._set(self.summary, json.dumps(overview, indent=2))
+            trace = result.get("trace", [])
+            self._set(self.trace, "\n".join(
+                f"{t.get('pc', '?')}    {t.get('opcode', '?')}  {'[delay slot]' if t.get('delay_slot') else ''}"
+                for t in trace
+            ) if trace else "No instructions executed.")
+            self._set(
+                self.peripherals,
+                json.dumps(result.get("modelled_peripheral_accesses", []), indent=2),
+            )
+        except (KeyError, ValueError) as exc:
+            messagebox.showerror("Invalid diagnostic settings", str(exc))
+
+    def save_report(self):
+        if self.report is None:
+            messagebox.showinfo("No diagnostic", "Run a startup diagnostic first.")
+            return
+        path = filedialog.asksaveasfilename(
+            defaultextension=".json", filetypes=(("JSON reports", "*.json"),),
+        )
         if not path:
             return
         try:
-            self.other = ROMImage.from_file(path)
-            self.inspect()
-        except (OSError, ValueError) as exc:
-            messagebox.showerror("Open comparison failed", str(exc))
-
-    def inspect(self):
-        if self.rom is None:
-            return
-        try:
-            position = int(self.offset.get(), 0)
-            self.report = {"image": self.rom.inspect(), "nc_rom_assessment": assess_nc_rom(self.rom).as_dict()}
-            if self.other is not None:
-                self.report["comparison"] = compare(self.rom, self.other)
-            self._display(
-                self.details,
-                json.dumps(self.report, indent=2) + "\n\nHEX DUMP\n"
-                + self.rom.hexdump(position, 256),
-            )
-        except ValueError as exc:
-            messagebox.showerror("Invalid offset", str(exc))
-
-    def step(self):
-        if self.rom is None:
-            messagebox.showinfo("Load ROM", "Open a ROM before running instruction tests.")
-            return
-        try:
-            result = SH2Subset(
-                self.rom, int(self.pc.get(), 0), int(self.base.get(), 0)
-            ).run(int(self.steps.get()))
-            if self.report is None:
-                self.report = {}
-            self.report["sh2_subset"] = result
-            self._display(self.cpu_output, json.dumps(result, indent=2))
-        except ValueError as exc:
-            messagebox.showerror("Invalid CPU test settings", str(exc))
-
-    def run_nc_boot(self):
-        if self.rom is None:
-            messagebox.showinfo("Load ROM", "Open an NC engine ECU ROM first.")
-            return
-        try:
-            result = diagnose_nc_reset(
-                self.rom, reset=self.reset_setting.get(),
-                max_steps=int(self.steps.get()),
-                nmi_high={"unknown": None, "high": True, "low": False}[self.nmi_setting.get()])
-            if self.report is None:
-                self.report = {}
-            self.report["nc_boot"] = result
-            self._display(self.cpu_output, json.dumps(result, indent=2))
-        except (KeyError, ValueError) as exc:
-            messagebox.showerror("Boot diagnostic", str(exc))
-
-    def save_report(self):
-        if not self.report:
-            messagebox.showinfo("No report", "Inspect or test a ROM first.")
-            return
-        path = filedialog.asksaveasfilename(
-            defaultextension=".json", filetypes=[("JSON reports", "*.json")]
-        )
-        if path:
-            try:
-                with open(path, "w", encoding="utf-8") as fh:
-                    json.dump(self.report, fh, indent=2)
-            except OSError as exc:
-                messagebox.showerror("Save failed", str(exc))
+            Path(path).write_text(json.dumps(self.report, indent=2) + "\n", encoding="utf-8")
+        except OSError as exc:
+            messagebox.showerror("Cannot save report", str(exc))
 
 
 def start():
