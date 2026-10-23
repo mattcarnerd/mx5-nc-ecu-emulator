@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status after B18 (23 October 2026):** 6 of 29 one-pass tickets completed. LF9VEB with power reset, NMI high and no invented pin levels now reaches **67 attempted instructions** and stops at unmodelled Port D PDDR (`0xFFFFF746`, 16-bit write `0x3EFF`, opcode `2011` at `0x00000C9C`). Earlier Port C blocker was resolved. This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
+**Current status after B29 (23 October 2026):** 7 of 30 one-pass tickets completed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
 
 ## Working agreement — one issue = one development pass
 
@@ -34,6 +34,8 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 | 2026-10-23 | B18 | **New blocker and new task B29 / #36.** SH7058 PCDR model verified against tables 22.5–22.6. LF9VEB NMI-high startup advanced from 59 to 67 attempted instructions without any invented physical pin levels. Next authentic stop: PDDR `0xFFFFF746`, opcode `2011` at `0x00000C9C`, 16-bit write `0x3EFF`. Add P0 B29 immediately before B26; do not duplicate existing B17 refactor. Defer unobserved CPU/FPU features. Total backlog now 29 items. |
 
+| 2026-10-23 | B29 | **New blocker and B30 added (#37).** Original LF9VEB NMI-high reset advances from 67 to **76 attempted instructions**: previous PDDR `0xFFFFF746` 16-bit `0x3EFF` write now executes, next unmodelled PEDR `0xFFFFF754` at opcode `2151`, PC `0x00000CAE`, write `0xFFFF`. B30 is next P0, B26 inventory after, **B17 peripheral-registry refactor promoted from P2 to P1 after B26** because separate Port B/C/D/E implementations are proliferating. CPU/FPU tasks remain evidence-driven. No duplicate GPIO ticket. 30 total, 7 completed. |
+
 ## High-level parent workstreams
 
 - [#1 — NC hardware families and ROM variants](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/1)
@@ -42,7 +44,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## P0 — Unblock the observed LF9VEB startup failure
 
-Highest confidence, immediate work. **Next: B29 (Port D PDDR), then B26 (NC ROM hardware-family inventory)**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
+Highest confidence, immediate work. **Next: B30 (Port E PEDR), then B26 (NC ROM hardware-family inventory), followed by B17 peripheral refactor**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -53,14 +55,16 @@ Highest confidence, immediate work. **Next: B29 (Port D PDDR), then B26 (NC ROM 
 | **[B05](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/8)** | Protect power/manual reset and NMI regression paths | Synthetic test matrix; no false `boot_complete` | B01–B04 |
 | **[B18](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/21)** | Implement verified Port C data register **PCDR `0xFFFFF73E`** (8/16-bit, PC0–PC4; reserved bits read zero; physical pin values explicit) | Pass synthetic reset/width/pin tests; LF9VEB must proceed beyond the real 59-instruction PCDR write without fake pins | B05 |
 | **[B29](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/36)** | Implement observed Port D data register **PDDR `0xFFFFF746`** | Verify 14 physical bits and modes; pass the real `0x3EFF` write and report next genuine blocker | B18 |
+| **[B30](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/37)** | Implement observed Port E data register **PEDR `0xFFFFF754`** | Register reset/read/write tests; no fabricated POD pin or physical outputs; advance LF9VEB past observed `0xFFFF` write | B29 |
 
-## P1 — Verify ECU families, then implement observed CPU gaps
+## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
 **After B05/B18, prioritise B26** (local NC1/NC2/NC3 hardware-family inventory). Implement other CPU instruction groups only when supported by an observed ROM trace or essential verified prerequisite; the rows below are an inventory, **not** a commitment to implement every group in numeric order.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
 | **[B26](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/33)** | Early NC1/NC2/NC3 ECU hardware-family and local-ROM manifest | Documented profiles, SHA-256 metadata only, unsupported variants explicitly unknown | B01; schedule after B18 |
+| **[B17](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/20)** | Refactor growing B/C/D/E peripheral register handlers into a testable layer | Preserve exact hardware behaviour and fail-closed reporting; no feature creep | B29, B26 |
 | **[B06](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/9)** | Indexed/displacement memory MOV group | Documented encoding + read/write/exception tests | B05 |
 | **[B07](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/10)** | Pre-decrement/post-increment MOV group | Correct register mutation and alias rules | B06 |
 | **[B08](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/11)** | Logical AND/OR/XOR/TST opcode group | Known T-bit semantics and edge-case tests | B05 |
@@ -76,7 +80,6 @@ Other hardware and deferred FPU work: implement only when confirmed necessary fo
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
-| **[B17](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/20)** | Small peripheral-registry abstraction | Existing bus behaviour preserved, unknowns fail closed | B05 |
 | **[B19](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/22)** | Deterministic instruction/cycle time | Repeatable virtual time and delay-slot accounting | B05 |
 | **[B20](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/27)** | Verified watchdog register subset | Write key/initial state tested, unknowns explicit | B17, B19 |
 | **[B21](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/28)** | One interrupt source dispatched to CPU | Priority/mask/vector route proven by tests | B16, B19 |

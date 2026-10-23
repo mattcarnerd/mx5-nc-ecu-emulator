@@ -55,8 +55,10 @@ With an independently obtained LF9VEB ROM, **B01** executed 46 startup
 instructions and stopped at PBDR `0xFFFFF738`. With **B02** PBDR
 register-latch support, the same power reset / NMI-high test executes
 **59 instructions** and then stopped at Port C PCDR `0xFFFFF73E`.
-With **B18**, the same ROM advances to **67 attempted instructions** and
-stops at unmodelled Port D PDDR `0xFFFFF746`. None is a completed boot.
+With **B18**, the ROM advanced to **67 attempted instructions** and stopped
+at Port D PDDR `0xFFFFF746`. With **B29**, it passes Port D and reaches
+**76 attempted instructions**, stopping at Port E PEDR `0xFFFFF754`.
+None of these stages is a completed ECU boot.
 
 For the current one-pass development sequence, see the **[prioritised backlog](BACKLOG.md)** and its linked GitHub issues.
 
@@ -206,6 +208,38 @@ diagnostic, not a working ECU. The next priority is B29/Port D.
 
 Source: [Renesas SH7058 hardware manual](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual),
 §22.4 (tables 22.5–22.6).
+
+## B29 — Port D PDDR and PDPR
+
+Renesas SH7058 Rev 3.00 §22.5 (Tables 22.7–22.8) defines the
+**Port D data register** at `0xFFFFF746` and the separate
+**Port D physical pin register** at `0xFFFFF784`. Both support
+8- and 16-bit accesses. PDDR contains 14 meaningful bits (PD13..PD0);
+reserved bits 15 and 14 always read zero and must be written zero.
+
+The emulator tracks the data latch separately from explicitly supplied physical
+pin levels. With PDIOR=0, PDDR reads the physical pin; with PDIOR=1 it reads
+the stored latch. PDPR always reads physical levels. An unprovided input
+remains unknown and causes an explicit diagnostic, never a made-up zero.
+Both manual-reset uncertainty and big-endian high/low byte accesses are tested.
+Timer and HCAN alternate-function pin driving is not simulated.
+
+Example optional input:
+
+```powershell
+python -m ecu_workbench --rom original.bin --nmi high --port-d-pins 0x1234 --port-d-known-mask 0x3FFF --steps 300
+```
+
+Original LF9VEB (SHA-256 `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`)
+with power reset, NMI high and no invented physical levels now reaches
+**76 attempted instructions** before stopping at opcode `2151`
+(`MOV.W R5,@R1`) at instruction address `0x00000CAE`.
+It attempts a 16-bit write of `0xFFFF` to **Port E PEDR**
+`0xFFFFF754`. This is only a reset diagnostic, not a booted ECU.
+
+Next observed hardware item: **B30 — Port E PEDR**. The NC1/NC2/NC3
+hardware-family manifest (B26) follows; GPIO/peripheral refactoring
+(B17) is moved forward to avoid piling up separate ad hoc handlers.
 
 ## Engineering priorities
 
