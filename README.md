@@ -298,3 +298,35 @@ Previously observed before B30: 76 attempted instructions; stop at
 Since B30 modelled that register, its next real stop is **unknown until a
 local ROM diagnostic is run**. Instruction-count increases alone do not
 demonstrate a completed boot, nor conclusively prove a particular write.
+
+## B32 — Share the next startup blocker directly from the Windows EXE
+
+In the [latest Windows prerelease](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases),
+open **MX5-NC-ECU-Emulator.exe**, load your locally held NC ROM, select
+**Reset: power**, **NMI pin: high**, and **Max instructions: 300**,
+leave all optional physical pin inputs blank, and run the startup diagnostic.
+Then choose **Save shareable blocker JSON…** and share that small file to
+review the next instruction or unmodelled register.
+
+The new report is derived **from the diagnostic you actually ran**, so
+changing the GUI settings after running does not silently change its label.
+It whitelists only the ROM SHA-256, settings, attempted count, stop PC,
+stop opcode/address/access and whether a 16-bit `0xFFFF` write to `PEDR`
+was present in the recorded peripheral accesses. It **does not** include
+the ROM bytes, ROM filename, local path, complete instruction trace or
+unrestricted error text. It still contains a ROM hash and some firmware-derived
+addresses/opcodes, so inspect the file before sharing externally.
+
+For Python users, the equivalent standalone command is:
+
+```powershell
+python -m ecu_workbench.share_report detailed.json --output shareable-blocker.json
+```
+
+The **existing** Save diagnostic JSON command still exports the fuller trace
+for private debugging. A verified original LF9VEB image has SHA-256
+`bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`.
+The report distinguishes that known hash and the original power/NMI-high
+300-instruction test from other combinations, but does not attest to the
+image's authenticity or claim firmware booted. The post-Port-E stopping point
+remains unknown until the original ROM is run locally.
