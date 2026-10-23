@@ -5,6 +5,7 @@ from ecu_workbench.core import ROMImage
 from ecu_workbench.nc_boot import BootBus, BootStop, ROM_LIMIT, PBDR_ADDRESS, PBPR_ADDRESS, PCDR_ADDRESS
 from ecu_workbench.port_d import PDDR_ADDRESS, PDPR_ADDRESS, PDIOR_ADDRESS
 from ecu_workbench.port_e import PEDR_ADDRESS, PEIOR_ADDRESS
+from ecu_workbench.port_f import PFDR_ADDRESS, PFIOR_ADDRESS
 from ecu_workbench.peripheral_router import PeripheralRouter
 
 
@@ -29,7 +30,7 @@ class RouterTests(unittest.TestCase):
         b=BootBus(image())
         expected={"PBDR":PBDR_ADDRESS,"PBPR":PBPR_ADDRESS,
                   "PCDR":PCDR_ADDRESS,"PDDR":PDDR_ADDRESS,
-                  "PDPR":PDPR_ADDRESS,"PEDR":PEDR_ADDRESS}
+                  "PDPR":PDPR_ADDRESS,"PEDR":PEDR_ADDRESS,"PFDR":PFDR_ADDRESS}
         self.assertEqual(set(r.name for r in b.port_router._by_base.values()),
                          set(expected))
         for name,base in expected.items():
@@ -40,11 +41,13 @@ class RouterTests(unittest.TestCase):
     def test_access_modes_and_big_endian_latches(self):
         b=BootBus(image())
         directions={0xFFFFF730:0xFFFF,0xFFFFF73A:0x001F,
-                    PDIOR_ADDRESS:0x3FFF,PEIOR_ADDRESS:0xFFFF}
+                    PDIOR_ADDRESS:0x3FFF,PEIOR_ADDRESS:0xFFFF,
+                    PFIOR_ADDRESS:0xFFFF}
         for addr,mode in directions.items():
             b.write(addr,2,mode)
         for addr,value in ((PBDR_ADDRESS,0xD00D),(PCDR_ADDRESS,0x001B),
-                           (PDDR_ADDRESS,0x1234),(PEDR_ADDRESS,0xBEEF)):
+                           (PDDR_ADDRESS,0x1234),(PEDR_ADDRESS,0xBEEF),
+                           (PFDR_ADDRESS,0xCAFE)):
             with self.subTest(addr=hex(addr)):
                 b.write(addr,2,value)
                 self.assertEqual(b.read(addr,2),value)
@@ -52,12 +55,12 @@ class RouterTests(unittest.TestCase):
                 self.assertEqual(b.read(addr+1,1),value & 0xFF)
                 b.write(addr+1,1,0x05)
                 self.assertEqual(b.read(addr,2),(value & 0xFF00)|0x05)
-        self.assertEqual(b.peripheral_trace[-1]["register"],"PEDR")
+        self.assertEqual(b.peripheral_trace[-1]["register"],"PFDR")
 
     def test_32_bit_access_stops_before_unaligned_memory_check(self):
         b=BootBus(image())
         for address in (PBDR_ADDRESS,PBPR_ADDRESS,PCDR_ADDRESS,
-                        PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS):
+                        PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS):
             for mode in ("read","write"):
                 with self.subTest(address=hex(address),mode=mode):
                     with self.assertRaises(BootStop) as caught:
@@ -76,7 +79,7 @@ class RouterTests(unittest.TestCase):
                         b.read(addr,2) if mode=="read" else b.write(addr,2,0)
                     self.assertEqual(caught.exception.kind,"unmodelled_peripheral")
         for addr in (PBDR_ADDRESS,PBPR_ADDRESS,PCDR_ADDRESS,
-                     PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS):
+                     PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS):
             with self.subTest(addr=hex(addr)),self.assertRaises(BootStop) as caught:
                 b.read(addr,2)
             self.assertEqual(caught.exception.kind,"missing_input")
