@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Last verified status after B29 (23 October 2026); B30 code pending verification:** 7 of 30 one-pass tickets completed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
+**Current status (23 October 2026):** B30 synthetic CI and Windows prerelease verified at `2817ba8`; its private LF9VEB post-Port-E regression remains outstanding. B26 local inventory implementation has been committed but its CI/release are being verified. 7 of 30 one-pass tickets formally closed. Original LF9VEB with power reset, NMI high, and no invented physical pin levels reaches **76 attempted instructions**. Port D PDDR (`0xFFFFF746`, write `0x3EFF`) is now modelled; next stop is Port E PEDR at `0xFFFFF754` (16-bit write `0xFFFF`, opcode `2151` at `0x00000CAE`). This is not a completed ECU boot. NC1/NC2/NC3 hardware profiles remain unverified.
 
 ## Working agreement — one issue = one development pass
 
@@ -27,6 +27,9 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## Backlog review log
 
+| 2026-10-23 | B26 (implementation pending verification) | Local-only SHA-256 inventory and synthetic validation tests added. **No changes** to immediate priority order until the Port E LF9VEB trace and B26 CI/release are verified. Retain B17 next after B26, defer unobserved CPU/FPU work, and avoid hardware-profile claims from file sizes or filenames. Existing #33 covers B26; no duplicate issue. |
+
+
 | 2026-10-23 | B30 (implementation awaiting verification) | Port E PEDR latch handler and synthetic tests committed. The previously observed next stop is PEDR at 0xFFFFF754; a new private LF9VEB baseline has **not yet been measured**. Retain B26 as next planned inventory and B17 as refactor; do not add speculative GPIO tickets or claim a further boot milestone. **B30 remains open pending CI test confirmation, Windows release, and real-ROM regression.** |
 
 
@@ -47,7 +50,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 ## P0 — Unblock the observed LF9VEB startup failure
 
-Highest confidence, immediate work. **Next: B30 (Port E PEDR), then B26 (NC ROM hardware-family inventory), followed by B17 peripheral refactor**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
+Highest confidence, immediate work. **Next: verify B30 against private LF9VEB; B26 inventory is implemented pending CI/release, followed by B17 peripheral refactor**. Implement only verified register behaviour, rerun LF9VEB, and report the next authentic blocker.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
