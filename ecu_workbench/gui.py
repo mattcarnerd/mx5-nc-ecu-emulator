@@ -13,6 +13,7 @@ from tkinter import filedialog, messagebox, ttk
 from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
 from .boot_presenter import present_reset_diagnostic
+from .share_report import make_shareable_blocker_report
 from .nc_rom import assess_nc_rom
 
 
@@ -51,6 +52,7 @@ class Workbench(tk.Tk):
         ttk.Button(file_row, text="Load NC ROM…", command=self.load_rom).pack(side="left")
         ttk.Label(file_row, textvariable=self.filename).pack(side="left", padx=(12, 0))
         ttk.Button(file_row, text="Save diagnostic JSON…", command=self.save_report).pack(side="right")
+        ttk.Button(file_row, text="Save shareable blocker JSON…", command=self.save_shareable_report).pack(side="right", padx=(0, 8))
 
         hardware = ttk.LabelFrame(panel, text="Virtual hardware settings", padding=10)
         hardware.pack(fill="x", pady=(0, 8))
@@ -182,10 +184,20 @@ class Workbench(tk.Tk):
                 port_d_pin_values=(int(self.port_d_pins.get(),0) if self.port_d_pins.get().strip() else None),
                 port_d_pin_known_mask=int(self.port_d_mask.get(),0),
             )
+            # Record the settings actually used, not any later edits to the UI.
             self.report = {
                 "image": self.rom.inspect(),
                 "nc_rom_assessment": assess_nc_rom(self.rom).as_dict(),
                 "nc_boot": result,
+                "diagnostic_settings": {
+                    "reset": self.reset.get(),
+                    "nmi": self.nmi.get(),
+                    "max_steps": maximum,
+                    "explicit_pin_values": any(
+                        variable.get().strip() for variable in
+                        (self.port_b_pins, self.port_c_pins, self.port_d_pins)
+                    ),
+                },
             }
             presentation = present_reset_diagnostic(result)
             self.status.set(presentation["status"])
@@ -202,6 +214,28 @@ class Workbench(tk.Tk):
             self._set(self.peripherals, json.dumps(presentation["peripherals"], indent=2))
         except (KeyError, ValueError) as exc:
             messagebox.showerror("Invalid diagnostic settings", str(exc))
+
+    def save_shareable_report(self):
+        if self.report is None:
+            messagebox.showinfo("No diagnostic", "Run a startup diagnostic first.")
+            return
+        try:
+            reduced = make_shareable_blocker_report(self.report)
+        except ValueError as exc:
+            messagebox.showerror("Cannot prepare blocker report", str(exc))
+            return
+        path = filedialog.asksaveasfilename(
+            title="Save small shareable blocker JSON",
+            initialfile="shareable-blocker.json",
+            defaultextension=".json", filetypes=(("JSON reports", "*.json"),),
+        )
+        if not path:
+            return
+        try:
+            Path(path).write_text(json.dumps(reduced, indent=2, sort_keys=True) + "\\n",
+                                  encoding="utf-8")
+        except OSError as exc:
+            messagebox.showerror("Cannot save blocker report", str(exc))
 
     def save_report(self):
         if self.report is None:
