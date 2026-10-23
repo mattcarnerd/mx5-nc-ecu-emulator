@@ -330,3 +330,23 @@ The report distinguishes that known hash and the original power/NMI-high
 300-instruction test from other combinations, but does not attest to the
 image's authenticity or claim firmware booted. The post-Port-E stopping point
 remains unknown until the original ROM is run locally.
+
+## B33 — Port F startup register found from user diagnostic
+
+A user-generated shareable report from a **different SHA-256** to the
+reference LF9VEB image reached **83 attempted instructions** after recording
+the expected Port E write. It stopped on the 16-bit write `0xFFFF` to
+**PFDR `0xFFFFF74E`**, opcode `2351`, PC `0x00000CBC`.
+The SH7058 Rev.3 hardware manual, §§22.7.1–22.7.2, confirms Port F.
+This build implements its data latch and read semantics, but not actual
+physical pins or POD output drivers. CI tests **do not** establish how far
+this original user ROM will run until that ROM is tested again locally.
+
+To find the next real blocker, download the **latest** Windows executable,
+load the **same** ROM, select power-on reset, NMI high and 300 instructions,
+leave unmeasured physical pin inputs blank, and run the startup diagnostic.
+Then use **Save shareable blocker JSON…** again. The report now carries a
+`pfdr_word_write_ffff_in_peripheral_trace` field, which is true only if
+the 16-bit `0xFFFF` PFDR write was actually recorded during execution.
+Do not infer execution from instruction counts alone. A different SHA-256
+is a different image, not a verified original LF9VEB regression.
