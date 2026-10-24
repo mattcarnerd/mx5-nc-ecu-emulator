@@ -87,3 +87,5 @@ B55/#62 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS
 Current bounded result: IMI1A and ADI0 CPU routes and generated capture/ADC/GPIO integration are tested. Other sources remain unsupported. B52/B53 research is complete as documented unresolved evidence; no physical-profile gate is marked resolved. [Current pass](docs/STARTUP_IRQ_PASS.md).
 
 B56/#63 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). All five requested bounded tasks completed in scope, subject to final CI/release. Research1/2 retain unresolved evidence under parent1; IMI1A/ADI0 routes and integration implemented. Other sources and physical/engine work remain open; no speculative duplicate issue added.
+
+B57/#64 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). B57 closes existing capture-route gap. B58 overflow, B59 internal clock packets, B60 external edges and B61 integration are explicit requested child scopes; hardware gates unchanged.

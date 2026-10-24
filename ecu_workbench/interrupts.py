@@ -9,6 +9,7 @@ from .sh2_exception import enter_exception
 ITI_VECTOR=224
 IPRL_ADDRESS=0xFFFFED16
 IMI1A_VECTOR=96
+IMI1B_VECTOR=97
 IPRD_ADDRESS=0xFFFFED06
 ADI0_VECTOR=190
 IPRJ_ADDRESS=0xFFFFED12
@@ -26,7 +27,7 @@ def routed_requests(cpu):
     t=cpu.bus.atu
     return [
         ('IMI1A',IMI1A_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],1),True),
-        ('IMI1B',97,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],2),False),
+        ('IMI1B',IMI1B_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],2),True),
         ('ADI0',ADI0_VECTOR,IPRJ_ADDRESS,8,cpu.bus.adc.interrupt_pending,True),
         ('ITI',ITI_VECTOR,IPRL_ADDRESS,4,cpu.interval_request,True),
     ]

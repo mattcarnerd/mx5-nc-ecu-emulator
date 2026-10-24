@@ -45,15 +45,13 @@ class ModuleInterruptTests(unittest.TestCase):
         d=module_cpu();capture_request(d);d.bus.write(IPRL_ADDRESS,2,0x60);d.set_interval_request(True);d.run(1)
         self.assertEqual(d.exception_events[0]['source'],'ITI')
 
-    def test_atu_slot_inhibition_unknown_and_unrouted_source(self):
+    def test_atu_slot_inhibition_and_unknown(self):
         d=module_cpu(0xA002,0xE207);d.clock.schedule(1,lambda:capture_request(d));d.run(3)
         self.assertEqual(d.r[2],7);self.assertEqual(d.exception_events[0]['saved_pc'],'0x00000108')
         d=module_cpu(0x410E,0xE207,0x0009);load_sr(d,0xF0);d.r[1]=0;capture_request(d);d.run(3)
         self.assertEqual(d.r[2],7);self.assertEqual(d.exception_events[0]['saved_pc'],'0x00000104')
         d=module_cpu();d.bus.atu.regs[TSR]=None;d.bus.atu.write(TIER,2,1);sp=d.r[15]
         r=d.run(1);self.assertEqual(r['stop']['reason'],'unknown_peripheral_reset_state');self.assertEqual(d.r[15],sp)
-        d=module_cpu();d.bus.atu.regs[TSR]=2;d.bus.atu.write(TIER,2,2)
-        self.assertEqual(d.run(1)['stop']['reason'],'unsupported_interrupt_source')
 
     def test_atu_held_source_reenters_unless_firmware_acknowledges(self):
         d=module_cpu();capture_request(d)
@@ -98,3 +96,24 @@ class ModuleInterruptTests(unittest.TestCase):
         self.assertFalse(d.bus.adc.interrupt_pending)
         d.bus.adc.csr=0xC0;d.bus.adc.write(ADCSR0,1,0)
         self.assertFalse(d.bus.adc.interrupt_pending);self.assertEqual(d.bus.adc.csr,128)
+
+    def test_second_capture_vector_read_ack_and_return(self):
+        from ecu_workbench.atu import GRB
+        d=module_cpu();data=bytearray(d.bus.image.data)
+        data[0x184:0x188]=(0x600).to_bytes(4,'big')
+        for i,op in enumerate((0x6A51,0x6041,0xE000,0x2401,0x7901,0x002B,0x0009)):
+            data[0x600+2*i:0x602+2*i]=op.to_bytes(2,'big')
+        d.bus.image=ROMImage('synthetic',bytes(data));d.r[5]=GRB;d.r[9]=0;sp=d.r[15]
+        t=d.bus.atu;t.write(TIOR,1,0x50);t.write(TIER,2,2);t.write(TSTR,1,2)
+        t.advance_ticks(41);t.set_pin(False,'B');t.set_pin(True,'B');d.run(8)
+        self.assertEqual(d.r[10],41);self.assertEqual(d.r[9],1);self.assertEqual(d.r[15],sp)
+        self.assertEqual(d.exception_events[0]['vector'],97);self.assertFalse(t.interrupt_pending)
+
+    def test_dual_capture_order_and_independent_ack(self):
+        d=module_cpu();t=d.bus.atu;t.regs[TSR]=3;t.write(TIER,2,3)
+        d.run(1);self.assertEqual(d.exception_events[0]['source'],'IMI1A')
+        t.read(TSR,2);t.write(TSR,2,2)
+        self.assertEqual(t.regs[TSR],2);self.assertTrue(t.interrupt_pending)
+        load_sr(d,0);d.pc=0x100;d.run(2)
+        self.assertEqual(d.exception_events[-1]['source'],'IMI1B')
+        t.write(TIER,2,1);self.assertFalse(t.interrupt_pending)
