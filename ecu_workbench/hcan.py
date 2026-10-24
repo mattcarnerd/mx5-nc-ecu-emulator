@@ -18,6 +18,7 @@ class HcanResetCommands:
     def __init__(self,*,power_on,trace,stop_type,experimental_mcr_bit6=None):
         mcr_scenario_metadata(experimental_mcr_bit6)
         self.experimental_mcr_bit6=experimental_mcr_bit6
+        self.generations=[0,0];self.on_request=None
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
@@ -43,6 +44,8 @@ class HcanResetCommands:
         self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
                            'scope':'CAN_software_reset_request_only' if value else 'CAN_reset_release_request_only',
                            'reset_processing':'unknown','bus_synchronization':'unknown'})
+        self.generations[channel]+=1
+        if self.on_request:self.on_request(channel,value,self.generations[channel])
 
     def read(self,address,width):
         channel=self._channel(address,width,'read')

@@ -90,7 +90,12 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     if normalize_adc_fixture(boot.get('adc_fixture'))!=fixture:
         raise ValueError('ADC fixture mismatch in diagnostic')
     bit=settings.get('experimental_mcr_bit6',boot.get('experimental_mcr_bit6'))
-    scenario=run_scenario_metadata(hudi_scenario,phi,fixture,bit)
+    from .hcan_fixture import normalize_hcan_fixture
+    hcan=normalize_hcan_fixture(settings.get('hcan_fixture',boot.get('hcan_fixture')))
+    if normalize_hcan_fixture(boot.get('hcan_fixture'))!=hcan:raise ValueError('HCAN fixture mismatch')
+    scenario=run_scenario_metadata(hudi_scenario,phi,fixture,bit,hcan)
+    if 'conditional_hcan_fixture' in boot and (type(boot['conditional_hcan_fixture']) is not bool or boot['conditional_hcan_fixture']!=scenario['conditional_hcan_fixture']):
+        raise ValueError('HCAN fixture marker mismatch')
     if bit is not None and 'experimental_mcr_bit6' not in boot:
         raise ValueError('MCR assumption missing from executed report')
     if 'experimental_mcr_bit6' in boot and (type(boot['experimental_mcr_bit6']) is not type(bit) or boot['experimental_mcr_bit6']!=bit):
@@ -200,7 +205,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
-            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit,
+            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit, "hcan_fixture":hcan,
         },
         "executed_instructions": count,
         "completed_instructions":completed,

@@ -27,6 +27,8 @@ def main(argv=None):
                         help="Conditional artificial phi cycles per completed instruction (1..1000000); omitted means unknown")
     parser.add_argument("--experimental-mcr-bit6",type=int,choices=(0,1),
                         help="Experimental constant reserved-bit6 readback on both HCAN channels; not verified hardware. Omit for unknown.")
+    parser.add_argument("--hcan-reset-completion-ticks",type=int,help="Explicit synthetic reset-completion delay; not physical timing")
+    parser.add_argument("--hcan-recessive-bus-ticks",type=int,help="Explicit synthetic11-recessive-bit input delay; not physical timing")
     parser.add_argument("--port-b-pins", type=lambda s: int(s, 0),
                         help="Explicit 16-bit physical Port B levels, e.g. 0x1234; omitted means unknown")
     parser.add_argument("--port-b-known-mask", type=lambda s: int(s, 0), default=0xFFFF,
@@ -53,13 +55,15 @@ def main(argv=None):
         parser.error("--steps must be between 1 and 100000")
 
     try:
+        hcan_fixture=({'reset_completion_ticks':args.hcan_reset_completion_ticks,'recessive_bus_ticks':args.hcan_recessive_bus_ticks}
+                      if args.hcan_reset_completion_ticks is not None or args.hcan_recessive_bus_ticks is not None else None)
         adc_fixture=adc_fields(args.an0_voltage,args.adc_reference_voltage,args.adc_completion_ticks)
         image = ROMImage.from_file(args.rom)
         pin = {"unknown": None, "high": True, "low": False}[args.nmi]
         if args.baseline:
             result = capture_boot_baseline(
                 image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
-                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=args.experimental_mcr_bit6,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=args.experimental_mcr_bit6, hcan_fixture=hcan_fixture,
                 port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                 port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                 port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,
@@ -71,14 +75,14 @@ def main(argv=None):
                     "reset": args.reset, "nmi": args.nmi, "max_steps": args.steps,
                     "hudi_scenario": args.hudi_scenario,
                     "phi_cycles_per_instruction": args.phi_cycles_per_instruction, "adc_fixture":adc_fixture,
-                    "experimental_mcr_bit6":args.experimental_mcr_bit6,
+                    "experimental_mcr_bit6":args.experimental_mcr_bit6, "hcan_fixture":hcan_fixture,
                     "explicit_pin_values": any(v is not None for v in
                         (args.port_b_pins, args.port_c_pins, args.port_d_pins)),
                 },
                 "nc_rom_assessment": assess_nc_rom(image).as_dict(),
                 "nc_boot": diagnose_nc_reset(
                     image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
-                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=args.experimental_mcr_bit6,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=args.experimental_mcr_bit6, hcan_fixture=hcan_fixture,
                     port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                     port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                     port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,

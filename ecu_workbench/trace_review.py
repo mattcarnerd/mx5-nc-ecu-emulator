@@ -26,11 +26,16 @@ def summarise(report: dict) -> dict:
     stop = run.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str):
         raise ValueError("Missing stop reason")
-    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"),settings.get("adc_fixture"),settings.get("experimental_mcr_bit6"))
+    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"),settings.get("adc_fixture"),settings.get("experimental_mcr_bit6"),settings.get("hcan_fixture"))
     if "hudi_scenario" in report and report["hudi_scenario"]!=scenario["hudi_scenario"]:
         raise ValueError("H-UDI scenario mismatch in baseline")
     if "phi_cycles_per_instruction" in report and report["phi_cycles_per_instruction"]!=scenario["phi_cycles_per_instruction"]:
         raise ValueError("Clock scenario mismatch in baseline")
+    from .hcan_fixture import normalize_hcan_fixture
+    if normalize_hcan_fixture(report.get('hcan_fixture'))!=scenario['hcan_fixture']:
+        raise ValueError('HCAN fixture mismatch in baseline')
+    if 'conditional_hcan_fixture' in report and (type(report['conditional_hcan_fixture']) is not bool or report['conditional_hcan_fixture']!=scenario['conditional_hcan_fixture']):
+        raise ValueError('HCAN fixture marker mismatch in baseline')
     bit=scenario['experimental_mcr_bit6']
     if bit is not None and 'experimental_mcr_bit6' not in report:
         raise ValueError('MCR assumption missing from baseline')

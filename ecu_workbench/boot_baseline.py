@@ -15,7 +15,7 @@ TRACE_TAIL_LENGTH = 16
 
 def capture_boot_baseline(
     rom: ROMImage, *, reset: str = "power", max_steps: int = 300,
-    nmi_high: bool | None = None, hudi_scenario: str = "unknown", phi_cycles_per_instruction: int | None = None, adc_fixture=None, experimental_mcr_bit6=None,
+    nmi_high: bool | None = None, hudi_scenario: str = "unknown", phi_cycles_per_instruction: int | None = None, adc_fixture=None, experimental_mcr_bit6=None, hcan_fixture=None,
     port_b_pin_values: int | None = None, port_b_pin_known_mask: int = 0xFFFF,
     port_c_pin_values: int | None = None, port_c_pin_known_mask: int = 0x001F,
     port_d_pin_values: int | None = None, port_d_pin_known_mask: int = 0xFFFF,
@@ -33,7 +33,7 @@ def capture_boot_baseline(
         raise ValueError("max_steps must be between 1 and 100000")
 
     run = diagnose_nc_reset(
-        rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high, hudi_scenario=hudi_scenario, phi_cycles_per_instruction=phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=experimental_mcr_bit6,
+        rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high, hudi_scenario=hudi_scenario, phi_cycles_per_instruction=phi_cycles_per_instruction, adc_fixture=adc_fixture, experimental_mcr_bit6=experimental_mcr_bit6, hcan_fixture=hcan_fixture,
         port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask,
         port_c_pin_values=port_c_pin_values, port_c_pin_known_mask=port_c_pin_known_mask,
         port_d_pin_values=port_d_pin_values, port_d_pin_known_mask=port_d_pin_known_mask,
@@ -55,6 +55,7 @@ def capture_boot_baseline(
     input_settings = {"reset": reset,
                       "nmi": "unknown" if nmi_high is None else ("high" if nmi_high else "low"),
                       "max_steps": max_steps, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi_cycles_per_instruction, "adc_fixture":run.get("adc_fixture")}
+    if hcan_fixture is not None:input_settings['hcan_fixture']=run.get('hcan_fixture')
     if experimental_mcr_bit6 is not None:input_settings['experimental_mcr_bit6']=experimental_mcr_bit6
     if port_b_pin_values is not None:
         input_settings["port_b_pin_values"] = f"0x{port_b_pin_values:04X}"
@@ -76,7 +77,7 @@ def capture_boot_baseline(
             "size_bytes": rom.size,
         },
         "inputs": input_settings,
-        **run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction,adc_fixture,experimental_mcr_bit6),
+        **run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction,adc_fixture,experimental_mcr_bit6,hcan_fixture),
         "result": {
             "reset_vectors": run.get("vectors"),
             "initial_sp": run.get("initial_sp"),
