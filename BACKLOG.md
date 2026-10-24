@@ -178,3 +178,5 @@ B47/#54 full backlog review: add B48/#55 known-bit dependency for observed MCR r
 B48/#55 review:281 tests; primitive only, stops unchanged. All open bodies/rows reviewed; add B49/#56 for partial MCR MOV.W. Other dependencies unchanged.
 
 B49/#56 review:284 tests; default188, conditional10000 now591 at OR. All open bodies/rows reviewed; add B50/#57 conservative logical propagation. Other scopes unchanged.
+
+B50/#57 review:287 tests; partial OR now stops592 at direct word store. Full open-body/row review adds B51/#58 width-aware store validation, preserving reserved-bit uncertainty. Other dependencies unchanged.

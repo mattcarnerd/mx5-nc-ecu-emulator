@@ -30,3 +30,27 @@ class PartialCpuTests(unittest.TestCase):
         result=d.run(1)
         self.assertEqual(result['stop']['reason'],'unknown_peripheral_reset_state')
         self.assertEqual(d.clock.ticks,0)
+
+    def test_or_and_masking_and_copy_preserve_flags(self):
+        d=program(0xCB01,0x6103,0xC9BF);d.r[0]=KnownBits(0,0xFFFFFFBF);d.t=True
+        d.run(3)
+        self.assertEqual(d.r[1],KnownBits(1,0xFFFFFFBF))
+        self.assertEqual(d.r[0],1);self.assertTrue(d.t)
+
+    def test_register_logic_aliasing_and_unrelated_unknowns(self):
+        for op,expected in ((0x2019,KnownBits(0,0xFFFFFFFE)),
+                            (0x201B,KnownBits(1,0xFFFFFFBF)),
+                            (0x201A,KnownBits(1,0xFFFFFFBE))):
+            d=program(op);d.r[0]=KnownBits(1,0xFFFFFFBF);d.r[1]=KnownBits(0,0xFFFFFFFE)
+            d.run(1);self.assertEqual(d.r[0],expected)
+        d=program(0x200A);d.r[0]=KnownBits(0,0);d.run(1)
+        self.assertEqual(d.r[0],0)
+
+    def test_tst_proof_and_unknown_branch(self):
+        for mask,t in ((0x40,None),(1,True)):
+            d=program(0xC800|mask,0x8900);d.r[0]=KnownBits(0,0xFFFFFFBF)
+            result=d.run(2);self.assertIs(d.t,t)
+            self.assertEqual(result['stop']['reason'],'unknown_status' if t is None else 'instruction_limit')
+        d=program(0xC801);d.r[0]=KnownBits(1,1);d.run(1);self.assertFalse(d.t)
+        d=program(0xCB01);d.r[0]=None
+        result=d.run(1);self.assertEqual(result['stop']['reason'],'unknown_register')

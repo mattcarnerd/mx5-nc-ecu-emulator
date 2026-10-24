@@ -545,6 +545,11 @@ class NCBootDiagnostic:
         self._active_instruction=None
         self._fetch_pc=None
         self._pending_target=None
+    def reg_bits(self,n):
+        value=self.r[n]
+        if isinstance(value,KnownBits):return value
+        return KnownBits.exact(self.reg(n))
+
     def reg(self,n):
         v=self.r[n]
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
@@ -638,7 +643,7 @@ class NCBootDiagnostic:
         if (op&0xF00F)==0x600F:  # exts.w Rm,Rn
             self.r[n]=sign_extend(self.reg(m)&0xFFFF,16)&0xFFFFFFFF;return None
         if (op&0xF00F)==0x6003:  # mov Rm,Rn
-            self.r[n]=self.reg(m);return None
+            self.r[n]=self.reg_bits(m).compact();return None
         # B08 register and immediate logical operations, all SH-2 masks.
         if execute_logic(self,op,n,m): return None
         # B09 signed/unsigned comparisons, explicit carry/borrow arithmetic.

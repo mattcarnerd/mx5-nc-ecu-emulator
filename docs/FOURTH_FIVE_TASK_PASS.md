@@ -19,3 +19,9 @@ Full backlog review: all current open bodies compared with B47 review; only new 
 CPU MOV.W @Rm,Rn can preserve known MCR bits with bit6 unknown, sign-extended correctly. Both channel command latches use maskFFBF; manual unknown prior state still fails. Concrete bus readers still fail instead of selecting bit6. Other CPU consumers reject partial registers until specifically supported; immediate overwrites restore exact values. 284 tests pass, default188/no-clock assumptions225 unchanged. Conditional10000 reaches591, OR #1,R0 at PC7B4/opCB01, preserving rather than choosing unknown readback. Evidence b49-clock1-budget10000-trst-reset.json.
 
 Full backlog review: all open bodies refreshed/compared, all rows reviewed. Only child scope/closure evidence changed; no duplicate logical partial-value task. Add B50/#57 for observed OR and generic existing logical forms/copies. Parents1-3/FPU16-18/timer29/ADC30/crank31/output32/UI35 keep dependencies. No hardware state/full boot inferred.
+
+## B50/#57 logical partial values
+
+Existing register/immediate AND/OR/XOR/TST and register MOV now retain known masks. AND zero or OR one can prove bits; XOR of the same register is exact zero. TST produces an unknown T when zero cannot be proved either way, and branch consumers still stop. Other SR flags remain unchanged. Unknown reset-register None still fails. 287 tests pass, including exhaustive value primitive checks, aliasing, masking, copies and uncertain branches.
+
+Default188/no-clock225 unchanged. Conditional10000 reaches592, PC7B6/op2301 MOV.W R0,@R3. The unknown reserved bit6 is still present after OR1; it must not be silently written as zero. Full backlog review of refreshed bodies/rows adds B51/#58 for width-aware direct stores and precise blocked-write evidence. Other issue scopes/dependencies unchanged; do not create speculative CAN behavior. Evidence b50-clock1-budget10000-trst-reset.json.
