@@ -5,6 +5,7 @@ from ecu_workbench.core import ROMImage
 from ecu_workbench.atu import *
 from ecu_workbench.interrupts import IPRE_ADDRESS
 from ecu_workbench.sh2_control import load_sr
+from ecu_workbench.nc_boot import BootStop
 
 class TimerExtensionTests(unittest.TestCase):
     def test_overflow_boundaries_packet_count_flag_clear_and_stopped(self):
@@ -35,3 +36,28 @@ class TimerExtensionTests(unittest.TestCase):
             if expected:
                 self.assertEqual(d.exception_events[0]['vector'],104);self.assertFalse(t.interrupt_pending)
                 self.assertEqual(d.r[15],sp)
+
+    def test_all_internal_divisors_and_packet_fraction(self):
+        for first in range(32):
+            for second in range(6):
+                t=Atu1A(power_on=True,trace=[],stop_type=BootStop)
+                t.write(PSCR,1,first);t.write(TCR,1,second);t.begin_clock_fixture(phase=0);t.write(TSTR,1,2)
+                divisor=(first+1)*(1<<second)
+                t.advance_phi_cycles(divisor-1);self.assertEqual(t.read(TCNT,2),0)
+                t.advance_phi_cycles(1);self.assertEqual(t.read(TCNT,2),1)
+                t.advance_phi_cycles(3*divisor+1);self.assertEqual(t.read(TCNT,2),(4*divisor+1)//divisor)
+                self.assertIsNone(t.clock_report()['frequency_hz'])
+
+    def test_clock_phase_stop_configuration_unknown_and_width(self):
+        t=Atu1A(power_on=True,trace=[],stop_type=BootStop);t.write(PSCR,1,2)
+        t.begin_clock_fixture(phase=0);t.advance_phi_cycles(2);t.write(TSTR,1,2)
+        t.advance_phi_cycles(1);self.assertEqual(t.read(TCNT,2),1)
+        with self.assertRaises(ValueError):t.advance_ticks(1)
+        with self.assertRaises(BootStop):t.write(PSCR,1,3)
+        for value in (32,255):
+            with self.assertRaises(BootStop):Atu1A(power_on=True,trace=[],stop_type=BootStop).write(PSCR,1,value)
+        with self.assertRaises(BootStop):t.write(PSCR,2,0)
+        with self.assertRaises(ValueError):Atu1A(power_on=True,trace=[],stop_type=BootStop).begin_clock_fixture(phase=1)
+        with self.assertRaises(BootStop):Atu1A(power_on=False,trace=[],stop_type=BootStop).begin_clock_fixture(phase=0)
+        with self.assertRaises(ValueError):Atu1A(power_on=True,trace=[],stop_type=BootStop).advance_phi_cycles(1)
+        b=program(0x0009).bus;b.write(PSCR,1,31);self.assertEqual(b.read(PSCR,1),31)

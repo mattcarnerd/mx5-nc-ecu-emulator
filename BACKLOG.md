@@ -91,3 +91,5 @@ B56/#63 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS
 B57/#64 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). B57 closes existing capture-route gap. B58 overflow, B59 internal clock packets, B60 external edges and B61 integration are explicit requested child scopes; hardware gates unchanged.
 
 B58/#65 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). B58 overflow prerequisite complete. B59 internal supplied clocks and B60 external selected edges follow; B61 integrates dual captures through rollover. Hardware gates remain unchanged.
+
+B59/#66 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). All 192 divider combinations checked; supplied fixture phase is explicit, clock frequency and physical timing remain unknown.

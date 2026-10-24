@@ -795,6 +795,7 @@ class NCBootDiagnostic:
             'trace':self.trace[-min(100,len(self.trace)):],
             'modelled_peripheral_accesses':self.bus.peripheral_trace,
             'raw_gpio_commands':list(self.bus.raw_gpio_commands),
+            'atu_clock_fixture':self.bus.atu.clock_report(),
             'boot_complete':False,
             'note':'Not a complete SH7058 emulator; never assume firmware boots from this result.'
         }
