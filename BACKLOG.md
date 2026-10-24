@@ -145,3 +145,5 @@ B77/#84 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_START
 B78/#85 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 376 tests pass. Unknown high bits do not matter to MULU.W; unknown low operands remain guarded. MACH/T/source registers unchanged. Declared scenario reaches1026 at STS MACL,R0 PCE20/op001A; next MACL transfer scoped separately.
 
 B79/#86 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 378 tests pass. Undefined MACL transports unknown bits; computed products transfer exactly and preserve T/MACH. Declared scenario reaches1042 at ADD R7,R2 PCE52/op327C. Milestone still requires sustained original-firmware execution and recurring interrupts.
+
+B80/#87 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 380 tests pass. Boundary/wrap/alias/unknown-input guards verified. Declared completion scenario reaches1047, PCE5C/op2C21, mailbox0 identifier word FFFFD100 value0037. Next bounded work is documented mailbox identifier/control latches; no traffic inferred.
