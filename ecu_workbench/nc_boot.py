@@ -207,6 +207,7 @@ class BootBus:
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
+        self.ram_known_mask = bytearray(RAM_LIMIT-RAM_BASE)
     def _region(self, a: int, width: int, access: str, value=None):
         if not 0 <= a < 2**32 or a+width > 2**32:
             raise BootStop('unmapped_memory',f'Address out of 32-bit range: 0x{a:X}',address=a,width=width,access=access)
@@ -395,8 +396,19 @@ class BootBus:
             raise
 
     def write_cpu_value(self,address,width,bits):
+        if width not in (1,2,4):raise ValueError('Unsupported width')
         required=(1<<(width*8))-1
         unknown=required & ~bits.mask
+        if unknown and RAM_BASE<=address and address+width<=RAM_LIMIT:
+            try:
+                _,off=self._region(address,width,'write')
+                self.ram[off:off+width]=(bits.value & required).to_bytes(width,'big')
+                self.ram_known_mask[off:off+width]=(bits.mask & required).to_bytes(width,'big')
+                self.ram_valid[off:off+width]=b'\x01'*width
+                return
+            except BootStop as error:
+                self.coverage.bus_failed(error,address,width,'write')
+                raise
         if unknown:
             error=BootStop('unknown_register',
                 f'Store contains unknown written bits 0x{unknown:08X}; known mask 0x{bits.mask & required:08X}; no concrete value selected',
@@ -405,13 +417,25 @@ class BootBus:
             raise error
         self.write(address,width,bits.value & required)
 
+    def read_cpu_value(self,address,width):
+        if width not in (1,2,4):raise ValueError('Unsupported width')
+        try:
+            if RAM_BASE<=address and address+width<=RAM_LIMIT:
+                _,off=self._region(address,width,'read')
+                if not all(self.ram_valid[off:off+width]):
+                    raise BootStop('uninitialised_ram','Read of unwritten reset RAM',address=address,width=width,access='read')
+                mask=int.from_bytes(self.ram_known_mask[off:off+width],'big')
+                # Bits above the transferred operand are not part of the read.
+                mask|=0xFFFFFFFF ^ ((1<<(8*width))-1)
+                return KnownBits(int.from_bytes(self.ram[off:off+width],'big'),mask)
+            if width==2 and address in MCR_ADDRESSES:return self.hcan.read_known_word(address)
+        except BootStop as error:
+            self.coverage.bus_failed(error,address,width,'read')
+            raise
+        return KnownBits.exact(self.read(address,width))
+
     def read_cpu_word(self,address):
-        if address in MCR_ADDRESSES:
-            try:return self.hcan.read_known_word(address)
-            except BootStop as error:
-                self.coverage.bus_failed(error,address,2,'read')
-                raise
-        return KnownBits.exact(self.read(address,2))
+        return self.read_cpu_value(address,2)
 
     def _read(self, a: int, width: int) -> int:
         if self.adc.handles(a):return self.adc.read(a,width)
@@ -480,6 +504,8 @@ class BootBus:
             raise BootStop('unmodelled_peripheral',f'Peripheral read at 0x{off:08X} ({width} bytes) is not modelled',address=off,width=width,access='read')
         if not all(self.ram_valid[off:off+width]):
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
+        if any(mask!=255 for mask in self.ram_known_mask[off:off+width]):
+            raise BootStop('uninitialised_ram','Concrete read requires all RAM bits known',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
     def write(self,a:int,width:int,value:int):
         try:return self._write(a,width,value)
@@ -535,6 +561,7 @@ class BootBus:
         if region=='ram':
             self.ram[off:off+width]=(value&((1<<(width*8))-1)).to_bytes(width,'big')
             self.ram_valid[off:off+width]=b'\x01'*width
+            self.ram_known_mask[off:off+width]=b'\xFF'*width
 
 class NCBootDiagnostic:
     """Instruction subset sufficient to report exact first boot blocker.

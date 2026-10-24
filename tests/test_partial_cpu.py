@@ -67,12 +67,12 @@ class PartialCpuTests(unittest.TestCase):
             self.assertEqual(d.bus.read(0xFFFF0000,width),value)
             d=program(op);d.r[1]=0xFFFF0000;d.r[0]=KnownBits(value,mask & ~0x80)
             result=d.run(1)
-            self.assertEqual(result['stop']['reason'],'unknown_register')
-            self.assertEqual(result['stop']['address'],'0xFFFF0000')
-            self.assertEqual(result['stop']['width'],width)
-            self.assertNotIn('value',result['stop'])
-            self.assertEqual(d.clock.ticks,0)
-            self.assertEqual(d.coverage.bus_failure_count,1)
+            self.assertEqual(result['stop']['reason'],'instruction_limit')
+            self.assertEqual(d.clock.ticks,1)
+            self.assertEqual(d.coverage.bus_failure_count,0)
+            stored=d.bus.read_cpu_value(0xFFFF0000,width)
+            self.assertEqual(stored.mask & ((1<<(8*width))-1),mask & ~0x80)
+            self.assertEqual(stored.value,value & ~0x80)
             with self.assertRaises(BootStop):d.bus.read(0xFFFF0000,width)
 
     def test_mcr_rmw_unknown_reserved_bit_is_not_silently_zeroed(self):
