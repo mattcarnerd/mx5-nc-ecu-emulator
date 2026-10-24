@@ -159,3 +159,7 @@ B82/#89 completed scope/test review: see [autonomous startup pass](docs/AUTONOMO
 B83/#90 corrects the packaged launcher: CLI arguments now use diagnostics, no-argument launch retains GUI. Actual EXE smoke test is required in Windows CI before publication. Earlier packaged CLI examples were inaccurate; use the B83 release or later. Hardware/milestone gate remains unchanged.
 
 B83/#90 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 388 local tests passed, including original-hash regressions; completed suite reused rather than redundantly rerun. Packaging bug corrected; CI must exercise generated image/fixture provenance through actual EXE. Prior packaged CLI examples corrected. Prohibited mailbox evidence gate remains; autonomous milestone unachieved.
+
+B84/#91 adds a separate explicit effect-deferral investigation, without changing strict validation: unresolved mailbox writes are recorded, not applied, and later CAN feedback remains unknown. This may expose independent downstream gaps; it does not resolve prohibited-mode semantics or complete the milestone.
+
+B84/#91 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 392-test full suite passed, plus expanded CLI recorder cases. Strict prohibited write still rejected; recorder logs without applying mailbox state and taints CAN feedback. Delayed completion cannot clear taint. Separate experiment reaches1059 at documented byte data initialization, PCE74/op2D50; faithful milestone and hardware gate remain unresolved.

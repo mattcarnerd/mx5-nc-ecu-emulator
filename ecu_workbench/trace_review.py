@@ -43,6 +43,11 @@ def summarise(report: dict) -> dict:
         raise ValueError('MCR scenario mismatch in baseline')
     if 'conditional_mcr_scenario' in report and (type(report['conditional_mcr_scenario']) is not bool or report['conditional_mcr_scenario']!=scenario['conditional_mcr_scenario']):
         raise ValueError('MCR conditional marker mismatch in baseline')
+    unresolved=run.get('unresolved_hcan_command_count',0);effect=run.get('unresolved_hcan_effects',False)
+    if type(unresolved) is not int or unresolved<0 or type(effect) is not bool or effect!=(unresolved>0):
+        raise ValueError('Invalid unresolved CAN provenance in baseline')
+    if unresolved and (scenario['hcan_fixture'] is None or not scenario['hcan_fixture'].get('defer_mailbox_effects')):
+        raise ValueError('CAN recorder assumption missing from baseline')
     injected_counts=[run.get(k,0) for k in ("explicit_interrupt_requests","scheduled_interrupt_events")]
     if any(type(n) is not int or n<0 for n in injected_counts):
         raise ValueError("Invalid injected interrupt provenance")
@@ -82,6 +87,8 @@ def summarise(report: dict) -> dict:
         "injected_peripheral_scenario":peripheral_injected,
         "rom_sha256": sha,
         "known_lf9veb": sha == LF9VEB_SHA256,
+        "unresolved_hcan_command_count":unresolved,
+        "unresolved_hcan_effects":effect,
         "reference_scenario": expected_scenario,
         "attempted_instructions": count,
         "stop_pc": run.get("pc_at_stop"),

@@ -524,7 +524,12 @@ class BootBus:
         if a in GSR_ADDRESSES or a-1 in GSR_ADDRESSES:return self.hcan.write_gsr(a,width,value)
         if self.adc.handles(a):return self.adc.write(a,width,value)
         if self.atu.handles(a):return self.atu.write(a,width,value)
-        if self.hcan.mailbox_region(a):return self.hcan.mailbox_write(a,width,value)
+        if self.hcan.mailbox_region(a):
+            try:return self.hcan.mailbox_write(a,width,value)
+            except BootStop as error:
+                if self.hcan.defer_mailbox_effects and error.kind in ('unsupported_peripheral_mode','invalid_peripheral_write'):
+                    return self.hcan.record_unresolved_mailbox(a,width,value,error.kind)
+                raise
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.write(a,width,value)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.write(a,width,value)
@@ -850,6 +855,8 @@ class NCBootDiagnostic:
             'modelled_peripheral_accesses':self.bus.peripheral_trace,
             'raw_gpio_commands':list(self.bus.raw_gpio_commands),
             'atu_clock_fixture':self.bus.atu.clock_report(),
+            'unresolved_hcan_command_count':self.bus.hcan.unresolved_command_count,
+            'unresolved_hcan_effects':any(self.bus.hcan.effect_unknown_channels),
             'boot_complete':False,
             'note':'Not a complete SH7058 emulator; never assume firmware boots from this result.'
         }

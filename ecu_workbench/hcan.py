@@ -21,6 +21,8 @@ class HcanResetCommands:
         mcr_scenario_metadata(experimental_mcr_bit6)
         self.experimental_mcr_bit6=experimental_mcr_bit6
         self.generations=[0,0];self.on_request=None
+        self.defer_mailbox_effects=False;self.effect_unknown_channels=[False,False]
+        self.unresolved_commands=[];self.unresolved_command_count=0
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
@@ -57,6 +59,8 @@ class HcanResetCommands:
 
     def read(self,address,width):
         channel=self._channel(address,width,'read')
+        if self.effect_unknown_channels[channel]:
+            raise self.stop_type('unknown_peripheral_reset_state','CAN effects unresolved after experimental command recording',address=address,width=width,access='read')
         if self.experimental_mcr_bit6 is not None:return self.read_known_word(address).concrete()
         raise self.stop_type('unknown_peripheral_reset_state',
             f'MCR_{channel} full-word readback includes unspecified reserved bit6; no value fabricated',
@@ -73,7 +77,7 @@ class HcanResetCommands:
                                  address=address,width=width,access=access)
         if access=='write':self.mbimr[address]=value&0xFFFF
         result=self.mbimr[address]
-        if result is None:
+        if result is None or (access=='read' and self.effect_unknown_channels[int(address>=0xFFFFD800)]):
             raise self.stop_type('unknown_peripheral_reset_state','Mailbox mask prior/reset-processing state unknown',
                                  address=address,width=width,access=access)
         self.trace.append({'register':f'MBIMR_{address:08X}','access':access,'width':2,'value':result,
@@ -86,7 +90,7 @@ class HcanResetCommands:
                                  address=address,width=width,access=access)
 
     def read_bcr_known(self,address):
-        self._bcr_guard(address,2,'read');bits=self.bcr[address]
+        self._bcr_guard(address,2,'read');bits=KnownBits(0,0) if self.effect_unknown_channels[int(address>=0xFFFFD800)] else self.bcr[address]
         self.trace.append({'register':f'BCR_{address:08X}','access':'read','width':2,
                            'known_value':bits.value,'known_mask':bits.mask,'unknown_mask':0xFFFF^bits.mask})
         return bits
@@ -117,6 +121,7 @@ class HcanResetCommands:
                            'configuration':self.bit_configuration(channel),'scope':'configuration_latch_only_no_bus_simulation'})
 
     def bit_configuration(self,channel):
+        if self.effect_unknown_channels[channel]:return {'known':False,'valid_constraints':None,'baud_hz':None}
         first=self.bcr[MCR_ADDRESSES[channel]+4];second=self.bcr[MCR_ADDRESSES[channel]+6]
         if first.mask!=0xF733 or second.mask!=255:
             return {'known':False,'valid_constraints':None,'baud_hz':None}
@@ -136,7 +141,7 @@ class HcanResetCommands:
 
     def read_gsr_known(self,address,width=2):
         channel=self._gsr_channel(address,width,'read')
-        bits=self.gsr[channel]
+        bits=KnownBits(0,0) if self.effect_unknown_channels[channel] else self.gsr[channel]
         self.trace.append({'register':f'GSR_{channel}','access':'read','width':2,
                            'known_value':bits.value,'known_mask':bits.mask,
                            'unknown_mask':0xFFFF ^ bits.mask,
@@ -184,6 +189,17 @@ class HcanResetCommands:
                            'configuration_note':('Inactive mailbox initialization requires non-MBC settings zero; NMC remains set in this observed command, so correct CAN operation is not guaranteed'
                                                  if inactive and value & 0x2000 else None)})
 
+    def record_unresolved_mailbox(self,address,width,value,reason):
+        channel=int(address>=0xFFFFD900)
+        self.effect_unknown_channels[channel]=True
+        self.gsr[channel]=KnownBits(0,0)
+        self.unresolved_command_count+=1
+        event={'register':f'UNRESOLVED_CAN_{channel}','access':'record_unresolved_write',
+               'address':f'0x{address:08X}','width':width,'value':value,
+               'reason':reason,'scope':'explicit_command_recording_only_no_hardware_effect_assumed'}
+        self.unresolved_commands.append(event);self.unresolved_commands[:]=self.unresolved_commands[-100:]
+        self.trace.append(dict(event))
+
     def mailbox_read(self,address,width):
         raise self.stop_type('unknown_peripheral_reset_state',
             'Mailbox readback and CAN receive state are outside initialization-only support',
@@ -191,6 +207,9 @@ class HcanResetCommands:
 
     def read_known_word(self,address):
         channel=self._channel(address,2,'read')
+        if self.effect_unknown_channels[channel]:
+            self.trace.append({'register':f'MCR_{channel}','access':'read','width':2,'known_value':0,'known_mask':0,'scope':'unresolved_mailbox_effects'})
+            return KnownBits(0,0)
         command=self.commands[channel]
         if command is None:
             raise self.stop_type('unknown_peripheral_reset_state','MCR prior command state unknown',

@@ -3,14 +3,18 @@ from .known_bits import KnownBits
 
 def normalize_hcan_fixture(fixture):
     if fixture is None:return None
-    if not isinstance(fixture,dict) or set(fixture)!={'reset_completion_ticks','recessive_bus_ticks'}:
+    if not isinstance(fixture,dict) or not {'reset_completion_ticks','recessive_bus_ticks'}<=set(fixture) or set(fixture)-{'reset_completion_ticks','recessive_bus_ticks','defer_mailbox_effects'}:
         raise ValueError('HCAN fixture requires exactly reset_completion_ticks and recessive_bus_ticks')
     result={}
     for key,value in fixture.items():
+        if key=='defer_mailbox_effects':
+            if type(value) is not bool:raise ValueError('Mailbox effect deferral must be boolean')
+            result[key]=value
+            continue
         if value is not None and (type(value) is not int or not 1<=value<=1000000):
             raise ValueError('HCAN supplied event delay must be1..1000000 or omitted')
         result[key]=value
-    if all(v is None for v in result.values()):raise ValueError('At least one explicit HCAN completion input required')
+    if all(v is None or v is False for v in result.values()):raise ValueError('At least one explicit HCAN completion input required')
     return result
 
 def bind_hcan_fixture(cpu,fixture):
@@ -20,6 +24,7 @@ def bind_hcan_fixture(cpu,fixture):
     cpu.hcan_fixture=fixture
     cpu.hcan_fixture_input_events+=1
     module=cpu.bus.hcan
+    module.defer_mailbox_effects=fixture.get('defer_mailbox_effects',False)
     def requested(channel,value,generation,prior_status):
         key='reset_completion_ticks' if value else 'recessive_bus_ticks'
         delay=fixture[key]
@@ -29,6 +34,9 @@ def bind_hcan_fixture(cpu,fixture):
         cpu.scheduled_peripheral_events+=1
         def complete():
             if module.generations[channel]!=generation:return
+            if module.effect_unknown_channels[channel]:
+                module.trace.append({'register':f'GSR_{channel}','access':'supplied_event_not_applied','scope':'unresolved_mailbox_effects'})
+                return
             cpu.hcan_fixture_input_events+=1
             if value:module.complete_reset_subset(channel)
             module.gsr[channel]=KnownBits(0xC,0x3F) if value else KnownBits(0,8)

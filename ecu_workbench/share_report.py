@@ -119,6 +119,12 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
             type(boot["conditional_hardware_scenario"]) is not bool or
             boot["conditional_hardware_scenario"]!=scenario["conditional_hardware_scenario"]):
         raise ValueError("Conditional H-UDI marker mismatch in diagnostic")
+    unresolved=boot.get('unresolved_hcan_command_count',0)
+    effect=boot.get('unresolved_hcan_effects',False)
+    if type(unresolved) is not int or unresolved<0 or type(effect) is not bool or effect!=(unresolved>0):
+        raise ValueError('Invalid unresolved CAN command provenance')
+    if unresolved and (hcan is None or not hcan.get('defer_mailbox_effects')):
+        raise ValueError('CAN recording assumption missing')
     interrupt_requests=boot.get("explicit_interrupt_requests",0)
     if type(interrupt_requests) is not int or interrupt_requests<0:
         raise ValueError("Invalid explicit interrupt request count")
@@ -207,6 +213,8 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
             "reset": reset, "nmi": nmi, "max_steps": limit,
             "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit, "hcan_fixture":hcan,
         },
+        "unresolved_hcan_command_count":unresolved,
+        "unresolved_hcan_effects":effect,
         "executed_instructions": count,
         "completed_instructions":completed,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),

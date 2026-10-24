@@ -29,6 +29,7 @@ def main(argv=None):
                         help="Experimental constant reserved-bit6 readback on both HCAN channels; not verified hardware. Omit for unknown.")
     parser.add_argument("--hcan-reset-completion-ticks",type=int,help="Explicit synthetic reset-completion delay; not physical timing")
     parser.add_argument("--hcan-recessive-bus-ticks",type=int,help="Explicit synthetic11-recessive-bit input delay; not physical timing")
+    parser.add_argument("--experimental-record-can-commands",action="store_true",help="Record unresolved mailbox writes without applying their effects; CAN feedback remains unknown")
     parser.add_argument("--port-b-pins", type=lambda s: int(s, 0),
                         help="Explicit 16-bit physical Port B levels, e.g. 0x1234; omitted means unknown")
     parser.add_argument("--port-b-known-mask", type=lambda s: int(s, 0), default=0xFFFF,
@@ -56,7 +57,8 @@ def main(argv=None):
 
     try:
         hcan_fixture=({'reset_completion_ticks':args.hcan_reset_completion_ticks,'recessive_bus_ticks':args.hcan_recessive_bus_ticks}
-                      if args.hcan_reset_completion_ticks is not None or args.hcan_recessive_bus_ticks is not None else None)
+                      if args.hcan_reset_completion_ticks is not None or args.hcan_recessive_bus_ticks is not None or args.experimental_record_can_commands else None)
+        if args.experimental_record_can_commands:hcan_fixture['defer_mailbox_effects']=True
         adc_fixture=adc_fields(args.an0_voltage,args.adc_reference_voltage,args.adc_completion_ticks)
         image = ROMImage.from_file(args.rom)
         pin = {"unknown": None, "high": True, "low": False}[args.nmi]

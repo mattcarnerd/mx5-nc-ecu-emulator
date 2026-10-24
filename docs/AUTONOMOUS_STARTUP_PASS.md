@@ -174,3 +174,19 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b83-no-clock-unknown.json and b83-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 388 local tests passed, including original-hash regressions; completed suite reused rather than redundantly rerun. Packaging bug corrected; CI must exercise generated image/fixture provenance through actual EXE. Prior packaged CLI examples corrected. Prohibited mailbox evidence gate remains; autonomous milestone unachieved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## Separate effect-deferral investigation (B84/#91)
+
+Strict validation still rejects prohibited MBC011. A separately opted-in --experimental-record-can-commands experiment records unsupported/prohibited aligned mailbox word commands without applying their state. It assumes CPU stores complete and confines unresolved effects to CAN; it does not assert actual silicon behavior. Device feedback remains unknown, queued completion inputs cannot clear taint, and bad widths/gaps/unknown CPU values still stop. All exports preserve the opt-in policy and unresolved-command count. This can expose independent downstream gaps but cannot resolve B82 or by itself satisfy the faithful milestone. The user has no technical evidence to provide; public-source investigation continues without requiring them to interpret hardware registers.
+
+## B84/#91
+
+B84: isolate an opt-in CAN command-recording investigation with unknown feedback.
+
+Validation: Ran 392 tests in 49.777s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b84-no-clock-unknown.json and b84-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 392-test full suite passed, plus expanded CLI recorder cases. Strict prohibited write still rejected; recorder logs without applying mailbox state and taints CAN feedback. Delayed completion cannot clear taint. Separate experiment reaches1059 at documented byte data initialization, PCE74/op2D50; faithful milestone and hardware gate remain unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

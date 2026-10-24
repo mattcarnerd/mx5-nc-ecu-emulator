@@ -76,3 +76,11 @@ class HcanFixtureTests(unittest.TestCase):
                 meta=r if baseline else r['nc_boot']
                 self.assertTrue(meta['conditional_hcan_fixture'])
                 self.assertEqual(meta['hcan_fixture'],{'reset_completion_ticks':1,'recessive_bus_ticks':2})
+
+                recorded=io.StringIO()
+                with redirect_stdout(recorded):
+                    main(['--rom',str(path),'--nmi','high','--steps','1',
+                          '--experimental-record-can-commands']+(['--baseline'] if baseline else []))
+                rr=json.loads(recorded.getvalue());meta=rr if baseline else rr['nc_boot']
+                self.assertTrue(meta['hcan_fixture']['defer_mailbox_effects'])
+                self.assertTrue(meta['conditional_hcan_fixture'])
