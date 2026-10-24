@@ -73,6 +73,7 @@ class HcanCommandTests(unittest.TestCase):
                     b.write(a,2,value)
                     self.assertEqual(b.hcan.mailbox_writes[a],value)
                     self.assertEqual(b.peripheral_trace[-1]['scope'],'mailbox_inactive_command')
+                    self.assertEqual(b.peripheral_trace[-1]['configuration_note'] is not None,value==0x2700)
                 for value in (0x300,0x600,0x4700,0xA700,0x2701):
                     with self.assertRaises(BootStop):b.write(a,2,value)
                     self.assertEqual(b.hcan.mailbox_writes[a],0x2700)

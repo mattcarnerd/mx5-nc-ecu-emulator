@@ -182,3 +182,5 @@ B49/#56 review:284 tests; default188, conditional10000 now591 at OR. All open bo
 B50/#57 review:287 tests; partial OR now stops592 at direct word store. Full open-body/row review adds B51/#58 width-aware store validation, preserving reserved-bit uncertainty. Other dependencies unchanged.
 
 B51/#58 full backlog review:291 tests; actual blocked write now has address/width/mask and no fabricated concrete value. All open bodies/rows reviewed; extend existing hardware#1 with reserved MCR bit6 evidence gate. No duplicate task; other dependencies unchanged.
+
+Final B47-B51 cross-check: inactive2700 retains NMC despite section16.3.1 initialization requirement. Trace records the caveat; command-only progression does not certify CAN operation. Full review decisions unchanged.

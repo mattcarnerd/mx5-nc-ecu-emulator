@@ -53,7 +53,9 @@ class HcanResetCommands:
         self.mailbox_writes[address]=value & 0xFFFF
         self.trace.append({'register':f'MB{mailbox}_{channel}+{offset:02X}',
                            'access':'write','width':2,'value':value & 0xFFFF,
-                           'scope':'mailbox_inactive_command' if inactive else 'mailbox_zero_initialization_only'})
+                           'scope':'mailbox_inactive_command' if inactive else 'mailbox_zero_initialization_only',
+                           'configuration_note':('Inactive mailbox initialization requires non-MBC settings zero; NMC remains set in this observed command, so correct CAN operation is not guaranteed'
+                                                 if inactive and value & 0x2000 else None)})
 
     def mailbox_read(self,address,width):
         raise self.stop_type('unknown_peripheral_reset_state',
