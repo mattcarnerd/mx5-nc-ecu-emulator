@@ -50,8 +50,16 @@ class ResetControl:
                            'scope':'reset_control_latch_only'})
 
 class WatchdogTimer:
-    """Disabled TCNT/TCSR programming subset; running modes fail closed."""
-    def __init__(self, *, power_on, trace, stop_type):
+    """Interval mode requires explicit phi packets; no oscillator is assumed."""
+    DIVISORS=(2,64,128,256,512,1024,4096,8192)
+
+    def __init__(self, *, power_on, trace, stop_type, clock_supplied=False, request_interval=None):
+        if type(clock_supplied) is not bool:raise ValueError('clock_supplied must be boolean')
+        if request_interval is not None and not callable(request_interval):raise TypeError('Invalid ITI callback')
+        self.clock_supplied=clock_supplied
+        self.request_interval=request_interval
+        self.phi_cycles=0  # explicit fixture origin/phase, not measured board timing
+        self.overflow_count=0
         self.tcsr = 0x18 if power_on else None
         self.tcnt = 0 if power_on else None
         self.ovf_read = False
@@ -85,20 +93,55 @@ class WatchdogTimer:
             if low & 0x18!=0x18:
                 raise self.stop_type('invalid_peripheral_write','TCSR reserved bits require ones',
                                      address=address,width=width,access='write',value=value)
-            if low & 0x20:
-                raise self.stop_type('unsupported_peripheral_mode','Running watchdog timing is not modelled',
+            if low & 0x20 and (not self.clock_supplied or low & 0x40):
+                raise self.stop_type('unsupported_peripheral_mode','Running interval mode requires explicit phi input; watchdog reset mode unsupported',
                                      address=address,width=width,access='write',value=value)
             if self.tcsr is None:
                 raise self.stop_type('unknown_peripheral_reset_state','TCSR overflow state unknown',
                                      address=address,width=width,access='write',value=value)
+            if self.tcsr & 0x20 and (self.tcsr ^ low) & 0x47:
+                raise self.stop_type('invalid_peripheral_write','Stop WDT before changing clock or mode',
+                                     address=address,width=width,access='write',value=value)
             flag=self.tcsr & 0x80
             if self.ovf_read and not low & 0x80:
                 flag=0; self.ovf_read=False
-            self.tcsr=flag | (low & 0x47) | 0x18
-            self.tcnt=0
+            self.tcsr=flag | (low & 0x67) | 0x18
+            if not low & 0x20:self.tcnt=0
+            self._update_request()
             name='TCSR'
         else:
             raise self.stop_type('invalid_peripheral_write','WDT requires 5A counter or A5 control key',
                                  address=address,width=width,access='write',value=value)
         self.trace.append({'register':name,'access':'write','width':width,'value':value&0xFFFF,
-                           'scope':'disabled_watchdog_programming_only'})
+                           'scope':'explicit_phi_interval_subset' if self.clock_supplied else 'disabled_watchdog_programming_only'})
+
+
+    def _update_request(self):
+        if self.request_interval is not None:
+            self.request_interval(bool(self.tcsr & 0x80) and not bool(self.tcsr & 0x40))
+
+    def advance_phi_cycles(self,cycles):
+        """Caller orders phi packets and register writes; no simultaneous T3 collision model.
+
+        Explicit fixture phase starts at zero and advances even while counting is
+        disabled. Packets are internal phi cycles, never seconds or instruction ticks.
+        """
+        if type(cycles) is not int or cycles<0:raise ValueError('phi cycles must be a nonnegative integer')
+        if not self.clock_supplied:
+            raise self.stop_type('missing_input','Explicit phi-cycle source required')
+        if self.tcsr is None or self.tcnt is None:
+            raise self.stop_type('unknown_peripheral_reset_state','WDT state unknown for supplied phi packet')
+        before=self.phi_cycles
+        self.phi_cycles+=cycles
+        if not self.tcsr & 0x20:return
+        divisor=self.DIVISORS[self.tcsr & 7]
+        increments=self.phi_cycles//divisor - before//divisor
+        total=self.tcnt+increments
+        overflows=total//256
+        self.tcnt=total & 0xFF
+        if overflows:
+            self.overflow_count+=overflows
+            self.tcsr |= 0x80
+            self._update_request()
+            self.trace.append({'register':'TCNT','access':'overflow','count':overflows,
+                               'phi_cycles':self.phi_cycles,'scope':'explicit_phi_fixture_only'})
