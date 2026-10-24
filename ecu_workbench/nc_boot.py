@@ -18,6 +18,7 @@ from .port_h import PortH, PHDR_ADDRESS
 from .port_j import PortJ, PJDR_ADDRESS
 from .port_k import PortK, PKDR_ADDRESS
 from .peripheral_router import PeripheralRouter
+from .sh2_memory import execute_mov_indexed
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -488,6 +489,8 @@ class NCBootDiagnostic:
             self.r[n]=sign_extend(self.bus.read(pc+4+2*(op&0xFF),2),16)&0xFFFFFFFF;return None
         if (op&0xF000)==0xD000:  # mov.l @(disp,PC),Rn
             self.r[n]=self.bus.read(((pc+4)&~3)+4*(op&0xFF),4);return None
+        # B06 indexed/displacement memory MOV opcodes (fail-closed bus).
+        if execute_mov_indexed(self,op,n,m): return None
         if (op&0xF00F)==0x2000:  # mov.b Rm,@Rn
             self.bus.write(self.reg(n),1,self.reg(m));return None
         if (op&0xF00F)==0x2001:  # mov.w Rm,@Rn
