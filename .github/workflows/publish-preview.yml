@@ -28,6 +28,9 @@ jobs:
       - name: Build portable Windows application
         run: python -m PyInstaller --onefile --windowed --name MX5-NC-ECU-Emulator launch.py
 
+      - name: Smoke test packaged diagnostic CLI
+        run: python tools/smoke_windows_exe.py dist/MX5-NC-ECU-Emulator.exe
+
       - name: Prepare downloadable release assets and checksum
         shell: pwsh
         run: |

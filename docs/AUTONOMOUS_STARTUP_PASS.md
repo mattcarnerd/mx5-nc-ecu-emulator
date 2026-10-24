@@ -158,3 +158,19 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b82-no-clock-unknown.json and b82-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 386 tests pass;25-case matrix and user-input request recorded. Both reviewed chip manuals and technical update prohibit mode011; no behavior waiver found. No physical ECU requirement invented, no prohibited mode accepted. Autonomous milestone unachieved and parents retain evidence gate; additional source/profile evidence genuinely needed for faithful progress. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## Packaged launcher correction (B83/#90)
+
+Verification found earlier EXEs always launched GUI: diagnostic flags were source-CLI capabilities, not a functioning packaged CLI. B83 routes supplied arguments to the existing diagnostic entry point and preserves no-argument GUI launch. Windows CI now executes the actual one-file EXE against a generated synthetic image and validates the JSON result/fixture provenance before release. The Windows command above applies to the B83 release and later; earlier EXEs contain their core changes but do not support that command path. This packaging fix does not resolve the mailbox evidence gate or achieve the autonomous milestone.
+
+## B83/#90
+
+B83: route packaged CLI arguments and require actual Windows EXE smoke verification.
+
+Validation: Ran 388 tests in 41.535s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b83-no-clock-unknown.json and b83-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 388 local tests passed, including original-hash regressions; completed suite reused rather than redundantly rerun. Packaging bug corrected; CI must exercise generated image/fixture provenance through actual EXE. Prior packaged CLI examples corrected. Prohibited mailbox evidence gate remains; autonomous milestone unachieved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
