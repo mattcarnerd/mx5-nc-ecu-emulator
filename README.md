@@ -367,3 +367,23 @@ instructions, physical pin fields blank, then **Save shareable blocker JSON…**
 again. Its `pgdr_word_write_000f_in_peripheral_trace` value is true
 only when the actual PGDR write is recorded. A synthetic pass cannot reveal
 the next authentic post-PGDR stop; a new local ROM run is required.
+
+## B35 — Original-reference LF9VEB reaches Port H
+
+The local reference-hash LF9VEB diagnostic (power reset, NMI high, 300
+instructions, pin values unknown) reported **101 attempted instructions**.
+It confirmed the Port E, F and G writes, then stopped attempting a 16-bit
+`0xFFFF` write at `0xFFFFF72C` — SH7058 **PHDR**, instruction PC
+`0x00000CE0`, opcode `2351`.
+
+B35 models the documented 16-bit Port H data latch (Renesas SH7058
+Rev.3 §22.9), power-on reset, manual-reset unknown state and
+direction-dependent readback. It never assumes physical Port H pin inputs,
+POD drive or external memory-bus behaviour. The shareable JSON now
+includes `phdr_word_write_ffff_in_peripheral_trace`, derived only from
+the executed peripheral trace.
+
+Rerun the **same original ROM** using the newest Windows prerelease with
+**Power**, **NMI high**, **300 instructions**, and physical pin values left
+blank. Export another shareable blocker report. No post-PHDR firmware stop
+is known until that local test.
