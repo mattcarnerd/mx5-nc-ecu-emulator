@@ -6,6 +6,7 @@ invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
 GSR_ADDRESSES=(0xFFFFD002,0xFFFFD802)
+BCR_MASKS={0xFFFFD004:0xF733,0xFFFFD006:0x00FF,0xFFFFD804:0xF733,0xFFFFD806:0x00FF}
 
 def mcr_scenario_metadata(bit):
     if bit is not None and (type(bit) is not int or bit not in (0,1)):
@@ -23,6 +24,7 @@ class HcanResetCommands:
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
         self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
+        self.bcr={a:KnownBits(0,mask) if power_on else KnownBits(0,0) for a,mask in BCR_MASKS.items()}
         self.mailbox_writes={}
         self.trace,self.stop_type=trace,stop_type
 
@@ -37,15 +39,18 @@ class HcanResetCommands:
         if value not in (0,1):
             raise self.stop_type('unsupported_peripheral_mode','Only HCAN reset/release commands0/1 with reserved bits zero are modelled',
                                  address=address,width=width,access='write',value=value)
+        prior_status=self.gsr[channel]
         self.gsr[channel]=KnownBits(0,0)  # processing/bus status is not supplied
         self.commands[channel]=value
         self.release_requests[channel]=value==0
-        if value==1:self.software_reset_requests[channel]=True
+        if value==1:
+            self.software_reset_requests[channel]=True
+            for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):self.bcr[address]=KnownBits(0,0)
         self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
                            'scope':'CAN_software_reset_request_only' if value else 'CAN_reset_release_request_only',
                            'reset_processing':'unknown','bus_synchronization':'unknown'})
         self.generations[channel]+=1
-        if self.on_request:self.on_request(channel,value,self.generations[channel])
+        if self.on_request:self.on_request(channel,value,self.generations[channel],prior_status)
 
     def read(self,address,width):
         channel=self._channel(address,width,'read')
@@ -53,6 +58,59 @@ class HcanResetCommands:
         raise self.stop_type('unknown_peripheral_reset_state',
             f'MCR_{channel} full-word readback includes unspecified reserved bit6; no value fabricated',
             address=address,width=width,access='read')
+
+    def complete_reset_subset(self,channel):
+        for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):
+            self.bcr[address]=KnownBits(0,BCR_MASKS[address])
+
+    def _bcr_guard(self,address,width,access):
+        if width!=2 or address not in BCR_MASKS:
+            raise self.stop_type('unsupported_access_size','HCAN BCR requires aligned word access',
+                                 address=address,width=width,access=access)
+
+    def read_bcr_known(self,address):
+        self._bcr_guard(address,2,'read');bits=self.bcr[address]
+        self.trace.append({'register':f'BCR_{address:08X}','access':'read','width':2,
+                           'known_value':bits.value,'known_mask':bits.mask,'unknown_mask':0xFFFF^bits.mask})
+        return bits
+
+    def read_bcr(self,address,width):
+        self._bcr_guard(address,width,'read')
+        raise self.stop_type('unknown_peripheral_reset_state','BCR reserved readback not guaranteed; typed CPU read required',
+                             address=address,width=width,access='read')
+
+    def write_bcr(self,address,width,value):
+        self._bcr_guard(address,width,'write')
+        channel=int(address>=0xFFFFD800);value &= 0xFFFF
+        if value & ~BCR_MASKS[address]:
+            raise self.stop_type('invalid_peripheral_write','BCR reserved write bits require zero',
+                                 address=address,width=width,access='write',value=value)
+        status=self.gsr[channel]
+        if not status.mask&8:
+            raise self.stop_type('unknown_peripheral_reset_state','BCR configuration requires known reset/configuration state',
+                                 address=address,width=width,access='write',value=value)
+        if not status.value&8:
+            raise self.stop_type('unsupported_peripheral_mode','BCR writes outside configuration mode not modelled',
+                                 address=address,width=width,access='write',value=value)
+        if address&7==4 and (value>>12<3 or (value>>8)&7==0):
+            raise self.stop_type('invalid_peripheral_write','BCR1 prohibited individual segment selection',
+                                 address=address,width=width,access='write',value=value)
+        self.bcr[address]=KnownBits(value,BCR_MASKS[address])
+        self.trace.append({'register':f'BCR_{address:08X}','access':'write','width':2,'value':value,
+                           'configuration':self.bit_configuration(channel),'scope':'configuration_latch_only_no_bus_simulation'})
+
+    def bit_configuration(self,channel):
+        first=self.bcr[MCR_ADDRESSES[channel]+4];second=self.bcr[MCR_ADDRESSES[channel]+6]
+        if first.mask!=0xF733 or second.mask!=255:
+            return {'known':False,'valid_constraints':None,'baud_hz':None}
+        value=first.value;segment1=(value>>12)+1;segment2=((value>>8)&7)+1
+        sjw=((value>>4)&3)+1;brp=second.value
+        valid=(4<=segment1<=16 and 2<=segment2<=8 and segment1>segment2>=sjw
+               and 8<=segment1+segment2+1<=25 and (brp!=0 or segment2>=3)
+               and (not value&1 or brp<4))
+        return {'known':True,'segment1_quanta':segment1,'segment2_quanta':segment2,
+                'sjw_quanta':sjw,'peripheral_clock_divisor':brp+1,
+                'valid_constraints':valid,'baud_hz':None}
 
     def _gsr_channel(self,address,width,access):
         if width==2 and address in GSR_ADDRESSES:return GSR_ADDRESSES.index(address)

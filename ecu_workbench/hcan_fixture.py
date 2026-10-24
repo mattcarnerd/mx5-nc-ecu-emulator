@@ -20,14 +20,17 @@ def bind_hcan_fixture(cpu,fixture):
     cpu.hcan_fixture=fixture
     cpu.hcan_fixture_input_events+=1
     module=cpu.bus.hcan
-    def requested(channel,value,generation):
+    def requested(channel,value,generation,prior_status):
         key='reset_completion_ticks' if value else 'recessive_bus_ticks'
         delay=fixture[key]
         if delay is None:return
+        if not value and prior_status.mask&8 and prior_status.value&8:
+            module.gsr[channel]=KnownBits(8,8)  # explicit fixture holds reset until declared bus event
         cpu.scheduled_peripheral_events+=1
         def complete():
             if module.generations[channel]!=generation:return
             cpu.hcan_fixture_input_events+=1
+            if value:module.complete_reset_subset(channel)
             module.gsr[channel]=KnownBits(0xC,0x3F) if value else KnownBits(0,8)
             module.trace.append({'register':f'GSR_{channel}','access':'supplied_event',
                 'event':'reset_completion' if value else 'eleven_recessive_bits',
