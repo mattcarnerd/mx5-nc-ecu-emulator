@@ -117,3 +117,5 @@ B62/#69 establishes a pinned public blob-identity match; B63/#70 records unresol
 B66/#73 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). 346 tests pass including deterministic full-image matrix repeats. All five bounded scopes reviewed; next software dependency is unknown R11 stack save, not a physical ECU purchase or repeat of an unchanged audit. Strict188, existing conditional592 and new hypothetical960 remain distinct; hardware/engine goals stay open.
 
 B67/#74 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 349 tests pass; partial RAM transport preserves overlap masks while concrete reads/peripheral writes require known bits. Updated earlier RAM-store test to the new documented transport contract; strict and ROM-only stops unchanged before B68 stack opcodes.
+
+B68/#75 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 351 tests pass. Zero-readback experiment now reaches973 attempts at GSR0 word read FFFFD002, PCDB2/op6351. No register initialized artificially; raw RAM/peripheral/control guards remain. B70 will be narrowed to GSR reset-status uncertainty after B69.

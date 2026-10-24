@@ -621,6 +621,9 @@ class NCBootDiagnostic:
         self._active_instruction=None
         self._fetch_pc=None
         self._pending_target=None
+    def transport_bits(self,n):
+        return KnownBits(0,0) if self.r[n] is None else self.reg_bits(n)
+
     def reg_bits(self,n):
         value=self.r[n]
         if isinstance(value,KnownBits):return value

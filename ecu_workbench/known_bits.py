@@ -22,13 +22,17 @@ class KnownBits:
     def compact(self):
         return self.value if self.mask==MASK else self
 
-    def sign_extend_word(self):
-        value=self.value & 0xFFFF
-        mask=self.mask & 0xFFFF
-        if mask & 0x8000:
-            mask|=0xFFFF0000
-            if value & 0x8000:value|=0xFFFF0000
+    def sign_extend(self,width):
+        if width not in (1,2,4):raise ValueError('Operand width must be1,2 or4')
+        low=(1<<(width*8))-1;sign=1<<(width*8-1)
+        value=self.value & low;mask=self.mask & low
+        if mask & sign:
+            mask|=MASK ^ low
+            if value & sign:value|=MASK ^ low
         return KnownBits(value,mask)
+
+    def sign_extend_word(self):
+        return self.sign_extend(2)
 
     def bit_and(self,other):
         known_zero=(self.mask & ~self.value)|(other.mask & ~other.value)
