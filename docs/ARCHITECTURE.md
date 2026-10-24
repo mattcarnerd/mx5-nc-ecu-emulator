@@ -98,6 +98,22 @@ POD affects real high-impedance outputs but is not a simulated pin driver.
 Synthetic tests exercise endian accesses, manual reset, mixed input/output
 and actual opcode `2351` stores. No completed ROM boot is inferred.
 
+## B36 — Port J PJDR found by original-reference LF9VEB
+
+After Port H support, the same reference-hash LF9VEB report reached
+**108 attempted instructions**, confirming prior Port E/F/G/H word
+writes. The first new unmodelled access is `PJDR 0xFFFFF76C`:
+opcode `2151` at instruction PC `0x00000CEE` attempts a 16-bit
+`0xFFFF` write.
+
+Renesas SH7058 Rev.3 §22.10, Tables 22.17–22.18, specifies a
+16-bit data latch, 8/16-bit reads/writes, power-on zero, and PJIOR
+direction-dependent software readback. `ecu_workbench/port_j.py`
+implements this behaviour fail-closed for unknown physical inputs
+and manual-reset state. No physical pin outputs, alternate functions,
+or separate read-only PJPR input register are emulated. Synthetic
+opcode `2151` tests do not constitute a complete firmware boot.
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:

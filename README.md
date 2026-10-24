@@ -387,3 +387,25 @@ Rerun the **same original ROM** using the newest Windows prerelease with
 **Power**, **NMI high**, **300 instructions**, and physical pin values left
 blank. Export another shareable blocker report. No post-PHDR firmware stop
 is known until that local test.
+
+## B36 — original-reference LF9VEB reaches Port J
+
+With the original-reference LF9VEB image, power reset, NMI high, 300
+instructions and unspecified physical inputs, the local diagnostic now
+reports **108 attempted instructions**. Port E, F, G and H writes were
+observed before the first stop at **PJDR 0xFFFFF76C**, a 16-bit
+`0xFFFF` store (opcode `2151` at `0x00000CEE`).
+
+The SH7058 Rev.3 manual §22.10 (Table 22.17) confirms PJDR is a 16-bit
+port data latch supporting aligned byte/word accesses; output-pin reads
+use the latch and input-pin reads need explicit pin levels. This build
+models those software-visible semantics without inventing physical pin
+levels or alternate-function electrical signals. The separately
+documented read-only PJPR input register is **not yet modelled**.
+
+To discover the next *real* firmware blocker, use the newest Windows EXE,
+load the same original-reference ROM, select **Power reset**, **NMI high**,
+**300 instructions**, and leave unmeasured pins blank. After executing,
+choose **Save shareable blocker JSON…**. The new
+`pjdr_word_write_ffff_in_peripheral_trace` key confirms the PJDR write
+only if present in the peripheral trace.
