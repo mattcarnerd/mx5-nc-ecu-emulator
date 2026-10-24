@@ -216,3 +216,17 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b86-no-clock-unknown.json and b86-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 396 tests pass. MBIMR reads retain only CPU/reset-established latch values; pending reset unknown remains a stop. Dynamic CAN status remains unknown and recorder marker persists. Separate experiment reaches1222 at GSR reset-status branch PCDD6/op8903. Strict scene still rejects2308; next work can isolate explicitly supplied reset-status inputs without validating prohibited mailbox behavior. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+B87/#94 adds a further independent opt-in --experimental-isolate-can-reset-status (requires --experimental-record-can-commands). Its preserve_supplied_reset_status fixture key confines deferred mailbox uncertainty away from the prior known reset-status bit and explicit reset/recessive event inputs. Only GSR3 can retain/receive knowledge; other dynamic status remains unknown and unresolved effects are not cleared. Default strict and legacy recording behavior remain unchanged. This is a stronger declared isolation hypothesis for investigation, not evidence that prohibited mailbox011 works.
+
+## B87/#94
+
+B87: isolate prior known and explicitly supplied CAN reset-status bit in a separate investigation.
+
+Validation: Ran 400 tests in 35.946s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b87-no-clock-unknown.json and b87-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 400 tests pass. Only GSR3 may follow supplied reset/recessive events despite deferred mailbox effects; all other dynamic status remains unknown and taint persists. Existing strict/legacy behavior unchanged. Conditional isolation scenario reaches1227, PC226/op22A1 TXACK0_0 write FFFFD032=FFFE. No faithful CAN or recurring-interrupt milestone claim. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

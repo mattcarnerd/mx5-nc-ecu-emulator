@@ -21,7 +21,7 @@ class HcanResetCommands:
         mcr_scenario_metadata(experimental_mcr_bit6)
         self.experimental_mcr_bit6=experimental_mcr_bit6
         self.generations=[0,0];self.on_request=None
-        self.defer_mailbox_effects=False;self.effect_unknown_channels=[False,False]
+        self.defer_mailbox_effects=False;self.preserve_supplied_reset_status=False;self.effect_unknown_channels=[False,False]
         self.unresolved_commands=[];self.unresolved_command_count=0
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
@@ -141,7 +141,7 @@ class HcanResetCommands:
 
     def read_gsr_known(self,address,width=2):
         channel=self._gsr_channel(address,width,'read')
-        bits=KnownBits(0,0) if self.effect_unknown_channels[channel] else self.gsr[channel]
+        bits=KnownBits(0,0) if self.effect_unknown_channels[channel] and not self.preserve_supplied_reset_status else self.gsr[channel]
         self.trace.append({'register':f'GSR_{channel}','access':'read','width':2,
                            'known_value':bits.value,'known_mask':bits.mask,
                            'unknown_mask':0xFFFF ^ bits.mask,
@@ -199,7 +199,8 @@ class HcanResetCommands:
     def record_unresolved_mailbox(self,address,width,value,reason):
         channel=int(address>=0xFFFFD900)
         self.effect_unknown_channels[channel]=True
-        self.gsr[channel]=KnownBits(0,0)
+        prior=self.gsr[channel]
+        self.gsr[channel]=KnownBits(prior.value&8,prior.mask&8) if self.preserve_supplied_reset_status else KnownBits(0,0)
         self.unresolved_command_count+=1
         event={'register':f'UNRESOLVED_CAN_{channel}','access':'record_unresolved_write',
                'address':f'0x{address:08X}','width':width,'value':value,

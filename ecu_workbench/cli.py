@@ -30,6 +30,7 @@ def main(argv=None):
     parser.add_argument("--hcan-reset-completion-ticks",type=int,help="Explicit synthetic reset-completion delay; not physical timing")
     parser.add_argument("--hcan-recessive-bus-ticks",type=int,help="Explicit synthetic11-recessive-bit input delay; not physical timing")
     parser.add_argument("--experimental-record-can-commands",action="store_true",help="Record unresolved mailbox writes without applying their effects; CAN feedback remains unknown")
+    parser.add_argument("--experimental-isolate-can-reset-status",action="store_true",help="With CAN command recording, isolate only the reset-status bit supplied by completion inputs")
     parser.add_argument("--port-b-pins", type=lambda s: int(s, 0),
                         help="Explicit 16-bit physical Port B levels, e.g. 0x1234; omitted means unknown")
     parser.add_argument("--port-b-known-mask", type=lambda s: int(s, 0), default=0xFFFF,
@@ -55,10 +56,14 @@ def main(argv=None):
     if not 1 <= args.steps <= 100000:
         parser.error("--steps must be between 1 and 100000")
 
+    if args.experimental_isolate_can_reset_status and not args.experimental_record_can_commands:
+        parser.error('Reset-status isolation requires --experimental-record-can-commands')
+
     try:
         hcan_fixture=({'reset_completion_ticks':args.hcan_reset_completion_ticks,'recessive_bus_ticks':args.hcan_recessive_bus_ticks}
                       if args.hcan_reset_completion_ticks is not None or args.hcan_recessive_bus_ticks is not None or args.experimental_record_can_commands else None)
         if args.experimental_record_can_commands:hcan_fixture['defer_mailbox_effects']=True
+        if args.experimental_isolate_can_reset_status:hcan_fixture['preserve_supplied_reset_status']=True
         adc_fixture=adc_fields(args.an0_voltage,args.adc_reference_voltage,args.adc_completion_ticks)
         image = ROMImage.from_file(args.rom)
         pin = {"unknown": None, "high": True, "low": False}[args.nmi]

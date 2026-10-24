@@ -16,12 +16,13 @@ def smoke(executable):
         image.write_bytes(data)
         process=subprocess.run([str(executable),'--rom',str(image),'--nmi','high','--steps','1',
             '--experimental-mcr-bit6','0','--hcan-reset-completion-ticks','1',
-            '--hcan-recessive-bus-ticks','64','--report',str(report)],
+            '--hcan-recessive-bus-ticks','64','--experimental-record-can-commands',
+            '--experimental-isolate-can-reset-status','--report',str(report)],
             timeout=45,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         if process.returncode!=0:raise RuntimeError('Packaged diagnostic returned nonzero exit')
         result=json.loads(report.read_text(encoding='utf-8'))
         boot=result['nc_boot']
-        expected={'reset_completion_ticks':1,'recessive_bus_ticks':64}
+        expected={'reset_completion_ticks':1,'recessive_bus_ticks':64,'defer_mailbox_effects':True,'preserve_supplied_reset_status':True}
         if boot['executed_instructions']!=1 or boot['stop']['reason']!='instruction_limit':
             raise RuntimeError('Packaged diagnostic did not execute the synthetic instruction')
         if result['diagnostic_settings']['hcan_fixture']!=expected or boot['hcan_fixture']!=expected:
