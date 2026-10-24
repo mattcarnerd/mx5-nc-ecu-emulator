@@ -110,6 +110,12 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         and a.get("access") == "write" and a.get("width") == 2
         and a.get("value") == 0xFFFF for a in accesses
     )
+    # B37: only the completed peripheral-trace write counts as evidence.
+    observed_port_k_write = any(
+        isinstance(a, dict) and a.get("register") == "PKDR"
+        and a.get("access") == "write" and a.get("width") == 2
+        and a.get("value") == 0xFFFF for a in accesses
+    )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
                       and limit == 300 and provided is False)
     dependency = boot.get("next_dependency")
@@ -161,6 +167,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "pgdr_word_write_000f_in_peripheral_trace": observed_port_g_write,
         "phdr_word_write_ffff_in_peripheral_trace": observed_port_h_write,
         "pjdr_word_write_ffff_in_peripheral_trace": observed_port_j_write,
+        "pkdr_word_write_ffff_in_peripheral_trace": observed_port_k_write,
         "assessment": assessment,
         "boot_complete": False,
         "warning": "This is a reduced diagnostic report, not ROM authenticity proof or a completed ECU boot. No ROM bytes, filenames, file paths or full instruction traces included.",
