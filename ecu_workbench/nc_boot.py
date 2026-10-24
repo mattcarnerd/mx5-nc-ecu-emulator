@@ -23,6 +23,7 @@ from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
+from .sh2_control import execute_control
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -473,6 +474,7 @@ class NCBootDiagnostic:
         self.t: Optional[bool] = None  # T bit not known from partial reset SR value
         self.known_sr_mask=0xF0
         self.known_sr_value=0xF0
+        self.gbr: Optional[int] = None
         self.vbr=0
         self.executed=0;self.trace=[]
         self._active_instruction=None
@@ -493,6 +495,7 @@ class NCBootDiagnostic:
         self._active_instruction=entry
         self.executed+=1
         if op==0x0009: return None
+        if execute_control(self,op,n): return None
         if (op&0xF000)==0xE000:  # mov #imm,Rn
             self.r[n]=sign_extend(op&0xFF,8)&0xFFFFFFFF;return None
         if (op&0xF000)==0x9000:  # mov.w @(disp,PC),Rn
@@ -597,7 +600,8 @@ class NCBootDiagnostic:
                 'known_mask':f'0x{self.bus.port_b_pin_known_mask:04X}'},
             'vectors':self.vectors.as_dict(),
             'initial_sp':f'0x{(self.vectors.power_sp if self.reset=="power" else self.vectors.manual_sp):08X}',
-            'sr_known_bits':{'mask':'0x000000F0','value':'0x000000F0'},
+            'sr_known_bits':{'mask':f'0x{(self.known_sr_mask & ~1) | (1 if self.t is not None else 0):08X}',
+                             'value':f'0x{(self.known_sr_value & ~1) | (int(self.t) if self.t is not None else 0):08X}'},
             'pc_at_stop':f'0x{self.pc:08X}',
             'last_fetched_pc':self.trace[-1]['pc'] if self.trace else None,
             'pr_at_stop':None if self.pr is None else f'0x{self.pr:08X}',

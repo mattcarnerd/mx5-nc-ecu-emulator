@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (24 October 2026):** **22 of 38 scoped tickets implemented**, including B38 / #45 (PLDR); completion requires successful CI and Windows release evidence recorded in the issue. The supplied `shareable-blocker(6).json` reports the original LF9VEB SHA-256 `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`, power reset / NMI high / 300 steps / no explicit pins, **129 attempted instructions** and completed PEDR/PFDR/PGDR/PHDR/PJDR/PKDR word writes. Next failure: **PLDR `0xFFFFF75E`, word `0x3FFF`, opcode `2031`, instruction PC `0x00000D18`, stop PC `0x00000D1A`**. B38 implements this documented latch with synthetic regression coverage. No private ROM is available in this pass; no authentic post-PLDR result or full boot is claimed. See [B38 evidence and full backlog review](docs/PLDR_EVIDENCE.md) and [#45 for commit, CI and release verification](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/45). NC1/NC2/NC3 hardware variants remain unverified.
+**Current status (24 October 2026):** B38/PLDR is confirmed passed by the newly supplied original-reference report (154 attempts, unsupported `4F22` at PC `0x00000764`). B12 now implements SR/GBR/VBR/PR register and memory transfers including `STS.L PR,@-R15`. A local run of the user-provided original LF9VEB (SHA-256 `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`) with power reset, NMI high, 300 steps and no supplied pins now reaches **157 attempts**; next stop is word write `0x5A1F` to watchdog **RSTCSR `0xFFFFEC12`**, opcode `2231` at PC `0x0000076A` (stop PC `0x0000076C`). Promote existing B20/#27 before other coverage tasks; no duplicate issue. B12 CI/release evidence is recorded in #15 before closure. Full ECU boot remains unconfirmed.
 
 ## Working agreement — one issue = one development pass
 
@@ -29,6 +29,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 | When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
+| 2026-10-24 | B12 / #15 control transfers | 191 tests pass with the private original ROM; observed PR stack save passed. Exact rerun: 157 attempts, RSTCSR word `0x5A1F` at PC `0x0000076A`, opcode `2231`. Reviewed all 19 open issues (#1-3, #13-19, #22, #27-32, #34-35) and complete backlog: promote/narrow existing B20/#27 to P0, no duplicate. User requested five tasks; B20 replaces B19 in this pass, followed by B10, B11 and B16 coverage. Other scopes/dependencies unchanged. CI and EXE links recorded in #15 before closure. No full boot claim. |
 | 2026-10-24 | B38 / #45 — PLDR implementation and complete open-backlog review | Supplied original-hash report confirms PKDR was passed, then 129-attempt PLDR word write `0x3FFF` at PC `0x00000D18`, opcode `2031`. Rev.3 §22.12 tables 22.21/22.22 support a 14-bit 8/16-bit latch with explicit physical input requirements. Added B38 as P0 after B37 because no existing open issue covers PLDR. Reviewed all 19 previously open issues: #1–#3, #13–#19, #22, #27–#32, #34–#35; **no changes** to their scope, priorities or dependencies are justified by this stop. B10–B16, timing, watchdog, interrupts, timers, ADC, crank/cam, outputs, harness and sensor UI remain evidence-led. No private ROM present; optional original-hash regression retained; next authentic blocker unknown. Tests and Windows publication are verified and linked in #45 before closure. |
 | 2026-10-24 | B09 / #12 compare and carry subset — CI/release verified | Added CMP/EQ, CMP/HS (unsigned), CMP/GE (signed), ADDC and SUBC with 32-bit wrap and explicit T carry/borrow, including unknown-T stops and zero/sign/overflow fixtures. [CI #76](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/actions/runs/40114177016), [EXE v0.2.0-dev.76.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.76.1) passed. **Review:** this is user-requested coverage work, not a demonstrated original LF9VEB boot advance; the next authentic stop still remains PKDR until the user reruns that ROM on a PKDR-enabled build. |
 | 2026-10-24 | B08 / #11 SH-2 logical and immediate TST — CI/release verified | Implemented register AND/OR/XOR/TST and immediate R0 TST/AND/OR/XOR with zero-extended immediates and preserved T flag except TST; synthetic truth tables and missing-source tests. [CI #75](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/actions/runs/40114072475), [EXE v0.2.0-dev.75.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.75.1) passed. **Review:** without a known GBR state, immediate `TST.B @(R0,GBR)` remains unsupported, deliberately, pending B12. No claim that original-reference ROM reached these opcodes; next authentic stop still PKDR. |
@@ -79,6 +80,9 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B37](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/44)** | Model observed Port K **PKDR 0xFFFFF778** | Accept word `0xFFFF` from opcode `2151`; 8/16-bit latch with unknown-pin safeguards and trace flag | B36 |
 | **[B38](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/45)** | Model observed Port L **PLDR `0xFFFFF75E`** | 14-bit latch, 8/16-bit access, reserved-zero writes, explicit input/readback, reset and opcode `2031` tests; trace-grounded export; authentic rerun pending | B37 |
 
+| **[B12](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/15)** | SR/GBR/VBR/PR transfers including observed PR stack save | Implemented; real 4F22 passed; see #15 for CI/release | B05 |
+| **[B20](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/27)** | Observed watchdog RSTCSR keyed access subset | Exact 0x5A1F word write at 0xFFFFEC12; reset/width/protection tests; no guessed watchdog time | B12 |
+
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
 **B26, B17 and B06–B09 are implemented.** Re-evaluate the remaining CPU instruction groups after a new original-ROM startup trace. Implement other CPU instruction groups only when supported by an observed ROM trace or essential verified prerequisite; the rows below are an inventory, **not** a commitment to implement every group in numeric order.
@@ -93,7 +97,6 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B09](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/12)** | Compare and carry/borrow arithmetic group | Correct signed/unsigned flags and wraps | B08 |
 | **[B10](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/13)** | Delayed conditional/register branch group | Taken/not-taken delay-slot tests | B05 |
 | **[B11](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/14)** | Shift/rotate opcode group | Correct T-bit, sign and wrap behaviour | B08 |
-| **[B12](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/15)** | SR/GBR/VBR/PR transfers | Unknown bits tracked; register tests | B05 |
 | **[B16](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/19)** | One architectural exception / RTE path | Vector entry/return and saved state tests | B12 |
 
 ## P2 — Build truthful simulated hardware
@@ -103,7 +106,6 @@ Other hardware and deferred FPU work: implement only when confirmed necessary fo
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
 | **[B19](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/22)** | Deterministic instruction/cycle time | Repeatable virtual time and delay-slot accounting | B05 |
-| **[B20](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/27)** | Verified watchdog register subset | Write key/initial state tested, unknowns explicit | B17, B19 |
 | **[B21](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/28)** | One interrupt source dispatched to CPU | Priority/mask/vector route proven by tests | B16, B19 |
 | **[B22](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/29)** | One ATU-II counter/capture channel | Deterministic timer register behaviour and events | B19, B21 |
 | **[B23](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/30)** | One ADC channel reading external voltage | Explicit input, conversion/status output, missing input | B17, B19 |
