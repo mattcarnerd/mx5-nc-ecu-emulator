@@ -86,6 +86,18 @@ physical input readback and fail-closed uninitialised reset state. It
 does **not** emulate pin drivers or alternate function behaviour. Synthetic
 CPU opcode tests do not establish a successful original firmware boot.
 
+## B35 — Port H PHDR from the original-reference ROM
+
+The original-reference LF9VEB shareable report advanced to **101
+attempted instructions**, with Port E/F/G writes observed, then attempted
+`MOV.W R5,@R3` (opcode `2351`) at `0x00000CE0`: 16-bit `0xFFFF`
+write to `PHDR 0xFFFFF72C`. Renesas SH7058 Rev 3.00 §22.9
+(Tables 22.15–22.16) documents a full 16-bit 8/16-bit R/W port latch,
+power-on zero, and readback governed by `PHIOR` plus physical pin input.
+POD affects real high-impedance outputs but is not a simulated pin driver.
+Synthetic tests exercise endian accesses, manual reset, mixed input/output
+and actual opcode `2351` stores. No completed ROM boot is inferred.
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:
