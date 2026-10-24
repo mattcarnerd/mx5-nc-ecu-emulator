@@ -21,6 +21,7 @@ from .peripheral_router import PeripheralRouter
 from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
+from .sh2_compare import execute_compare_carry
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -519,6 +520,8 @@ class NCBootDiagnostic:
             self.r[n]=self.reg(m);return None
         # B08 register and immediate logical operations, all SH-2 masks.
         if execute_logic(self,op,n,m): return None
+        # B09 signed/unsigned comparisons, explicit carry/borrow arithmetic.
+        if execute_compare_carry(self,op,n,m): return None
         if (op&0xFF00)==0x8900:  # bt disp
             if delay_slot: raise BootStop('illegal_delay_slot',f'BT in delay slot at 0x{pc:X}')
             if self.t is None: raise BootStop('unknown_status',f'T flag unknown at 0x{pc:X}')
