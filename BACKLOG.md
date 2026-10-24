@@ -99,3 +99,5 @@ B60/#67 completed scope/test review: see [timer/clock pass](docs/TIMER_CLOCK_PAS
 B61 adds generated dual-capture firmware: both supplied clock sources produce GR1A=FFFF, GR1B=0001, interrupt order IMI1A/OVI1A/IMI1B, independent flag clearing and restored stack. This does not remove either startup gate. See [timer/clock evidence](docs/TIMER_CLOCK_PASS.md).
 
 B61/#68 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). All five child scopes reviewed against remaining work packages. Dual captures, overflow priority, independent acknowledgement, RTE and deterministic repeated reports verified; startup hardware gates remain unresolved.
+
+B62/#69 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). ROM-only path selected from user context. No matching ECU available; provenance match does not resolve silicon or reset gates. Review keeps existing parents and five bounded children, no duplicate broad hardware task.
