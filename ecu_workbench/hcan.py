@@ -1,3 +1,4 @@
+from .known_bits import KnownBits
 """B44 HCAN MCR reset-release requests only, Rev.3 table16.4/16.4.2.
 
 No CAN bus synchronization, frames, acknowledgements or GSR transitions are
@@ -58,3 +59,13 @@ class HcanResetCommands:
         raise self.stop_type('unknown_peripheral_reset_state',
             'Mailbox readback and CAN receive state are outside initialization-only support',
             address=address,width=width,access='read')
+
+    def read_known_word(self,address):
+        channel=self._channel(address,2,'read')
+        command=self.commands[channel]
+        if command is None:
+            raise self.stop_type('unknown_peripheral_reset_state','MCR prior command state unknown',
+                                 address=address,width=2,access='read')
+        self.trace.append({'register':f'MCR_{channel}','access':'read','width':2,
+                           'known_value':command,'known_mask':0xFFBF,'unknown_mask':0x0040})
+        return KnownBits(command,0xFFBF)

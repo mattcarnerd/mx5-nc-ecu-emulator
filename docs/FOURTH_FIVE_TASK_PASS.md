@@ -13,3 +13,9 @@ Full backlog review: all12 open issue bodies and all rows checked. No duplicate 
 Immutable32-bit values retain a known mask and canonicalize unknown storage bits without choosing a concrete value. Concretization fails unless every bit is known. Word sign extension, AND/OR/XOR and three-valued zero proof are independently tested, including exhaustive two-bit truth tables against all concrete completions and mask precision. No CPU behavior changes yet;281 tests pass. Same reduced default/no-clock and conditional10000 scenarios remain188/225/590.
 
 Full backlog review: all current open bodies compared with B47 review; only new B48 child added, others unchanged. Add B49/#56 for the observed MOV.W MCR partial read; generic primitive is a tested dependency, not firmware progress. Parents1-3/FPU16-18/timer29/ADC30/crank31/output32/UI35 retain scopes/dependencies. No duplicate partial-load task exists. Evidence b48-no-clock-unknown.json and b48-clock1-budget10000-trst-reset.json.
+
+## B49/#56 partial MCR MOV.W load
+
+CPU MOV.W @Rm,Rn can preserve known MCR bits with bit6 unknown, sign-extended correctly. Both channel command latches use maskFFBF; manual unknown prior state still fails. Concrete bus readers still fail instead of selecting bit6. Other CPU consumers reject partial registers until specifically supported; immediate overwrites restore exact values. 284 tests pass, default188/no-clock assumptions225 unchanged. Conditional10000 reaches591, OR #1,R0 at PC7B4/opCB01, preserving rather than choosing unknown readback. Evidence b49-clock1-budget10000-trst-reset.json.
+
+Full backlog review: all open bodies refreshed/compared, all rows reviewed. Only child scope/closure evidence changed; no duplicate logical partial-value task. Add B50/#57 for observed OR and generic existing logical forms/copies. Parents1-3/FPU16-18/timer29/ADC30/crank31/output32/UI35 keep dependencies. No hardware state/full boot inferred.

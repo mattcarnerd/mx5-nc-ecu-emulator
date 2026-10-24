@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import hashlib
 from typing import Optional
 from .core import ROMImage
+from .known_bits import KnownBits
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
 from .port_e import PortE, PEDR_ADDRESS
@@ -373,6 +374,11 @@ class BootBus:
             self.coverage.bus_failed(error,a,width,'read')
             raise
 
+    def read_cpu_word(self,address):
+        if address in MCR_ADDRESSES:
+            return self.hcan.read_known_word(address)
+        return KnownBits.exact(self.read(address,2))
+
     def _read(self, a: int, width: int) -> int:
         if self.hcan.mailbox_region(a):return self.hcan.mailbox_read(a,width)
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.read(a,width)
@@ -542,6 +548,8 @@ class NCBootDiagnostic:
     def reg(self,n):
         v=self.r[n]
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
+        if isinstance(v,KnownBits):
+            raise BootStop('unknown_register',f'R{n} contains unknown bits (known mask 0x{v.mask:08X})')
         return v
     def _set_modelled_interval_request(self,asserted):
         if asserted==self.interval_request:return
@@ -618,7 +626,7 @@ class NCBootDiagnostic:
         if (op&0xF00F)==0x6000:  # mov.b @Rm,Rn (sign-extend)
             self.r[n]=sign_extend(self.bus.read(self.reg(m),1),8)&0xFFFFFFFF;return None
         if (op&0xF00F)==0x6001:  # mov.w @Rm,Rn (sign-extend)
-            self.r[n]=sign_extend(self.bus.read(self.reg(m),2),16)&0xFFFFFFFF;return None
+            self.r[n]=self.bus.read_cpu_word(self.reg(m)).sign_extend_word().compact();return None
         if (op&0xF00F)==0x6002:  # mov.l @Rm,Rn
             self.r[n]=self.bus.read(self.reg(m),4);return None
         if (op&0xF00F)==0x600C:  # extu.b Rm,Rn

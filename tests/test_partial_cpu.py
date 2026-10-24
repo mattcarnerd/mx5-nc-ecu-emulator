@@ -1,0 +1,32 @@
+import unittest
+from test_sh2_branch import program
+from ecu_workbench.known_bits import KnownBits
+from ecu_workbench.nc_boot import BootStop
+
+class PartialCpuTests(unittest.TestCase):
+    def test_mcr_word_load_preserves_unknown_bit_and_sign_extension(self):
+        for address in (0xFFFFD000,0xFFFFD800):
+            d=program(0x6031);d.r[3]=address;d.bus.write(address,2,0)
+            d.run(1)
+            self.assertEqual(d.r[0],KnownBits(0,0xFFFFFFBF))
+            self.assertEqual(d.clock.ticks,1)
+            with self.assertRaises(BootStop):d.reg(0)
+            with self.assertRaises(BootStop):d.bus.read(address,2)
+            self.assertEqual(d.bus.peripheral_trace[-1]['unknown_mask'],0x40)
+
+    def test_partial_consumers_fail_and_replacement_clears_unknown(self):
+        d=program(0x6031,0x7001);d.r[3]=0xFFFFD000
+        result=d.run(2)
+        self.assertEqual(result['stop']['reason'],'unknown_register')
+        self.assertEqual(d.clock.ticks,1)
+        self.assertEqual(d.r[0],KnownBits(1,0xFFFFFFBF))
+        d=program(0x6031,0xE005);d.r[3]=0xFFFFD000;d.run(2)
+        self.assertEqual(d.r[0],5)
+
+    def test_known_memory_and_manual_reset_still_fail_closed(self):
+        d=program(0x6031);d.r[3]=0x100;d.run(1)
+        self.assertEqual(d.r[0],0x6031)
+        d=program(0x6031);d.bus.hcan.commands=[None,None];d.r[3]=0xFFFFD000
+        result=d.run(1)
+        self.assertEqual(result['stop']['reason'],'unknown_peripheral_reset_state')
+        self.assertEqual(d.clock.ticks,0)
