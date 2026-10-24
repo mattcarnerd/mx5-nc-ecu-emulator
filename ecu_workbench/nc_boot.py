@@ -24,6 +24,7 @@ from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .sh2_control import execute_control
+from .watchdog import ResetControl, WatchdogTimer, RSTCSR_WRITE, RSTCSR_READ
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -105,6 +106,8 @@ class BootBus:
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
+        self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
+        self.rstcsr=ResetControl(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         # SYSCR2 clock/source control: write word with 0x3C key, read byte.
         # SH7058 manual sect. 5.1.3 & 5.2.3: power-on initial 0x01.
         self.syscr2 = 0x01 if power_on else None
@@ -351,6 +354,10 @@ class BootBus:
         return value
 
     def read(self, a: int, width: int) -> int:
+        if a in (0xFFFFEC10,0xFFFFEC11):
+            return self.watchdog.read(a,width)
+        if a in (RSTCSR_WRITE,RSTCSR_READ):
+            return self.rstcsr.read(a,width)
         self.port_router.guard_32bit(a,width,access='read')
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'read')
@@ -409,6 +416,10 @@ class BootBus:
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
     def write(self, a:int,width:int,value:int):
+        if a in (0xFFFFEC10,0xFFFFEC11):
+            return self.watchdog.write(a,width,value)
+        if a in (RSTCSR_WRITE,RSTCSR_READ):
+            return self.rstcsr.write(a,width,value)
         self.port_router.guard_32bit(a,width,access='write',value=value)
         if width not in (1,2,4): raise ValueError('Unsupported width')
         region,off=self._region(a,width,'write',value)

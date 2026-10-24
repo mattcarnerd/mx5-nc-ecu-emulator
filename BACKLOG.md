@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (24 October 2026):** B38/PLDR is confirmed passed by the newly supplied original-reference report (154 attempts, unsupported `4F22` at PC `0x00000764`). B12 now implements SR/GBR/VBR/PR register and memory transfers including `STS.L PR,@-R15`. A local run of the user-provided original LF9VEB (SHA-256 `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`) with power reset, NMI high, 300 steps and no supplied pins now reaches **157 attempts**; next stop is word write `0x5A1F` to watchdog **RSTCSR `0xFFFFEC12`**, opcode `2231` at PC `0x0000076A` (stop PC `0x0000076C`). Promote existing B20/#27 before other coverage tasks; no duplicate issue. B12 CI/release evidence is recorded in #15 before closure. Full ECU boot remains unconfirmed.
+**Current status (24 October 2026):** The user-provided original LF9VEB hash matches `bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`. PLDR and B12 PR stack save are confirmed passed. B20 now handles the observed watchdog keyed register initialization without inventing timer progression. Power reset/NMI high/300 steps/no pins reaches **175 attempts**, next unsupported **SHLL8 R6, opcode 4618 at PC 0x00000D90**. Existing B11/#14 is now P0. [Pass evidence](docs/FIVE_TASK_PASS.md) and issue records link per-task CI and Windows releases. Full ECU boot remains unconfirmed.
 
 ## Working agreement — one issue = one development pass
 
@@ -29,6 +29,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 | When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
+| 2026-10-24 | B20 / #27 watchdog register subset | 197 tests pass with all private-ROM integration cases enabled. RSTCSR 0x5A1F passed; subsequent observed TCNT 0x5A00 and disabled TCSR programming also implemented under the same bounded watchdog subset. Exact rerun: **175 attempts**, unsupported **4618 (SHLL8 R6)** at PC **0x00000D90**, stop PC 0x00000D92. Reviewed all 18 remaining open issues (#1-3, #13-14, #16-19, #22, #27-32, #34-35) and all backlog rows: promote existing B11/#14 to P0, do it next; no duplicate. B10/B16 remain coverage work; no timing, FPU, interrupt, ADC or physical-output priorities change. Running watchdog timing remains unsupported and fails explicitly on TME enable. CI/release linked in #27 before closure. |
 | 2026-10-24 | B12 / #15 control transfers | 191 tests pass with the private original ROM; observed PR stack save passed. Exact rerun: 157 attempts, RSTCSR word `0x5A1F` at PC `0x0000076A`, opcode `2231`. Reviewed all 19 open issues (#1-3, #13-19, #22, #27-32, #34-35) and complete backlog: promote/narrow existing B20/#27 to P0, no duplicate. User requested five tasks; B20 replaces B19 in this pass, followed by B10, B11 and B16 coverage. Other scopes/dependencies unchanged. CI and EXE links recorded in #15 before closure. No full boot claim. |
 | 2026-10-24 | B38 / #45 — PLDR implementation and complete open-backlog review | Supplied original-hash report confirms PKDR was passed, then 129-attempt PLDR word write `0x3FFF` at PC `0x00000D18`, opcode `2031`. Rev.3 §22.12 tables 22.21/22.22 support a 14-bit 8/16-bit latch with explicit physical input requirements. Added B38 as P0 after B37 because no existing open issue covers PLDR. Reviewed all 19 previously open issues: #1–#3, #13–#19, #22, #27–#32, #34–#35; **no changes** to their scope, priorities or dependencies are justified by this stop. B10–B16, timing, watchdog, interrupts, timers, ADC, crank/cam, outputs, harness and sensor UI remain evidence-led. No private ROM present; optional original-hash regression retained; next authentic blocker unknown. Tests and Windows publication are verified and linked in #45 before closure. |
 | 2026-10-24 | B09 / #12 compare and carry subset — CI/release verified | Added CMP/EQ, CMP/HS (unsigned), CMP/GE (signed), ADDC and SUBC with 32-bit wrap and explicit T carry/borrow, including unknown-T stops and zero/sign/overflow fixtures. [CI #76](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/actions/runs/40114177016), [EXE v0.2.0-dev.76.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.76.1) passed. **Review:** this is user-requested coverage work, not a demonstrated original LF9VEB boot advance; the next authentic stop still remains PKDR until the user reruns that ROM on a PKDR-enabled build. |
@@ -83,6 +84,8 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B12](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/15)** | SR/GBR/VBR/PR transfers including observed PR stack save | Implemented; real 4F22 passed; see #15 for CI/release | B05 |
 | **[B20](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/27)** | Observed watchdog RSTCSR keyed access subset | Exact 0x5A1F word write at 0xFFFFEC12; reset/width/protection tests; no guessed watchdog time | B12 |
 
+| **[B11](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/14)** | Observed SHLL8 R6 plus documented shift/rotate subset | Exact 4618 blocker plus T/sign/width tests | B08 |
+
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
 **B26, B17 and B06–B09 are implemented.** Re-evaluate the remaining CPU instruction groups after a new original-ROM startup trace. Implement other CPU instruction groups only when supported by an observed ROM trace or essential verified prerequisite; the rows below are an inventory, **not** a commitment to implement every group in numeric order.
@@ -96,7 +99,6 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B08](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/11)** | Logical AND/OR/XOR/TST opcode group | Known T-bit semantics and edge-case tests | B05 |
 | **[B09](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/12)** | Compare and carry/borrow arithmetic group | Correct signed/unsigned flags and wraps | B08 |
 | **[B10](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/13)** | Delayed conditional/register branch group | Taken/not-taken delay-slot tests | B05 |
-| **[B11](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/14)** | Shift/rotate opcode group | Correct T-bit, sign and wrap behaviour | B08 |
 | **[B16](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/19)** | One architectural exception / RTE path | Vector entry/return and saved state tests | B12 |
 
 ## P2 — Build truthful simulated hardware
