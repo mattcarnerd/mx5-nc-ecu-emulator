@@ -7,14 +7,14 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 ## Verified current position
 
 - **324 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Startup/interrupt pass B52-B56 reran the full suite and declared ROM scenarios; research gates remain unresolved.
-- Latest verified application: [v0.2.0-dev.114.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.114.1), with downloaded EXE checksum verified. [Implementation/test evidence](docs/EIGHT_TASK_COMPLETION.md).
+- Previous verified application baseline: [v0.2.0-dev.114.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.114.1), with downloaded EXE checksum verified. [Implementation/test evidence](docs/EIGHT_TASK_COMPLETION.md).
 - **Default reference:** original LF9VEB SHA-256, power reset, NMI high, 300-instruction budget, no supplied physical pins, H-UDI/clock unknown. Stops at **188 attempted instructions**, reading SDSR at `0xFFFFF7C2`, PC `0x00000EF8`, opcode `6321`: unknown H-UDI state.
 - **Separate conditional investigation:** explicit H-UDI assumption plus artificial phi-per-completed-instruction=1 and a **10,000** budget stops at **592 attempts / 591 completed**, PC `0x000007B6`, opcode `2301`, word store to MCR0 `0xFFFFD000`. The written value still contains unknown reserved bit6 after read/OR1. No concrete value or reset side effect is selected. The same conditional run with a 300 budget reaches only the instruction limit.
 - No physical instruction timing, CAN synchronization, successful firmware main loop, injector/ignition behavior or engine operation has been established.
 
 ## Open work in priority order
 
-There are **three open parent workstreams**, the five explicitly requested bounded children B52-B56/#59-63 are implemented/researched in the current pass and close only after CI/releases. Research children may close with documented unresolved evidence; their parent gates remain open. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
+There are **three open parent workstreams**. The five requested children B52-B56/#59-63 are complete within their documented research/implementation scope; per-issue commit/CI/release links record closure. Research children may close with documented unresolved evidence; their parent gates remain open. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
 
 | Priority | Work package | Current limitation / next concrete result | Tracked under |
 |---|---|---|---|
@@ -66,13 +66,15 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 - [Fourth five-task pass](docs/FOURTH_FIVE_TASK_PASS.md)
 - [Eight-task completion evidence](docs/EIGHT_TASK_COMPLETION.md)
 
-## Current five-task execution queue
+## Completed five-task pass and remaining gates
 
 1. B52/#59 H-UDI evidence audit: report at docs/HUDI_STARTUP_AUDIT.md; board state unresolved.
 2. B53/#60 CAN startup constraints audit: docs/HCAN_STARTUP_AUDIT.md; no reserved-bit waiver established.
 3. B54/#61 ATU IMI1A CPU route: implemented vector96/IPRD[7:4], held flag/acknowledgement and arbitration tests.
 4. B55/#62 ADC ADI0 CPU route: implemented vector190/IPRJ[11:8], firmware conversion-read/acknowledgement ISR.
 5. B56/#63 integrated synthetic firmware fixture: implemented source CLI and ordered nested/simultaneous evidence in docs/STARTUP_IRQ_PASS.md.
+
+The current application implementation and Windows releases are linked in [B56/#63](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/63); the older baseline link above is retained for history. No claim that a closed research child resolved its parent evidence gate.
 
 B52/#59 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B52 research scope complete; hardware1 gate remains unresolved. B53 CAN audit next, B54/B55 verified vector routes then B56 integration. No duplicate broad research issue.
 
