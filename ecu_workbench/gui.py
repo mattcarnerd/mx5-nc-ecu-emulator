@@ -11,6 +11,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from .core import ROMImage
+from .sensor_fixture import adc_fields
 from .nc_boot import diagnose_nc_reset
 from .boot_presenter import present_reset_diagnostic
 from .share_report import make_shareable_blocker_report
@@ -22,7 +23,7 @@ class Workbench(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("MX-5 NC ECU Emulator — experimental boot")
-        self.geometry("1000x710")
+        self.geometry("1040x790")
         self.minsize(740, 540)
         self.rom: ROMImage | None = None
         self.report: dict | None = None
@@ -31,6 +32,9 @@ class Workbench(tk.Tk):
         self.hudi_scenario = tk.StringVar(value="Unknown (default)")
         self.phi_cycles_per_instruction = tk.StringVar(value="")
         self.steps = tk.StringVar(value="300")
+        self.an0_voltage=tk.StringVar(value="")
+        self.adc_reference=tk.StringVar(value="")
+        self.adc_completion_ticks=tk.StringVar(value="")
         self.port_b_pins = tk.StringVar(value="")
         self.port_b_mask = tk.StringVar(value="0xFFFF")
         self.port_c_pins = tk.StringVar(value="")
@@ -98,6 +102,13 @@ class Workbench(tk.Tk):
         ttk.Entry(pin_controls, textvariable=self.port_b_pins, width=12).pack(side="left", padx=(5, 12))
         ttk.Label(pin_controls, text="Known-bit mask").pack(side="left")
         ttk.Entry(pin_controls, textvariable=self.port_b_mask, width=12).pack(side="left", padx=5)
+        sensor=ttk.LabelFrame(panel,text="Optional ideal AN0 input (all blank = unknown)",padding=6)
+        sensor.pack(fill="x",pady=(0,8))
+        for text,variable in (("Voltage",self.an0_voltage),("Reference voltage",self.adc_reference),
+                              ("Artificial delay (instructions)",self.adc_completion_ticks)):
+            ttk.Label(sensor,text=text).pack(side="left",padx=(0,4))
+            ttk.Entry(sensor,textvariable=variable,width=10).pack(side="left",padx=(0,12))
+        ttk.Label(panel,text="AN0 board sensor mapping unknown. Delay is a simulation assumption, not measured conversion time.",wraplength=940).pack(anchor="w")
         c_controls = ttk.Frame(panel)
         c_controls.pack(fill="x", pady=(0,8))
         ttk.Label(c_controls,text="Port C PC4..PC0 (hex, blank=unknown)").pack(side="left")
@@ -190,9 +201,11 @@ class Workbench(tk.Tk):
             maximum = int(self.steps.get())
             if not 1 <= maximum <= 100000:
                 raise ValueError("Maximum instructions must be between 1 and 100000")
+            adc_fixture=adc_fields(*[getattr(self,name).get() if hasattr(self,name) else ""
+                for name in ("an0_voltage","adc_reference","adc_completion_ticks")])
             result = diagnose_nc_reset(
                 self.rom,
-                reset=self.reset.get(),
+                reset=self.reset.get(), adc_fixture=adc_fixture,
                 nmi_high={"unknown": None, "high": True, "low": False}[self.nmi.get()],
                 max_steps=maximum,
                 hudi_scenario=HUDI_SCENARIO_LABELS[self.hudi_scenario.get()],
@@ -215,7 +228,7 @@ class Workbench(tk.Tk):
                     "nmi": self.nmi.get(),
                     "max_steps": maximum,
                     "hudi_scenario": result["hudi_scenario"],
-                    "phi_cycles_per_instruction": result["phi_cycles_per_instruction"],
+                    "phi_cycles_per_instruction": result["phi_cycles_per_instruction"], "adc_fixture":result["adc_fixture"],
                     "explicit_pin_values": any(
                         variable.get().strip() for variable in
                         (self.port_b_pins, self.port_c_pins, self.port_d_pins)

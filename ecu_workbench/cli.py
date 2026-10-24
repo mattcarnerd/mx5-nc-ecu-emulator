@@ -1,5 +1,6 @@
 """Execute a bounded NC ROM reset-vector diagnostic. No ROM comparisons."""
 from __future__ import annotations
+from .sensor_fixture import adc_fields
 
 import argparse
 import json
@@ -41,18 +42,22 @@ def main(argv=None):
     parser.add_argument("--report", help="Save diagnostic JSON at this location")
     parser.add_argument("--baseline", action="store_true",
                         help="Emit deterministic compact reset baseline JSON (instead of detailed diagnostics)")
+    parser.add_argument("--an0-voltage",help="Explicit ideal AN0 voltage")
+    parser.add_argument("--adc-reference-voltage",help="Explicit analog reference voltage")
+    parser.add_argument("--adc-completion-ticks",type=int,help="Artificial completion delay in completed instructions; all three AN0 fields required")
     args = parser.parse_args(argv)
 
     if not 1 <= args.steps <= 100000:
         parser.error("--steps must be between 1 and 100000")
 
     try:
+        adc_fixture=adc_fields(args.an0_voltage,args.adc_reference_voltage,args.adc_completion_ticks)
         image = ROMImage.from_file(args.rom)
         pin = {"unknown": None, "high": True, "low": False}[args.nmi]
         if args.baseline:
             result = capture_boot_baseline(
                 image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
-                phi_cycles_per_instruction=args.phi_cycles_per_instruction,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture,
                 port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                 port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                 port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,
@@ -63,14 +68,14 @@ def main(argv=None):
                 "diagnostic_settings": {
                     "reset": args.reset, "nmi": args.nmi, "max_steps": args.steps,
                     "hudi_scenario": args.hudi_scenario,
-                    "phi_cycles_per_instruction": args.phi_cycles_per_instruction,
+                    "phi_cycles_per_instruction": args.phi_cycles_per_instruction, "adc_fixture":adc_fixture,
                     "explicit_pin_values": any(v is not None for v in
                         (args.port_b_pins, args.port_c_pins, args.port_d_pins)),
                 },
                 "nc_rom_assessment": assess_nc_rom(image).as_dict(),
                 "nc_boot": diagnose_nc_reset(
                     image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
-                phi_cycles_per_instruction=args.phi_cycles_per_instruction,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction, adc_fixture=adc_fixture,
                     port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                     port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                     port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,

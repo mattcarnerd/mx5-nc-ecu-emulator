@@ -11,6 +11,7 @@ import re
 from pathlib import Path
 from .trace_review import LF9VEB_SHA256
 from .hudi import run_scenario_metadata
+from .sensor_fixture import normalize_adc_fixture
 
 _HEX8 = re.compile(r"^0x[0-9A-Fa-f]{8}$")
 _OPCODE = re.compile(r"^[0-9A-Fa-f]{4}$")
@@ -82,7 +83,12 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
 
     hudi_scenario=settings.get("hudi_scenario", boot.get("hudi_scenario", "unknown"))
     phi=settings.get("phi_cycles_per_instruction",boot.get("phi_cycles_per_instruction"))
-    scenario=run_scenario_metadata(hudi_scenario,phi)
+    fixture=normalize_adc_fixture(settings.get('adc_fixture',boot.get('adc_fixture')))
+    if normalize_adc_fixture(boot.get('adc_fixture'))!=fixture:
+        raise ValueError('ADC fixture mismatch in diagnostic')
+    scenario=run_scenario_metadata(hudi_scenario,phi,fixture)
+    if "conditional_adc_scenario" in boot and (type(boot["conditional_adc_scenario"]) is not bool or boot["conditional_adc_scenario"]!=scenario["conditional_adc_scenario"]):
+        raise ValueError("ADC conditional marker mismatch")
     if "phi_cycles_per_instruction" in boot and boot["phi_cycles_per_instruction"]!=phi:
         raise ValueError("Clock scenario mismatch in diagnostic")
     if phi is not None and "phi_cycles_per_instruction" not in boot:
@@ -177,7 +183,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
-            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi,
+            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture,
         },
         "executed_instructions": count,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),

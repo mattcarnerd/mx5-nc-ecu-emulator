@@ -21,11 +21,16 @@ def scenario_metadata(scenario):
                 if conditional else 'H-UDI initial state unknown; no TRST/serial history assumed.')}
 
 
-def run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction=None):
+def run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction=None,adc_fixture=None):
+    from .sensor_fixture import normalize_adc_fixture
+    fixture=normalize_adc_fixture(adc_fixture)
     from .virtual_clock import phi_scenario_metadata
     result=scenario_metadata(hudi_scenario)
     result.update(phi_scenario_metadata(phi_cycles_per_instruction))
-    result['conditional_hardware_scenario'] |= result['conditional_clock_scenario']
+    result['adc_fixture']=fixture
+    result['conditional_adc_scenario']=fixture is not None
+    result['adc_fixture_note']='Ideal AN0 input and artificial completed-instruction conversion delay; no measured sensor or physical timing' if fixture else None
+    result['conditional_hardware_scenario'] |= result['conditional_clock_scenario'] or fixture is not None
     return result
 
 

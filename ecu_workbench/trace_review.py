@@ -26,7 +26,7 @@ def summarise(report: dict) -> dict:
     stop = run.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str):
         raise ValueError("Missing stop reason")
-    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"))
+    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"),settings.get("adc_fixture"))
     if "hudi_scenario" in report and report["hudi_scenario"]!=scenario["hudi_scenario"]:
         raise ValueError("H-UDI scenario mismatch in baseline")
     if "phi_cycles_per_instruction" in report and report["phi_cycles_per_instruction"]!=scenario["phi_cycles_per_instruction"]:
@@ -35,6 +35,8 @@ def summarise(report: dict) -> dict:
     if any(type(n) is not int or n<0 for n in injected_counts):
         raise ValueError("Invalid injected interrupt provenance")
     injected=any(injected_counts)
+    if "adc_fixture" in report and report["adc_fixture"]!=scenario["adc_fixture"]:
+        raise ValueError("ADC fixture mismatch in baseline")
     expected_scenario = (sha == LF9VEB_SHA256 and settings.get("reset") == "power"
                          and settings.get("nmi") == "high" and settings.get("max_steps") == 300
                          and not any(k.startswith("port_") for k in settings)

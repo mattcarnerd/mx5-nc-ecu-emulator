@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "kind": "nc_sh7058_shareable_blocker",
+  "hudi_scenario": "transfer-complete",
+  "conditional_hardware_scenario": true,
+  "hardware_scenario_note": "Conditional simulation: assumed H-UDI state; not verified ECU hardware history.",
+  "phi_cycles_per_instruction": 1,
+  "conditional_clock_scenario": true,
+  "phi_fixture_origin": 0,
+  "clock_scenario_note": "Conditional artificial clock ratio and zero phi origin/phase; not measured CPU timing.",
+  "adc_fixture": null,
+  "conditional_adc_scenario": false,
+  "adc_fixture_note": null,
+  "explicit_interrupt_requests": 0,
+  "injected_interrupt_scenario": false,
+  "scheduled_interrupt_events": 0,
+  "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+  "reference_lf9veb_scenario": false,
+  "settings": {
+    "reset": "power",
+    "nmi": "high",
+    "max_steps": 10000,
+    "explicit_pin_values": false,
+    "hudi_scenario": "transfer-complete",
+    "phi_cycles_per_instruction": 1,
+    "adc_fixture": null
+  },
+  "executed_instructions": 592,
+  "pc_at_stop": "0x000007B8",
+  "stop": {
+    "reason": "unknown_register",
+    "memory_access": {
+      "address": "0xFFFFD000",
+      "access": "write",
+      "width": 2
+    }
+  },
+  "next_dependency": {
+    "category": "unknown_cpu_state",
+    "instruction_pc": "0x000007B6",
+    "opcode": "2301",
+    "memory_access": {
+      "address": "0xFFFFD000",
+      "access": "write",
+      "width": 2
+    }
+  },
+  "pedr_word_write_ffff_in_peripheral_trace": true,
+  "pfdr_word_write_ffff_in_peripheral_trace": true,
+  "pgdr_word_write_000f_in_peripheral_trace": true,
+  "phdr_word_write_ffff_in_peripheral_trace": true,
+  "pjdr_word_write_ffff_in_peripheral_trace": true,
+  "pkdr_word_write_ffff_in_peripheral_trace": true,
+  "pldr_word_write_3fff_in_peripheral_trace": true,
+  "assessment": "conditional_hardware_scenario",
+  "boot_complete": false,
+  "warning": "This is a reduced diagnostic report, not ROM authenticity proof or a completed ECU boot. No ROM bytes, filenames, file paths or full instruction traces included."
+}

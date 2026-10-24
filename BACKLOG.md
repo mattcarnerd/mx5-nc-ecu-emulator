@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status:** B47-B51 add inactive CAN mailbox commands and conservative partial known-bit CPU loads/logical operations/direct stores. 291 local tests pass. Default300 remains188; no-clock H-UDI assumptions225; explicit H-UDI+phi1/budget300 reaches instruction limit. Separate budget10000 stops592 at MCR0 word write with unknown reserved bit6, PC7B6/op2301. Hardware research#1 tracks the evidence prerequisite; no value is silently chosen. No physical timing, CAN traffic or full boot is claimed. [Current pass](docs/FOURTH_FIVE_TASK_PASS.md).
+**Current status:** All eight explicitly requested bounded tasks B13-B15/B22-B25/B28 are implemented and tested. The FPU finite subset, ATU capture fixture, ideal AN0 conversion, synthetic crank/cam inputs, raw GPIO command trace and optional AN0 GUI/CLI controls are covered by312 local tests. Default reference remains188; explicitly conditional10000 budget remains592 at reserved MCR bit6. Only broad hardware/CPU/ECU workstreams#1-3 remain; full boot and engine simulation remain unproven. [Eight-task completion evidence](docs/EIGHT_TASK_COMPLETION.md).
 
 ## Working agreement — one issue = one development pass
 
@@ -106,7 +106,7 @@ The unchanged original-reference scenario now reaches **188 attempts** and stops
 
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 
-**B26, B17, B06–B12, B16, B19 and B41 are implemented.** The next conditional dependency is B42 running interval timing; actual H-UDI board evidence remains #1. Unobserved FPU/CPU expansion still needs executed evidence or a verified prerequisite. These rows retain completed coverage and pending work, not a commitment to implement every group in numeric order.
+**B26, B17, B06–B12, B16, B19 and B41 are implemented.** The next conditional dependency is B42 running interval timing; actual H-UDI board evidence remains #1. The user explicitly requested the eight remaining bounded features; their synthetic coverage is now implemented, without claiming original-ROM use. These rows retain completed coverage and pending work, not a commitment to implement every group in numeric order.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -127,7 +127,7 @@ The unchanged original-reference scenario now reaches **188 attempts** and stops
 
 ## P2 — Build truthful simulated hardware
 
-Other hardware and deferred FPU work: implement only when confirmed necessary for real firmware boot or the next verified operating phase. B18/Port C has been moved to the immediate P0 queue.
+The following bounded hardware/FPU tasks were explicitly requested and implemented. Broader modes and actual NC board mapping still require evidence. B18/Port C has been moved to the immediate P0 queue.
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
@@ -136,9 +136,9 @@ Other hardware and deferred FPU work: implement only when confirmed necessary fo
 | **[B23](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/30)** | One ADC channel reading external voltage | Explicit input, conversion/status output, missing input | B17, B19 |
 | **[B24](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/31)** | Synthetic crank/cam edge fixture | Deterministic timestamps into actual capture model | B22 |
 | **[B25](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/32)** | One genuine hardware command-output trace | Capture one validated output, or label as raw GPIO | B18, B19 |
-| **[B13](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/16)** | Defer FPU initial state until a ROM needs it | Unknown FR/FPUL/FPSCR values remain unknown | B12; observed need |
-| **[B14](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/17)** | Defer FPU transfer/conversion subset until observed | Bit-exact IEEE-754 and FPSCR tests | B13; observed need |
-| **[B15](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/18)** | Defer FPU arithmetic subset until observed | Only verified FPSCR modes; documented exceptions | B14; observed need |
+| **[B13](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/16)** | Implemented FPU initial state and system transfers | Unknown FR/FPUL/FPSCR values remain unknown | B12; explicit requested coverage |
+| **[B14](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/17)** | Implemented FPU raw transfers and bounded conversions | Bit-exact IEEE-754 and FPSCR tests | B13 |
+| **[B15](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/18)** | Implemented bounded finite FPU arithmetic | Only verified FPSCR modes; documented exceptions | B14 |
 
 ## P3 — Coverage and controlled interaction
 
@@ -198,3 +198,5 @@ B23/#30 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPL
 B24/#31 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B24 capture fixture complete; B25 raw GPIO tracing and B28 ADC sensor controls remain. Valid NC tooth/pin mapping stays hardware parent scope.
 
 B25/#32 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B25 bounded raw-command option complete. B28 ADC GUI/CLI and actual synthetic firmware read is last of eight; broad ECU simulation remains parent3.
+
+B28/#35 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). All eight requested bounded tasks implemented. Only broad parents1-3 remain; physical H-UDI/CAN evidence gates and full CPU/ECU simulation remain unresolved. No new duplicate child issue added.

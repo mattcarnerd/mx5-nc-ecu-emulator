@@ -90,3 +90,28 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b25-no-clock-unknown.json and b25-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B25 bounded raw-command option complete. B28 ADC GUI/CLI and actual synthetic firmware read is last of eight; broad ECU simulation remains parent3. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+## B28 user workflow and limitations
+
+GUI: leave all AN0 fields blank for unknown input. To opt in, enter voltage, reference voltage and an artificial conversion delay in completed instructions together. The value is an ideal AN0 fixture; the sensor wired to AN0 on an actual NC ECU is not established here. No assumed5V or default sensor value is supplied. CLI example for a synthetic or locally held authorized ROM:
+
+    python -m ecu_workbench --rom synthetic.bin --an0-voltage 1 --adc-reference-voltage 5 --adc-completion-ticks 1
+
+The same fields persist in detailed/baseline/shareable output and the executed GUI snapshot, with conditional markers and reference exclusion. Missing/contradictory settings fail validation. A real synthetic firmware instruction writes ADST and subsequently reads ADDR0; changing1V to4V against explicit5V changes the read counts204 to819 (left aligned). No manufacturer firmware is changed or supplied. Source GUI visually checked: all three blank fields and assumptions notice fit.
+
+FPU exceptional NaN/infinity/divide-zero/overflow/enabled-trap cases remain explicit stops. ATU/ADC module interrupt requests are observable; additional CPU vector dispatch is not implemented. Selected timer clocks and ADC completion events are explicit fixtures, not physical timing. Crank/cam square waves are not a validated NC pattern. PortC commands are raw latches, not identified actuators. Full idle/RPM/combustion simulation and multi-ROM certification remain open parents.
+
+Sources: [SH-2E software manual](https://www.renesas.com/en/document/mas/sh-2e-software-manual), sections2.6/4/7.3; [SH7058 Rev.3 hardware manual](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual), sections11/17/22. No physical values were inferred from firmware progression.
+
+## B28/#35
+
+Expose explicit AN0 sensor fixture in GUI and CLI (B28)
+All-or-none voltage/reference/artificial instruction-delay fields default blank. A synthetic firmware ADST write and ADDR0 read change with the supplied voltage; tests prove actual CPU loads, status completion and retained executed settings after GUI edits. Reports/baselines/reviewer/presenter preserve normalized input and artificial latency, reject contradictions and exclude reference classification. Source GUI visually verified. No board sensor identity or measured timing assumed.
+
+Validation: Ran 312 tests in 2.580s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b28-no-clock-unknown.json and b28-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All eight requested bounded tasks implemented. Only broad parents1-3 remain; physical H-UDI/CAN evidence gates and full CPU/ECU simulation remain unresolved. No new duplicate child issue added. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.

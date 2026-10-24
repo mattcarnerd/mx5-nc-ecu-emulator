@@ -13,6 +13,7 @@ from .known_bits import KnownBits
 from .fpu import FpuState,execute_fpu
 from .atu import Atu1A
 from .adc import Adc0
+from .sensor_fixture import normalize_adc_fixture
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
 from .port_e import PortE, PEDR_ADDRESS
@@ -542,7 +543,8 @@ class NCBootDiagnostic:
                  port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
                  port_c_pin_values: Optional[int]=None, port_c_pin_known_mask: int=PC_VALID_MASK,
                  port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF,
-                 hudi_scenario: str="unknown", phi_cycles_per_instruction: Optional[int]=None):
+                 hudi_scenario: str="unknown", phi_cycles_per_instruction: Optional[int]=None, adc_fixture=None):
+        self.adc_fixture=normalize_adc_fixture(adc_fixture)
         if len(rom.data) != ROM_LIMIT:
             raise BootStop('unsupported_image_size','SH7058 1 MiB full-flash profile requires exactly 1,048,576 bytes')
         if reset not in ('power','manual'): raise ValueError('reset must be power or manual')
@@ -568,6 +570,12 @@ class NCBootDiagnostic:
         self.executed=0;self.trace=[]
         self.clock=InstructionClock()
         self.bus.command_tick=lambda:self.clock.ticks
+        if self.adc_fixture:
+            fixture=self.adc_fixture
+            self.bus.adc.set_input(fixture['voltage'],fixture['reference'])
+            self.bus.adc.on_start=lambda generation:self.clock.schedule(
+                self.clock.ticks+fixture['completion_ticks'],
+                lambda:self.bus.adc.complete_conversion(generation))
         self.coverage=self.bus.coverage
         self.exception_entries=0
         self.exception_events=[]
@@ -742,7 +750,7 @@ class NCBootDiagnostic:
                                 fetch_pc=self._fetch_pc)
         return {
             'engine':'SH7058 reset diagnostic (partial SH-2 integer instruction subset)',
-            **run_scenario_metadata(self.bus.hudi.scenario,self.phi_cycles_per_instruction),
+            **run_scenario_metadata(self.bus.hudi.scenario,self.phi_cycles_per_instruction,self.adc_fixture),
             'supplied_phi_cycles':self.bus.watchdog.phi_cycles,
             'rom_sha256':hashlib.sha256(self.bus.image.data).hexdigest(),
             'rom_size_bytes':len(self.bus.image.data),
@@ -789,10 +797,10 @@ def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi
                       port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
                       port_c_pin_values: Optional[int]=None, port_c_pin_known_mask: int=PC_VALID_MASK,
                       port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF,
-                      hudi_scenario: str="unknown", phi_cycles_per_instruction: Optional[int]=None) -> dict:
-    run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction)
+                      hudi_scenario: str="unknown", phi_cycles_per_instruction: Optional[int]=None, adc_fixture=None) -> dict:
+    run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction,adc_fixture)
     try:
-        return NCBootDiagnostic(rom, reset=reset, nmi_high=nmi_high, hudi_scenario=hudi_scenario, phi_cycles_per_instruction=phi_cycles_per_instruction,
+        return NCBootDiagnostic(rom, reset=reset, nmi_high=nmi_high, hudi_scenario=hudi_scenario, phi_cycles_per_instruction=phi_cycles_per_instruction, adc_fixture=adc_fixture,
                                 port_b_pin_values=port_b_pin_values,
                                 port_b_pin_known_mask=port_b_pin_known_mask,
                                 port_c_pin_values=port_c_pin_values,
@@ -801,7 +809,7 @@ def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi
                                 port_d_pin_known_mask=port_d_pin_known_mask).run(max_steps=max_steps)
     except BootStop as e:
         return {'engine':'SH7058 reset diagnostic','profile':'sh7058-1m-readonly','reset':reset,'nmi_high':nmi_high,
-                **run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction),
+                **run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction,adc_fixture),
                 'stop':e.report(),
                 'next_dependency':explain_stop(e.report(),trace=[]),
                 'boot_complete':False}

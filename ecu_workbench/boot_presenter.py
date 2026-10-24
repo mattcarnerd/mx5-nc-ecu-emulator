@@ -23,7 +23,7 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
     count = report.get("executed_instructions", 0)
     budget = reason == "instruction_limit"
     status = f"Stopped: {reason} — {count} attempted instructions; ECU boot NOT verified."
-    scenario=run_scenario_metadata(report.get("hudi_scenario", "unknown"),report.get("phi_cycles_per_instruction"))
+    scenario=run_scenario_metadata(report.get("hudi_scenario", "unknown"),report.get("phi_cycles_per_instruction"),report.get("adc_fixture"))
     if scenario["conditional_hardware_scenario"]:
         status="Conditional hardware scenario — " + status
     if report.get("explicit_interrupt_requests",0) or report.get("scheduled_interrupt_events",0):
