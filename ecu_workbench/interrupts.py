@@ -11,6 +11,8 @@ IPRL_ADDRESS=0xFFFFED16
 IMI1A_VECTOR=96
 IMI1B_VECTOR=97
 IPRD_ADDRESS=0xFFFFED06
+OVI1A_VECTOR=104
+IPRE_ADDRESS=0xFFFFED08
 ADI0_VECTOR=190
 IPRJ_ADDRESS=0xFFFFED12
 
@@ -28,6 +30,7 @@ def routed_requests(cpu):
     return [
         ('IMI1A',IMI1A_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],1),True),
         ('IMI1B',IMI1B_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],2),True),
+        ('OVI1A',OVI1A_VECTOR,IPRE_ADDRESS,12,enabled_flag_request(t.regs[TSR],t.regs[TIER],0x100),True),
         ('ADI0',ADI0_VECTOR,IPRJ_ADDRESS,8,cpu.bus.adc.interrupt_pending,True),
         ('ITI',ITI_VECTOR,IPRL_ADDRESS,4,cpu.interval_request,True),
     ]

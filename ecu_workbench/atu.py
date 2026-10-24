@@ -32,11 +32,11 @@ class Atu1A:
     @property
     def interrupt_pending(self):
         if self.regs[TSR] is None or self.regs[TIER] is None:return None
-        return bool(self.regs[TSR]&self.regs[TIER]&3)
+        return bool(self.regs[TSR]&self.regs[TIER]&0x103)
 
-    def event(self,kind,*,counter=None,tick=None):
+    def event(self,kind,*,counter=None,tick=None,**details):
         self.events.append({'kind':kind,'counter':self.regs[TCNT] if counter is None else counter,'tick':self.ticks if tick is None else tick,
-                            'time_unit':'explicit_selected_counter_ticks','interrupt_request':self.interrupt_pending})
+                            'time_unit':'explicit_selected_counter_ticks','interrupt_request':self.interrupt_pending,**details})
         self.events[:]=self.events[-100:]
         if self.event_sink:self.event_sink(dict(self.events[-1]))
 
@@ -50,12 +50,12 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
-        allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:(0,),TIER:(0,1,2,3)}
+        allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:(0,),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
             self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write')
         if a==TSR:
             old=self.known(a)
-            self.regs[a]=old & ~(self.read_flags & ~value & 3)
+            self.regs[a]=old & ~(self.read_flags & ~value & 0x103)
             self.read_flags=0;self.event('status_write');return
         if a in (GR,GRB) and ((self.known(TIOR)>>(4 if a==GRB else 0))&4):self.fail('read_only_peripheral','GR1A cannot be written in capture mode',a,width,'write')
         self.regs[a]=value
@@ -63,17 +63,23 @@ class Atu1A:
 
     def advance_ticks(self,count):
         if type(count) is not int or count<0:raise ValueError('Nonnegative integer selected-clock ticks required')
-        self.known(TSTR);self.known(TCNT);self.known(TIOR)
-        self.explicit_input_events+=1
-        self.clock_supplied=True
-        start=self.regs[TCNT];self.ticks+=count
-        if not self.regs[TSTR]&2:return
-        if self.regs[TIOR]&7 in (1,2,3):
-            distance=(self.known(GR)-start)&0xFFFF
-            if distance==0:distance=65536
-            if count>=distance:
-                self.regs[TSR]=self.known(TSR)|1
-                self.event('compare_match',counter=self.regs[GR],tick=self.ticks-count+distance)
+        running=self.known(TSTR)&2;start=self.known(TCNT);mode=self.known(TIOR)&7
+        events=[]
+        if running and count:
+            if mode in (1,2,3):
+                distance=(self.known(GR)-start)&0xFFFF
+                if distance==0:distance=65536
+                if count>=distance:events.append((distance,'compare_match',self.regs[GR],1,1+(count-distance)//65536))
+            distance=65536-start
+            if count>=distance:events.append((distance,'counter_overflow',0,0x100,1+(count-distance)//65536))
+        if events:self.known(TSR)
+        self.explicit_input_events+=1;self.clock_supplied=True
+        origin=self.ticks;self.ticks+=count
+        if not running:return
+        for distance,kind,counter,flag,occurrences in sorted(events):
+            self.regs[TSR]|=flag
+            self.event(kind,counter=counter,tick=origin+distance,occurrences=occurrences,
+                       last_tick=origin+distance+(occurrences-1)*65536)
         self.regs[TCNT]=(start+count)&0xFFFF
 
     def set_pin(self,level,channel="A"):
