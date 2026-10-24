@@ -105,7 +105,7 @@ class ScenarioTests(unittest.TestCase):
             def set(self,v):self.v=v
         for label,scenario in HUDI_SCENARIO_LABELS.items():
             ui=SimpleNamespace(rom=image(),reset=Var('power'),nmi=Var('high'),steps=Var('1'),
-                hudi_scenario=Var(label),port_b_pins=Var(''),port_c_pins=Var(''),port_d_pins=Var(''),
+                hudi_scenario=Var(label),phi_cycles_per_instruction=Var(""),port_b_pins=Var(''),port_c_pins=Var(''),port_d_pins=Var(''),
                 port_b_mask=Var('0xFFFF'),port_c_mask=Var('0x1F'),port_d_mask=Var('0xFFFF'),
                 status=Var(''),summary='summary',blocker='blocker',trace='trace',peripherals='peripherals')
             ui._set=lambda *a:None

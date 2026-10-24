@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from .core import ROMImage
 from .nc_boot import diagnose_nc_reset
-from .hudi import scenario_metadata
+from .hudi import run_scenario_metadata
 
 BASELINE_SCHEMA_VERSION = 1
 TRACE_TAIL_LENGTH = 16
@@ -15,7 +15,7 @@ TRACE_TAIL_LENGTH = 16
 
 def capture_boot_baseline(
     rom: ROMImage, *, reset: str = "power", max_steps: int = 300,
-    nmi_high: bool | None = None, hudi_scenario: str = "unknown",
+    nmi_high: bool | None = None, hudi_scenario: str = "unknown", phi_cycles_per_instruction: int | None = None,
     port_b_pin_values: int | None = None, port_b_pin_known_mask: int = 0xFFFF,
     port_c_pin_values: int | None = None, port_c_pin_known_mask: int = 0x001F,
     port_d_pin_values: int | None = None, port_d_pin_known_mask: int = 0xFFFF,
@@ -33,7 +33,7 @@ def capture_boot_baseline(
         raise ValueError("max_steps must be between 1 and 100000")
 
     run = diagnose_nc_reset(
-        rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high, hudi_scenario=hudi_scenario,
+        rom, reset=reset, max_steps=max_steps, nmi_high=nmi_high, hudi_scenario=hudi_scenario, phi_cycles_per_instruction=phi_cycles_per_instruction,
         port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask,
         port_c_pin_values=port_c_pin_values, port_c_pin_known_mask=port_c_pin_known_mask,
         port_d_pin_values=port_d_pin_values, port_d_pin_known_mask=port_d_pin_known_mask,
@@ -54,7 +54,7 @@ def capture_boot_baseline(
 
     input_settings = {"reset": reset,
                       "nmi": "unknown" if nmi_high is None else ("high" if nmi_high else "low"),
-                      "max_steps": max_steps, "hudi_scenario": hudi_scenario}
+                      "max_steps": max_steps, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi_cycles_per_instruction}
     if port_b_pin_values is not None:
         input_settings["port_b_pin_values"] = f"0x{port_b_pin_values:04X}"
         input_settings["port_b_pin_known_mask"] = f"0x{port_b_pin_known_mask:04X}"
@@ -75,7 +75,7 @@ def capture_boot_baseline(
             "size_bytes": rom.size,
         },
         "inputs": input_settings,
-        **scenario_metadata(hudi_scenario),
+        **run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction),
         "result": {
             "reset_vectors": run.get("vectors"),
             "initial_sp": run.get("initial_sp"),

@@ -52,7 +52,7 @@ class ExecutionCoverage:
 
 
 def run_execution_harness(rom,*,max_steps=300,reset='power',nmi_high=None,
-                          hudi_scenario='unknown',interval_events=()):
+                          hudi_scenario='unknown',interval_events=(),phi_cycles_per_instruction=None):
     """Same bounded CPU, with explicit {'tick': int, 'asserted': bool} ITI events.
 
     No module overflow/physical time is inferred. All input events are validated
@@ -67,7 +67,8 @@ def run_execution_harness(rom,*,max_steps=300,reset='power',nmi_high=None,
         if (not isinstance(event,dict) or set(event)!= {'tick','asserted'} or
             type(event['tick']) is not int or event['tick']<0 or type(event['asserted']) is not bool):
             raise ValueError('Each ITI event needs an integer tick and boolean asserted level')
-    cpu=NCBootDiagnostic(rom,reset=reset,nmi_high=nmi_high,hudi_scenario=hudi_scenario)
+    cpu=NCBootDiagnostic(rom,reset=reset,nmi_high=nmi_high,hudi_scenario=hudi_scenario,
+                         phi_cycles_per_instruction=phi_cycles_per_instruction)
     cpu.scheduled_interrupt_events=len(interval_events)
     for event in interval_events:
         cpu.clock.schedule(event['tick'],lambda asserted=event['asserted']:cpu.set_interval_request(asserted))

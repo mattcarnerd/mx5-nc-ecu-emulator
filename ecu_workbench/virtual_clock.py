@@ -27,3 +27,12 @@ class InstructionClock:
         return {'unit':'completed_instruction_ticks','ticks':self.ticks,
                 'cpu_cycles':None,'seconds':None,'cycle_accurate':False,
                 'pending_events':len(self._events)}
+
+
+def phi_scenario_metadata(value):
+    if value is not None and (type(value) is not int or not 1<=value<=1000000):
+        raise ValueError('Assumed phi cycles per completed instruction must be 1..1000000 or unknown')
+    return {'phi_cycles_per_instruction':value,'conditional_clock_scenario':value is not None,
+            'phi_fixture_origin':None if value is None else 0,
+            'clock_scenario_note':('Clock unknown; no instruction-to-phi ratio assumed.' if value is None else
+                'Conditional artificial clock ratio and zero phi origin/phase; not measured CPU timing.')}

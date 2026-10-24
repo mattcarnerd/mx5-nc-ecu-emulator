@@ -22,6 +22,8 @@ def main(argv=None):
                         help="Simulated NMI pin; unknown fails closed")
     parser.add_argument("--hudi-scenario", choices=HUDI_SCENARIOS, default="unknown",
                         help="Conditional simulation only: assume TRST reset or transfer complete; default unknown")
+    parser.add_argument("--phi-cycles-per-instruction", type=int,
+                        help="Conditional artificial phi cycles per completed instruction (1..1000000); omitted means unknown")
     parser.add_argument("--port-b-pins", type=lambda s: int(s, 0),
                         help="Explicit 16-bit physical Port B levels, e.g. 0x1234; omitted means unknown")
     parser.add_argument("--port-b-known-mask", type=lambda s: int(s, 0), default=0xFFFF,
@@ -50,6 +52,7 @@ def main(argv=None):
         if args.baseline:
             result = capture_boot_baseline(
                 image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction,
                 port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                 port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                 port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,
@@ -60,12 +63,14 @@ def main(argv=None):
                 "diagnostic_settings": {
                     "reset": args.reset, "nmi": args.nmi, "max_steps": args.steps,
                     "hudi_scenario": args.hudi_scenario,
+                    "phi_cycles_per_instruction": args.phi_cycles_per_instruction,
                     "explicit_pin_values": any(v is not None for v in
                         (args.port_b_pins, args.port_c_pins, args.port_d_pins)),
                 },
                 "nc_rom_assessment": assess_nc_rom(image).as_dict(),
                 "nc_boot": diagnose_nc_reset(
                     image, reset=args.reset, max_steps=args.steps, nmi_high=pin, hudi_scenario=args.hudi_scenario,
+                phi_cycles_per_instruction=args.phi_cycles_per_instruction,
                     port_b_pin_values=args.port_b_pins, port_b_pin_known_mask=args.port_b_known_mask,
                     port_c_pin_values=args.port_c_pins, port_c_pin_known_mask=args.port_c_known_mask,
                     port_d_pin_values=args.port_d_pins, port_d_pin_known_mask=args.port_d_known_mask,

@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from .hudi import scenario_metadata
+from .hudi import run_scenario_metadata
 
 LF9VEB_SHA256 = "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf"
 
@@ -26,9 +26,11 @@ def summarise(report: dict) -> dict:
     stop = run.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str):
         raise ValueError("Missing stop reason")
-    scenario=scenario_metadata(settings.get("hudi_scenario", "unknown"))
+    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"))
     if "hudi_scenario" in report and report["hudi_scenario"]!=scenario["hudi_scenario"]:
         raise ValueError("H-UDI scenario mismatch in baseline")
+    if "phi_cycles_per_instruction" in report and report["phi_cycles_per_instruction"]!=scenario["phi_cycles_per_instruction"]:
+        raise ValueError("Clock scenario mismatch in baseline")
     injected_counts=[run.get(k,0) for k in ("explicit_interrupt_requests","scheduled_interrupt_events")]
     if any(type(n) is not int or n<0 for n in injected_counts):
         raise ValueError("Invalid injected interrupt provenance")

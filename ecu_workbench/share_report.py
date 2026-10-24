@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 from .trace_review import LF9VEB_SHA256
-from .hudi import scenario_metadata
+from .hudi import run_scenario_metadata
 
 _HEX8 = re.compile(r"^0x[0-9A-Fa-f]{8}$")
 _OPCODE = re.compile(r"^[0-9A-Fa-f]{4}$")
@@ -81,10 +81,18 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         raise ValueError("Invalid explicit-input setting")
 
     hudi_scenario=settings.get("hudi_scenario", boot.get("hudi_scenario", "unknown"))
-    scenario=scenario_metadata(hudi_scenario)
+    phi=settings.get("phi_cycles_per_instruction",boot.get("phi_cycles_per_instruction"))
+    scenario=run_scenario_metadata(hudi_scenario,phi)
+    if "phi_cycles_per_instruction" in boot and boot["phi_cycles_per_instruction"]!=phi:
+        raise ValueError("Clock scenario mismatch in diagnostic")
+    if phi is not None and "phi_cycles_per_instruction" not in boot:
+        raise ValueError("Clock assumption missing from executed report")
+    if "conditional_clock_scenario" in boot and (type(boot["conditional_clock_scenario"]) is not bool or
+            boot["conditional_clock_scenario"]!=scenario["conditional_clock_scenario"]):
+        raise ValueError("Conditional clock marker mismatch")
     if "hudi_scenario" in boot and boot["hudi_scenario"]!=hudi_scenario:
         raise ValueError("H-UDI scenario mismatch in diagnostic")
-    if scenario["conditional_hardware_scenario"] and "hudi_scenario" not in boot:
+    if hudi_scenario!="unknown" and "hudi_scenario" not in boot:
         raise ValueError("Conditional H-UDI scenario missing from executed report")
     if "conditional_hardware_scenario" in boot and (
             type(boot["conditional_hardware_scenario"]) is not bool or
@@ -169,7 +177,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
-            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario,
+            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi,
         },
         "executed_instructions": count,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),

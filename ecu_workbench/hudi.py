@@ -21,6 +21,14 @@ def scenario_metadata(scenario):
                 if conditional else 'H-UDI initial state unknown; no TRST/serial history assumed.')}
 
 
+def run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction=None):
+    from .virtual_clock import phi_scenario_metadata
+    result=scenario_metadata(hudi_scenario)
+    result.update(phi_scenario_metadata(phi_cycles_per_instruction))
+    result['conditional_hardware_scenario'] |= result['conditional_clock_scenario']
+    return result
+
+
 class HudiStatus:
     def __init__(self, *, trace, stop_type, scenario="unknown"):
         scenario_metadata(scenario)

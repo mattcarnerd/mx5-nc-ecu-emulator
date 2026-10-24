@@ -29,6 +29,7 @@ class Workbench(tk.Tk):
         self.reset = tk.StringVar(value="power")
         self.nmi = tk.StringVar(value="unknown")
         self.hudi_scenario = tk.StringVar(value="Unknown (default)")
+        self.phi_cycles_per_instruction = tk.StringVar(value="")
         self.steps = tk.StringVar(value="300")
         self.port_b_pins = tk.StringVar(value="")
         self.port_b_mask = tk.StringVar(value="0xFFFF")
@@ -82,6 +83,13 @@ class Workbench(tk.Tk):
         ttk.Combobox(scenario_row, textvariable=self.hudi_scenario,
                      values=tuple(HUDI_SCENARIO_LABELS), state="readonly", width=29).pack(side="left", padx=8)
         ttk.Label(scenario_row, text="Assumptions explore possibilities; board state remains unverified.",
+                  wraplength=410).pack(side="left")
+
+        clock_row = ttk.Frame(panel)
+        clock_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(clock_row, text="Assumed clock cycles per completed instruction").pack(side="left")
+        ttk.Entry(clock_row, textvariable=self.phi_cycles_per_instruction, width=9).pack(side="left", padx=8)
+        ttk.Label(clock_row, text="Blank = unknown. Artificial ratio and phase; not measured ECU timing.",
                   wraplength=410).pack(side="left")
 
         pin_controls = ttk.Frame(panel)
@@ -188,6 +196,8 @@ class Workbench(tk.Tk):
                 nmi_high={"unknown": None, "high": True, "low": False}[self.nmi.get()],
                 max_steps=maximum,
                 hudi_scenario=HUDI_SCENARIO_LABELS[self.hudi_scenario.get()],
+                phi_cycles_per_instruction=(int(self.phi_cycles_per_instruction.get())
+                    if self.phi_cycles_per_instruction.get().strip() else None),
                 port_b_pin_values=(int(self.port_b_pins.get(), 0) if self.port_b_pins.get().strip() else None),
                 port_b_pin_known_mask=int(self.port_b_mask.get(), 0),
                 port_c_pin_values=(int(self.port_c_pins.get(),0) if self.port_c_pins.get().strip() else None),
@@ -205,6 +215,7 @@ class Workbench(tk.Tk):
                     "nmi": self.nmi.get(),
                     "max_steps": maximum,
                     "hudi_scenario": result["hudi_scenario"],
+                    "phi_cycles_per_instruction": result["phi_cycles_per_instruction"],
                     "explicit_pin_values": any(
                         variable.get().strip() for variable in
                         (self.port_b_pins, self.port_c_pins, self.port_d_pins)
