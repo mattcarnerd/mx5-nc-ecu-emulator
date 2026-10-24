@@ -3,6 +3,10 @@ from .known_bits import KnownBits
 
 def execute_logic(cpu,op,n,m):
     family=op & 0xF00F
+    if family==0x6007:
+        bits=cpu.transport_bits(m)
+        cpu.r[n]=KnownBits(~bits.value,bits.mask).compact()
+        return True
     immediate=op & 0xFF00
     if family in (0x2008,0x2009,0x200A,0x200B):
         left,right=cpu.reg_bits(n),cpu.reg_bits(m)
