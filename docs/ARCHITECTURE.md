@@ -74,6 +74,18 @@ physical output event or completed ECU boot.
 Renesas reference: https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual
 (sections 22.7.1–22.7.2, tables 22.11–22.12).
 
+## B34 — Port G from original-reference LF9VEB
+
+The original-reference LF9VEB hash report confirms **94 attempted instructions**
+with Port E and F word writes performed, followed by an **unmodelled**
+`PGDR 0xFFFFF764` word write `0x000F` (opcode `2131` at PC `0x00000CD2`).
+Renesas SH7058 Rev.3 §22.8, Tables 22.13–22.14, specifies just four
+implemented bits PG3..PG0. Bits 15..4 read as zero and must be written
+zero. The Port G model implements only the output data latch, explicit
+physical input readback and fail-closed uninitialised reset state. It
+does **not** emulate pin drivers or alternate function behaviour. Synthetic
+CPU opcode tests do not establish a successful original firmware boot.
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:

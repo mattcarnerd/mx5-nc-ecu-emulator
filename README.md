@@ -350,3 +350,20 @@ Then use **Save shareable blocker JSON…** again. The report now carries a
 the 16-bit `0xFFFF` PFDR write was actually recorded during execution.
 Do not infer execution from instruction counts alone. A different SHA-256
 is a different image, not a verified original LF9VEB regression.
+
+## B34 — original LF9VEB Port G startup blocker
+
+The local original-reference LF9VEB report (SHA-256
+`bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf`)
+now reaches **94 attempted instructions** with Port E and F writes confirmed.
+The next stop is a 16-bit write of `0x000F` to **Port G PGDR
+`0xFFFFF764`**, opcode `2131` at PC `0x00000CD2`. B34 implements
+Renesas SH7058 Rev.3 §22.8: PG3–PG0 latch and direction-dependent
+readback; reserved bits 15–4 read zero and nonzero writes fail explicitly.
+Physical pin values and alternate functions are not invented.
+
+Use the latest Windows EXE, **Power** reset, **NMI high**, **300**
+instructions, physical pin fields blank, then **Save shareable blocker JSON…**
+again. Its `pgdr_word_write_000f_in_peripheral_trace` value is true
+only when the actual PGDR write is recorded. A synthetic pass cannot reveal
+the next authentic post-PGDR stop; a new local ROM run is required.
