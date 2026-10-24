@@ -196,3 +196,5 @@ B22/#29 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPL
 B23/#30 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B23 enables B28 explicit sensor controls and synthetic firmware-read proof. B24 depends on existing B22 capture path; B25 can label only raw GPIO pending board mapping.
 
 B24/#31 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B24 capture fixture complete; B25 raw GPIO tracing and B28 ADC sensor controls remain. Valid NC tooth/pin mapping stays hardware parent scope.
+
+B25/#32 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B25 bounded raw-command option complete. B28 ADC GUI/CLI and actual synthetic firmware read is last of eight; broad ECU simulation remains parent3.

@@ -77,3 +77,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b24-no-clock-unknown.json and b24-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B24 capture fixture complete; B25 raw GPIO tracing and B28 ADC sensor controls remain. Valid NC tooth/pin mapping stays hardware parent scope. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+## B25/#32
+
+Trace timestamped raw GPIO firmware latch commands (B25)
+PCDR raw command events record completed-instruction tick before write, latch known/changed masks, newly initialized bits and documented direction configuration. Physical pin level and ECU function remain unknown; not labelled injector/ignition/throttle without board evidence. Byte lanes, write faults, repeated commands, manual unknown state and bounded100-event retention tested.
+
+Validation: Ran 309 tests in 2.478s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b25-no-clock-unknown.json and b25-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B25 bounded raw-command option complete. B28 ADC GUI/CLI and actual synthetic firmware read is last of eight; broad ECU simulation remains parent3. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.

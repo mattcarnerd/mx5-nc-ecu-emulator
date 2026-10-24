@@ -119,6 +119,8 @@ class BootBus:
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
+        self.raw_gpio_commands=[]
+        self.command_tick=lambda:None
         self.coverage=ExecutionCoverage()
         run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction)
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop,
@@ -335,8 +337,18 @@ class BootBus:
         if (bits & mask) & ~PC_VALID_MASK:
             raise BootStop('invalid_peripheral_write','PCDR reserved bits 15..5 must be written zero',
                            address=address,width=width,access='write',value=value)
+        old,old_known=self.pcdr,self.pcdr_known_mask
         self.pcdr = (self.pcdr & ~(mask & PC_VALID_MASK)) | (bits & mask & PC_VALID_MASK)
         self.pcdr_known_mask |= mask & PC_VALID_MASK
+        self.raw_gpio_commands.append({'kind':'raw_GPIO_latch_command','port':'C',
+            'register':'PCDR','address':f'0x{address:08X}','width':width,
+            'latch_value':self.pcdr,'known_mask':self.pcdr_known_mask,
+            'changed_known_mask':(old^self.pcdr)&old_known&mask&PC_VALID_MASK,
+            'newly_known_mask':~old_known&mask&PC_VALID_MASK,
+            'output_direction_mask':None if self.pfc[PCIOR_ADDRESS] is None else self.pfc[PCIOR_ADDRESS]&PC_VALID_MASK,
+            'tick':self.command_tick(),'time_unit':'completed_instruction_ticks_before_write',
+            'physical_pin_level':None,'ECU_function':'unknown_board_mapping'})
+        self.raw_gpio_commands[:]=self.raw_gpio_commands[-100:]
         self.peripheral_trace.append({'register':'PCDR','access':'write',
                                       'value':value & ((1 << (8*width))-1),
                                       'width':width, 'known_mask':f'0x{self.pcdr_known_mask:04X}',
@@ -555,6 +567,7 @@ class NCBootDiagnostic:
         self.vbr=0
         self.executed=0;self.trace=[]
         self.clock=InstructionClock()
+        self.bus.command_tick=lambda:self.clock.ticks
         self.coverage=self.bus.coverage
         self.exception_entries=0
         self.exception_events=[]
@@ -767,6 +780,7 @@ class NCBootDiagnostic:
             'next_dependency':dependency,
             'trace':self.trace[-min(100,len(self.trace)):],
             'modelled_peripheral_accesses':self.bus.peripheral_trace,
+            'raw_gpio_commands':list(self.bus.raw_gpio_commands),
             'boot_complete':False,
             'note':'Not a complete SH7058 emulator; never assume firmware boots from this result.'
         }
