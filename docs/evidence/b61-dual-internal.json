@@ -1,0 +1,166 @@
+{
+  "kind": "synthetic_dual_capture_rollover",
+  "fixture_passed": true,
+  "manufacturer_firmware_used": false,
+  "boot_complete": false,
+  "physical_timing_verified": false,
+  "inputs": {
+    "clock_source": "internal",
+    "PSCR1": 1,
+    "TCR1A": 1,
+    "initial_counter": 65534,
+    "capture_packet_ticks": [
+      1,
+      2
+    ],
+    "event_completed_instruction_ticks": [
+      100,
+      180
+    ],
+    "max_steps": 280
+  },
+  "handler_counts": {
+    "IMI1A": 1,
+    "IMI1B": 1,
+    "OVI1A": 1
+  },
+  "capture_words": [
+    65535,
+    1
+  ],
+  "interrupt_vectors": [
+    96,
+    104,
+    97
+  ],
+  "status_flags": 0,
+  "stack_restored": true,
+  "returned_to_main_fixture": true,
+  "clock_fixture": {
+    "source": "supplied_phi",
+    "fixture_phase_origin": 0,
+    "supplied_phi_cycles": 12,
+    "selected_counter_ticks": 3,
+    "frequency_hz": null,
+    "physical_timing_verified": false
+  },
+  "stop": {
+    "reason": "instruction_limit",
+    "detail": "Stopped before executing required branch delay slot"
+  },
+  "timeline": [
+    {
+      "kind": "explicit_clock_packet",
+      "source": "internal",
+      "supplied_phi_cycles": 4,
+      "rising_edges": null,
+      "completed_instruction_tick": 100
+    },
+    {
+      "kind": "input_capture_A",
+      "counter": 65535,
+      "tick": 1,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": true
+    },
+    {
+      "kind": "exception_entry",
+      "event": "entry",
+      "source": "IMI1A",
+      "vector": 96,
+      "saved_pc": "0x0000083E",
+      "saved_sr": "0x00000000",
+      "target": "0x00001000",
+      "tick": 101
+    },
+    {
+      "kind": "status_write",
+      "counter": 65535,
+      "tick": 1,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": false
+    },
+    {
+      "kind": "exception_return",
+      "event": "return",
+      "source": "RTE",
+      "target": "0x0000083E",
+      "restored_sr": "0x00000000",
+      "tick": 113
+    },
+    {
+      "kind": "explicit_clock_packet",
+      "source": "internal",
+      "supplied_phi_cycles": 8,
+      "rising_edges": null,
+      "completed_instruction_tick": 180
+    },
+    {
+      "kind": "counter_overflow",
+      "counter": 0,
+      "tick": 2,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": true,
+      "occurrences": 1,
+      "last_tick": 2
+    },
+    {
+      "kind": "input_capture_B",
+      "counter": 1,
+      "tick": 3,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": true
+    },
+    {
+      "kind": "exception_entry",
+      "event": "entry",
+      "source": "OVI1A",
+      "vector": 104,
+      "saved_pc": "0x0000083E",
+      "saved_sr": "0x00000000",
+      "target": "0x00001200",
+      "tick": 181
+    },
+    {
+      "kind": "status_write",
+      "counter": 1,
+      "tick": 3,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": true
+    },
+    {
+      "kind": "exception_return",
+      "event": "return",
+      "source": "RTE",
+      "target": "0x0000083E",
+      "restored_sr": "0x00000000",
+      "tick": 191
+    },
+    {
+      "kind": "exception_entry",
+      "event": "entry",
+      "source": "IMI1B",
+      "vector": 97,
+      "saved_pc": "0x0000083E",
+      "saved_sr": "0x00000000",
+      "target": "0x00001100",
+      "tick": 193
+    },
+    {
+      "kind": "status_write",
+      "counter": 1,
+      "tick": 3,
+      "time_unit": "explicit_selected_counter_ticks",
+      "interrupt_request": false
+    },
+    {
+      "kind": "exception_return",
+      "event": "return",
+      "source": "RTE",
+      "target": "0x0000083E",
+      "restored_sr": "0x00000000",
+      "tick": 205
+    }
+  ],
+  "note": "Explicit generated fixture. No measured oscillator, NC waveform or full ECU boot."
+}

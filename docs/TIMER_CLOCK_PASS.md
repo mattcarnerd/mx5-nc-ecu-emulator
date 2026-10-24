@@ -1,4 +1,4 @@
-# Startup evidence and interrupt integration pass
+# Timer clock and dual capture pass
 
 ## B57/#64
 
@@ -49,3 +49,39 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b60-no-clock-unknown.json and b60-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Both sources and all four edge selections tested; first level establishes a baseline, unselected pins cannot advance the counter. TI10 and AGCKM remain unsupported. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+
+## Register semantics and fixture contract
+
+Primary source: [Renesas SH7058 hardware manual Rev.3](https://www.renesas.com/en/document/mah/sh-2e-sh7058-f-ztat-tm-hardware-manual), table7.3 (printed108), table11.3 (printed209), sections11.2.2-11.2.6 (printed234-262).
+
+- PSCR1 at FFFFF404 uses byte access, bits4:0 divide supplied Pphi by value+1; bits7:5 must be zero. TCR1A at FFFFF45D uses byte access: CKSEL0..5 selects the first-stage clock divided by1,2,4,8,16,32. Bits7:6 must be zero.
+- CKSEL6 selects TCLKA;7 selects TCLKB. CKEG bits5:4 select rising, falling, both, disabled for values0,1,2,3. TI10/AGCKM remain unsupported. Internal selections with nonzero CKEG are outside this bounded implementation.
+- TSR1A OVF1A bit8 is set on TCNT1A FFFF-to-0000 rollover. GR1A/GR1B capture flags are bits0/1; TIER1A enables corresponding requests. Flags require read-one/write-zero acknowledgement. OVI1A uses vector104, IPRE bits15:12; IMI1A/B use vectors96/97, IPRD bits7:4. TCNT1B sharing vector104 is not modelled.
+- All fixture clock APIs are opt-in. Internal packets require an explicitly declared zero phase. The divider continues through supplied cycles while the counter is stopped. Changing clock configuration after binding or while running stops explicitly. First external level establishes a baseline; no edge is inferred from an unknown prior level. Raw selected ticks, internal packets and external levels cannot be mixed.
+- Clock packets are atomic peripheral advancement, not instruction execution. Multiple wraps are aggregated with occurrence count and first/last selected-clock timestamps; held flags do not count interrupts per wrap. No oscillator frequency, instruction-cycle ratio or physical synchronization delay is inferred.
+
+## Reproduce generated firmware integration
+
+Run either command from the repository:
+
+```
+python -m ecu_workbench.dual_capture_fixture --clock-source internal
+python -m ecu_workbench.dual_capture_fixture --clock-source external
+```
+
+The generated program configures PSCR1=1, internal TCR1A=1 (divide4 overall) or external TCR1A=6 (TCLKA rising), TCNT1A=FFFE, rising capture on both channels, and three enabled requests. Explicit packets at completed-instruction ticks100/180 advance1/2 selected counter ticks. These are scheduling fixtures, not physical time.
+
+Actual generated SH-2 handlers read captures, acknowledge their own flags, increment separate counters and return using RTE. Both clock-source reports require captures FFFF/0001, handler counts1/1/1, vector order96/104/97 (overflow priority6 above capture priority5), cleared flags, restored stack and return to the generated idle loop. Insufficient budget must fail the fixture. Reports are [internal](evidence/b61-dual-internal.json) and [external](evidence/b61-dual-external.json). The source CLI is an integration diagnostic; no new GUI control is claimed. Versioned Windows releases include the updated core.
+
+## B61/#68
+
+B61: verify both capture handlers and overflow across rollover using generated SH-2 firmware and both explicit clock sources.
+
+Validation: Ran 335 tests in 3.463s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b61-no-clock-unknown.json and b61-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All five child scopes reviewed against remaining work packages. Dual captures, overflow priority, independent acknowledgement, RTE and deterministic repeated reports verified; startup hardware gates remain unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
