@@ -139,15 +139,15 @@ class RomOnlyScenarios(unittest.TestCase):
         self.assertEqual(result,run_rom_only_matrix(image,max_steps=10000,nmi_high=True))
         for row in result['cases']:
             r=row['report'];hudi=r['hudi_scenario'];phi=r['phi_cycles_per_instruction'];bit=r['experimental_mcr_bit6']
-            expected=188 if hudi=='unknown' else 225 if phi is None else 974 if bit==0 else 592
+            expected=188 if hudi=='unknown' else 225 if phi is None else 976 if bit==0 else 592
             self.assertEqual(r['executed_instructions'],expected,row['case_id'])
             self.assertEqual(r['completed_instructions'],expected-1)
             self.assertEqual(r['reference_lf9veb_scenario'],row['case_id']=='strict-reference-settings' or
                 hudi=='unknown' and phi is None and bit is None and r['settings']['max_steps']==300)
-            if expected==974:
-                self.assertEqual(r['stop']['reason'],'unknown_register')
-                self.assertEqual(r['next_dependency']['instruction_pc'],'0x00000DB4')
-                self.assertEqual(r['next_dependency']['opcode'],'633D')
+            if expected==976:
+                self.assertEqual(r['stop']['reason'],'unknown_status')
+                self.assertEqual(r['next_dependency']['instruction_pc'],'0x00000DB8')
+                self.assertEqual(r['next_dependency']['opcode'],'8B03')
             elif bit==1 and expected==592:
                 self.assertEqual(r['stop']['memory_access']['value'],'0x00000041')
 
