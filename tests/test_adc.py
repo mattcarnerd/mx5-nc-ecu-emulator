@@ -30,5 +30,6 @@ class AdcTests(unittest.TestCase):
             with self.assertRaises((ValueError,ZeroDivisionError)):a.set_input(v,r)
         for address,width,value in ((ADDR0,2,0),(ADCSR0,1,1),(ADCSR0,1,16),(ADCR0,1,0x6F),(ADCR0,2,0)):
             with self.assertRaises(BootStop):a.write(address,width,value)
+        a.csr=None;self.assertIsNone(a.interrupt_pending)
         a.data=None
         with self.assertRaises(BootStop):a.read(ADDR0,2)

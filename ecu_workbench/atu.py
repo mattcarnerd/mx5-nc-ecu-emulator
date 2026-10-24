@@ -29,7 +29,9 @@ class Atu1A:
         if WIDTHS.get(a)!=width:self.fail('unsupported_access_size','ATU1A subset requires documented aligned access',a,width,access)
 
     @property
-    def interrupt_pending(self):return bool((self.regs[TSR] or 0)&(self.regs[TIER] or 0)&3)
+    def interrupt_pending(self):
+        if self.regs[TSR] is None or self.regs[TIER] is None:return None
+        return bool(self.regs[TSR]&self.regs[TIER]&3)
 
     def event(self,kind,*,counter=None,tick=None):
         self.events.append({'kind':kind,'counter':self.regs[TCNT] if counter is None else counter,'tick':self.ticks if tick is None else tick,

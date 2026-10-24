@@ -28,6 +28,7 @@ class AtuTests(unittest.TestCase):
         with self.assertRaises(BootStop):t.read(TCNT,2)
         for address,width,value in ((TCNT,1,0),(TCNT+1,2,0),(TSTR,1,4),(TIOR,1,8),(TCR,1,1)):
             with self.assertRaises(BootStop):t.write(address,width,value)
+        t.regs[TIER]=None;self.assertIsNone(t.interrupt_pending)
         t.regs[TCNT]=None
         with self.assertRaises(BootStop):t.advance_ticks(1)
         for count in (-1,True,1.5):

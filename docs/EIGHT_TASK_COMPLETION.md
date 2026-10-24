@@ -115,3 +115,5 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b28-no-clock-unknown.json and b28-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All eight requested bounded tasks implemented. Only broad parents1-3 remain; physical H-UDI/CAN evidence gates and full CPU/ECU simulation remain unresolved. No new duplicate child issue added. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+Final unknown-state audit: ATU/ADC module request levels are None when manual-reset prior status or enable state is unknown, rather than assuming no interrupt. Existing reset tests verify this. All312 local tests still pass; final cumulative release includes this correction.

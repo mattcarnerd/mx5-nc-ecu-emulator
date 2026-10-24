@@ -59,7 +59,7 @@ class Adc0:
         self.trace.append({'register':'ADCSR0' if a==ADCSR0 else 'ADCR0','access':'write','width':1,'value':value})
 
     @property
-    def interrupt_pending(self):return self.csr is not None and (self.csr&0xC0)==0xC0
+    def interrupt_pending(self):return None if self.csr is None else (self.csr&0xC0)==0xC0
 
     def complete_conversion(self,generation=None):
         if generation is not None and generation!=self.generation:return
