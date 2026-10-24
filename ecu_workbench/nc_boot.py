@@ -24,6 +24,7 @@ from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .sh2_control import execute_control
+from .sh2_shift import execute_shift
 from .watchdog import ResetControl, WatchdogTimer, RSTCSR_WRITE, RSTCSR_READ
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
@@ -507,6 +508,7 @@ class NCBootDiagnostic:
         self.executed+=1
         if op==0x0009: return None
         if execute_control(self,op,n): return None
+        if execute_shift(self,op,n): return None
         if (op&0xF000)==0xE000:  # mov #imm,Rn
             self.r[n]=sign_extend(op&0xFF,8)&0xFFFFFFFF;return None
         if (op&0xF000)==0x9000:  # mov.w @(disp,PC),Rn

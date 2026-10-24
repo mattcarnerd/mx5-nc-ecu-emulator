@@ -15,3 +15,9 @@ Reviewed all 19 open issues and every backlog row. #1-3 parent scopes remain ope
 SH7058 Rev.3 section 13.2.3/13.2.4 specifies RSTCSR word writes at EC12 and byte reads at EC13. Implement keyed control/flag writes, read-before-clear and reserved-one readback. TCNT/TCSR programming at EC10 was then observed; include disabled programming and byte readback. Enabling counting stops explicitly because clock-driven watchdog operation is outside this task. Invalid-key/reserved encodings stop outside the supported write contract; no undocumented silicon effect is guessed. Manual-reset retained values remain unknown.
 
 197 tests pass locally. [Post-B20 redacted evidence](evidence/lf9veb-after-b20.json) reaches 175 attempts, unsupported SHLL8 R6 at D90. Review of all 18 open issues and complete backlog promotes existing B11/#14 to P0; no duplicate or other scope/dependency changes. FPU, timing, interrupts, ADC, engine signals and broader board support remain deferred. The five tasks are now B12, B20, B11, B10 and B16, with priorities reconsidered on every authentic rerun.
+
+## B11 shifts/rotates and review
+
+Software manual sections 7.2.44-47 and 7.2.51-56 define fixed shifts and rotations. Added SHLL/SHAL/SHLR/SHAR, shifts by 2/8/16 and ROTL/ROTR/ROTCL/ROTCR with explicit incoming T for carry rotation. Multi-bit shifts preserve T. Tests cover zero/sign/wrap and unknown states.
+
+200 local tests pass. [Post-B11 evidence](evidence/lf9veb-after-b11.json) reaches 188 attempts: SDSR word read at FFFFF7C2, instruction PC EF8, opcode 6321. Reviewed all remaining open issues and complete backlog; no H-UDI task exists, so add one bounded P0 SDSR issue. Do not substitute the TRST-only initial value for missing reset history. B16 is displaced from this five-task pass by this real blocker; B10 remains independent coverage. No other priority/dependency changes.
