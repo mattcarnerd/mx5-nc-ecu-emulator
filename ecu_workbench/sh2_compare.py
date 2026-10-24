@@ -5,6 +5,10 @@ Signed GE uses two's-complement comparison. Unknown incoming T may not
 be silently treated as zero; stop without modifying register state.
 """
 def execute_compare_carry(cpu,op,n,m):
+    if op & 0xFF00 == 0x8800:  # CMP/EQ #imm,R0: sign-extended imm8
+        from .nc_boot import sign_extend
+        cpu.t=cpu.reg(0)==(sign_extend(op & 0xFF,8) & 0xFFFFFFFF)
+        return True
     family=op & 0xF00F
     if family not in (0x3000,0x3002,0x3003,0x300E,0x300A):
         return False
