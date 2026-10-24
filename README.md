@@ -466,3 +466,22 @@ the PLDR write to complete. It is skipped when that private ROM is absent.
 The next authentic blocker is unknown until the same ROM is rerun; passing
 synthetic tests does not demonstrate full boot. See [register evidence and
 mandatory backlog review](docs/PLDR_EVIDENCE.md) and [CI/release tracking #45](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/45).
+
+
+## Latest five-task pass (24 October 2026)
+
+Completed B12 control-register transfers (including observed PR stack save),
+B20 disabled watchdog register initialization, B11 fixed shifts/rotates,
+B39 H-UDI SDSR status modelling, and B10 delayed conditional/register branches.
+The original LF9VEB hash was verified locally and the same power-reset,
+NMI-high, 300-step, no-pin scenario rerun after each change. It passed PLDR,
+PR saving, watchdog setup and SHLL8, reaching **188 attempted instructions**.
+The next dependency is **unknown H-UDI SDSR SDTRF state**, word read at
+`0xFFFFF7C2`, opcode `6321`, instruction PC `0x00000EF8`.
+
+SDSR is initialized by TRST, not power/manual reset. The emulator therefore
+requires evidence of that history rather than silently returning `0x0B01`.
+No full boot or engine behaviour is claimed. All **211 local tests pass**,
+including private-ROM integration cases; public CI skips the private cases.
+Per-task release/CI links are in #15, #27, #14, #46 and #13. See the
+[full pass evidence and backlog reviews](docs/FIVE_TASK_PASS.md).

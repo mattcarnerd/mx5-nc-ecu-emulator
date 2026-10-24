@@ -25,6 +25,7 @@ from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
+from .sh2_branch import execute_delayed_branch
 from .hudi import HudiStatus, SDSR_ADDRESS
 from .watchdog import ResetControl, WatchdogTimer, RSTCSR_WRITE, RSTCSR_READ
 
@@ -497,6 +498,7 @@ class NCBootDiagnostic:
         self.executed=0;self.trace=[]
         self._active_instruction=None
         self._fetch_pc=None
+        self._pending_target=None
     def reg(self,n):
         v=self.r[n]
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
@@ -512,6 +514,8 @@ class NCBootDiagnostic:
         self.trace.append(entry)
         self._active_instruction=entry
         self.executed+=1
+        handled,target=execute_delayed_branch(self,op,n,pc,delay_slot)
+        if handled: return target
         if op==0x0009: return None
         if execute_control(self,op,n): return None
         if execute_shift(self,op,n): return None
@@ -588,16 +592,18 @@ class NCBootDiagnostic:
         stop={'reason':'instruction_limit','detail':f'Maximum {max_steps} instructions reached'}
         while self.executed < max_steps:
             try:
-                target=self.execute()
-                if target is not None:
-                    if self.executed >= max_steps:
-                        stop={'reason':'instruction_limit','detail':'Stopped before executing required branch delay slot'}
-                        break
-                    second=self.execute(delay_slot=True)
-                    if second is not None:raise BootStop('illegal_delay_slot','Branch in delay slot')
-                    self.pc=target
+                in_slot=self._pending_target is not None
+                target=self.execute(delay_slot=in_slot)
+                if in_slot:
+                    if target is not None:raise BootStop('illegal_delay_slot','Branch in delay slot')
+                    self.pc=self._pending_target
+                    self._pending_target=None
+                elif target is not None:
+                    self._pending_target=target
             except BootStop as e:
                 stop=e.report();break
+        if stop['reason']=='instruction_limit' and self._pending_target is not None:
+            stop={'reason':'instruction_limit','detail':'Stopped before executing required branch delay slot'}
         dependency=explain_stop(stop, trace=self.trace,
                                 active_instruction=self._active_instruction,
                                 fetch_pc=self._fetch_pc)
