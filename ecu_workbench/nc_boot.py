@@ -598,6 +598,7 @@ class NCBootDiagnostic:
             raise BootStop('invalid_reset_vector',f'Invalid {reset} SP 0x{sp:08X}')
         self.r: list[Optional[int]]=[None]*16;self.r[15]=sp
         self.fpu=FpuState()
+        self.mach=None;self.macl=None
         self.pr:Optional[int]=None
         self.t: Optional[bool] = None  # T bit not known from partial reset SR value
         self.known_sr_mask=0xF0
@@ -701,6 +702,12 @@ class NCBootDiagnostic:
         if execute_control(self,op,n): return None
         if execute_fpu(self,op,n,m): return None
         if execute_shift(self,op,n): return None
+        if (op&0xF00F)==0x200E:  # MULU.W unsigned low16 product -> MACL
+            left,right=self.transport_bits(n),self.transport_bits(m)
+            if left.mask&0xFFFF!=0xFFFF or right.mask&0xFFFF!=0xFFFF:
+                raise BootStop('unknown_register','MULU.W requires known low16 operand bits')
+            self.macl=(left.value&0xFFFF)*(right.value&0xFFFF)
+            return None
         if (op&0xF0FF)==0x4010:  # DT Rn, SH-2E section7.2.21
             result=(self.reg(n)-1)&0xFFFFFFFF
             self.r[n]=result;self.t=(result==0);return None

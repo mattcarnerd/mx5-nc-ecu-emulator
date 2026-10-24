@@ -141,3 +141,5 @@ B75/#82 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_START
 B76/#83 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 372 tests pass. Explicit completion scenario reaches1022 attempts at FFFFD052 word read PC E18/op6331. No physical completion defaults or recurring interrupt claims introduced.
 
 B77/#84 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 374 tests pass. Mask latches resetFFFF, unknown manual/processing states retained, explicit reset completion restores masks. No CAN events or CPU interrupts fabricated. Completion scenario reaches1024 at MULU.W PCE1C/op204E.
+
+B78/#85 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 376 tests pass. Unknown high bits do not matter to MULU.W; unknown low operands remain guarded. MACH/T/source registers unchanged. Declared scenario reaches1026 at STS MACL,R0 PCE20/op001A; next MACL transfer scoped separately.
