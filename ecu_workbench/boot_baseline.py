@@ -80,6 +80,8 @@ def capture_boot_baseline(
             "reset_vectors": run.get("vectors"),
             "initial_sp": run.get("initial_sp"),
             "executed_instructions": run.get("executed_instructions", 0),
+            "completed_instructions": run.get("completed_instructions", 0),
+            "virtual_time": run.get("virtual_time"),
             "pc_at_stop": run.get("pc_at_stop"),
             "last_fetched_pc": run.get("last_fetched_pc"),
             "stop": stop,

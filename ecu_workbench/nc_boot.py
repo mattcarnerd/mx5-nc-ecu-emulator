@@ -23,6 +23,7 @@ from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
+from .virtual_clock import InstructionClock
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
@@ -498,6 +499,7 @@ class NCBootDiagnostic:
         self.gbr: Optional[int] = None
         self.vbr=0
         self.executed=0;self.trace=[]
+        self.clock=InstructionClock()
         self._active_instruction=None
         self._fetch_pc=None
         self._pending_target=None
@@ -506,6 +508,12 @@ class NCBootDiagnostic:
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
         return v
     def execute(self, *, delay_slot: bool=False):
+        self.clock.dispatch_due()
+        target=self._execute_instruction(delay_slot=delay_slot)
+        self.clock.completed_instruction()
+        return target
+
+    def _execute_instruction(self, *, delay_slot: bool=False):
         pc=self.pc
         self._fetch_pc=pc
         self._active_instruction=None
@@ -634,6 +642,8 @@ class NCBootDiagnostic:
             'last_fetched_pc':self.trace[-1]['pc'] if self.trace else None,
             'pr_at_stop':None if self.pr is None else f'0x{self.pr:08X}',
             'executed_instructions':self.executed,
+            'completed_instructions':self.clock.ticks,
+            'virtual_time':self.clock.report(),
             'stop':stop,
             'next_dependency':dependency,
             'trace':self.trace[-min(100,len(self.trace)):],

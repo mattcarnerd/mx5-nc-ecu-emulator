@@ -31,6 +31,8 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
         "boot_complete": False,
         "phase": "reset_diagnostic_only",
         "attempted_instructions": count,
+        "completed_instructions": report.get("completed_instructions"),
+        "virtual_time": report.get("virtual_time"),
         "reset": report.get("reset"),
         "nmi_high": report.get("nmi_high"),
         "port_b_explicit_pins": report.get("port_b_explicit_pins"),

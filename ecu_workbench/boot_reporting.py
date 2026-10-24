@@ -22,6 +22,7 @@ _STOP_CATEGORIES = {
     "rom_write": "invalid_memory_access",
     "unaligned_access": "invalid_memory_access",
     "unmapped_memory": "invalid_memory_access",
+    "unsupported_peripheral_mode": "unsupported_hardware_access",
     "unsupported_access_size": "unsupported_hardware_access",
     "read_only_peripheral": "invalid_hardware_access",
     "invalid_peripheral_write": "invalid_hardware_access",
