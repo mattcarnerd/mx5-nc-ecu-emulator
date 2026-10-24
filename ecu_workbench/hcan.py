@@ -45,12 +45,14 @@ class HcanResetCommands:
         if width!=2 or offset%2 or offset>0x12:
             raise self.stop_type('unsupported_access_size','Mailbox initialization supports aligned documented words only',
                                  address=address,width=width,access='write',value=value)
-        if value & 0xFFFF:
+        inactive=offset==4 and value in (0x0700,0x2700)
+        if value & 0xFFFF and not inactive:
             raise self.stop_type('unsupported_peripheral_mode','Only zero mailbox initialization is modelled',
                                  address=address,width=width,access='write',value=value)
-        self.mailbox_writes[address]=0
+        self.mailbox_writes[address]=value & 0xFFFF
         self.trace.append({'register':f'MB{mailbox}_{channel}+{offset:02X}',
-                           'access':'write','width':2,'value':0,'scope':'mailbox_zero_initialization_only'})
+                           'access':'write','width':2,'value':value & 0xFFFF,
+                           'scope':'mailbox_inactive_command' if inactive else 'mailbox_zero_initialization_only'})
 
     def mailbox_read(self,address,width):
         raise self.stop_type('unknown_peripheral_reset_state',

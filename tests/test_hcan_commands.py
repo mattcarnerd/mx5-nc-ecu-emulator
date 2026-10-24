@@ -63,3 +63,18 @@ class HcanCommandTests(unittest.TestCase):
         b.write(0xFFFFD100,2,0)
         self.assertNotIn(0xFFFFD900,b.hcan.mailbox_writes)
         self.assertEqual(BootBus(program(0x0009).bus.image).hcan.mailbox_writes,{})
+
+    def test_inactive_control_all_mailboxes_without_can_events(self):
+        b=BootBus(program(0x0009).bus.image)
+        for base in (0xFFFFD100,0xFFFFD900):
+            for mailbox in range(32):
+                a=base+32*mailbox+4
+                for value in (0x700,0x2700):
+                    b.write(a,2,value)
+                    self.assertEqual(b.hcan.mailbox_writes[a],value)
+                    self.assertEqual(b.peripheral_trace[-1]['scope'],'mailbox_inactive_command')
+                for value in (0x300,0x600,0x4700,0xA700,0x2701):
+                    with self.assertRaises(BootStop):b.write(a,2,value)
+                    self.assertEqual(b.hcan.mailbox_writes[a],0x2700)
+        with self.assertRaises(BootStop):b.write(0xFFFFD102,2,0x2700)
+        with self.assertRaises(BootStop):b.read(0xFFFFD104,2)

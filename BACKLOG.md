@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (24 October 2026):** B42 supplies the interval engine; B43 exposes opt-in **artificial phi cycles per completed instruction** (blank remains unknown). All reports retain clock/phase assumptions and exclude them from reference classification. 268 local tests pass. Default H-UDI/clock unknown stays188; assumed H-UDI without clock stays225; either H-UDI assumption plus explicitly declared clock ratios1/512 reaches233, next HCAN MCR_0 word0 at FFFFD000, PC792/op2341. B44/#51 is the next conditional register command. #1 actual board/H-UDI/timing evidence remains unresolved; no physical timing or full boot is claimed. [Current pass](docs/THIRD_FIVE_TASK_PASS.md).
+**Current status:** B47 records inactive CAN mailbox commands. 278 tests pass. Default188/no-clock assumptions225 unchanged; explicit H-UDI+phi1 reaches300 budget, separately labelled10000 budget stops590 on MCR reserved readback. B48/#55 adds known-bit value machinery before CPU integration. No full boot or physical timing is claimed. [Current pass](docs/FOURTH_FIVE_TASK_PASS.md).
 
 ## Working agreement — one issue = one development pass
 
@@ -172,3 +172,5 @@ Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and T
 B45/#52 review: mailbox zero initialization complete; 274 tests. All open issue bodies/rows reviewed; observed DT becomes B46/#53. Other dependencies unchanged. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).
 
 B46/#53 review: generic DT implemented; 277 tests. Full open-body/backlog review adds B47/#54 for observed HCAN control2700 at FFFFD104. Existing dependencies unchanged; default reference188 and conditionalphi1 reaches242. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).
+
+B47/#54 full backlog review: add B48/#55 known-bit dependency for observed MCR read; other scopes unchanged. See fourth pass.
