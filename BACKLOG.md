@@ -188,3 +188,5 @@ Final B47-B51 cross-check: inactive2700 retains NMC despite section16.3.1 initia
 B13/#16 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B13 enables B14, which enables B15. Timer/ADC/input/output tasks retain dependencies.
 
 B14/#17 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B14 enables B15 arithmetic; timer and ADC remain next independent scopes.
+
+B15/#18 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). Three requested FPU subsets implemented; full FPU remains outside scope. B22 timer precedes B24 waveform; B23 ADC precedes B28 UI.

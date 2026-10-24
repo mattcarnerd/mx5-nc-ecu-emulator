@@ -44,6 +44,24 @@ def execute_fpu(cpu,op,n,m):
         return True
     if (op & 0xF000)!=0xF000:return False
     form=op & 15
+    if form in (0,1,2,3):
+        check_mode(f)
+        left_bits,right_bits=f.read_fr(n),f.read_fr(m)
+        try:
+            left,right=decode_finite(left_bits),decode_finite(right_bits)
+            if form==0:result=left+right
+            elif form==1:result=left-right
+            elif form==2:result=left*right
+            else:
+                if right==0:raise ValueError('Division by zero outside bounded FPU exception subset')
+                result=left/right
+            negative_zero=(bool((left_bits^right_bits)&0x80000000) if form in (2,3) else
+                left==0 and right==0 and bool(left_bits&0x80000000) and
+                (not bool(right_bits&0x80000000) if form==1 else bool(right_bits&0x80000000)))
+            bits=encode_truncate(result,negative_zero)
+        except (ValueError,OverflowError) as error:unsupported(str(error))
+        f.fr[n]=bits;f.fpscr &= ~0x18000
+        return True
     if form==12:
         f.fr[n]=f.read_fr(m);return True
     if form in (6,8,9):

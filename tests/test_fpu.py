@@ -50,3 +50,32 @@ class FpuTests(unittest.TestCase):
         d=program(0xF10C);r=d.run(1);self.assertEqual(r['stop']['reason'],'unknown_register')
         d=program(0xF217,0xF326);d.r[0]=4;d.r[2]=0xFFFF0000;d.fpu.fr[1]=0xAABBCCDD;d.run(2)
         self.assertEqual(d.fpu.fr[3],0xAABBCCDD)
+
+    def test_arithmetic_normal_rounding_zero_sign_and_denormals(self):
+        cases=((0,0x3F800000,0x40000000,0x40400000),
+               (1,0x3F800000,0x40000000,0xBF800000),
+               (2,0xC0400000,0x40000000,0xC0C00000),
+               (3,0x3F800000,0x40400000,0x3EAAAAAA),
+               (0,0x80000000,0x80000000,0x80000000),
+               (1,0x80000000,0,0x80000000),
+               (2,0x80000000,0x40000000,0x80000000),
+               (0,1,0x3F800000,0x3F800000),
+               (2,0x00800000,0x3F000000,0),
+               (0,0x3F800000,0x33800000,0x3F800000))
+        for form,left,right,expected in cases:
+            d=program(0xF010|form);d.fpu.fr[0]=left;d.fpu.fr[1]=right
+            d.fpu.fpscr|=0x18060;d.t=True;result=d.run(1)
+            self.assertEqual(result['stop']['reason'],'instruction_limit')
+            self.assertEqual(d.fpu.fr[0],expected);self.assertTrue(d.t)
+            self.assertEqual(d.fpu.fpscr,0x40061)
+
+    def test_unsupported_arithmetic_cases_are_atomic(self):
+        for form,left,right in ((3,0x3F800000,0),(0,0x7F800000,0),
+                               (2,0x7F7FFFFF,0x40000000),(0,0x7FC00000,1)):
+            d=program(0xF010|form);d.fpu.fr[0]=left;d.fpu.fr[1]=right
+            d.fpu.fpscr|=0x18000;old=d.fpu.fpscr;result=d.run(1)
+            self.assertEqual(result['stop']['reason'],'unsupported_fpu_mode')
+            self.assertEqual(d.fpu.fr[0],left);self.assertEqual(d.fpu.fpscr,old)
+            self.assertEqual(d.clock.ticks,0)
+        d=program(0xF010);d.fpu.fr[0]=d.fpu.fr[1]=0;d.fpu.fpscr|=0x800
+        self.assertEqual(d.run(1)['stop']['reason'],'unsupported_fpu_mode')
