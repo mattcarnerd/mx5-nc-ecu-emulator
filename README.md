@@ -481,7 +481,7 @@ The next dependency is **unknown H-UDI SDSR SDTRF state**, word read at
 
 SDSR is initialized by TRST, not power/manual reset. The emulator therefore
 requires evidence of that history rather than silently returning `0x0B01`.
-No full boot or engine behaviour is claimed. All **211 local tests pass**,
+No full boot or engine behaviour is claimed. All **212 local tests pass**,
 including private-ROM integration cases; public CI skips the private cases.
 Per-task release/CI links are in #15, #27, #14, #46 and #13. See the
 [full pass evidence and backlog reviews](docs/FIVE_TASK_PASS.md).

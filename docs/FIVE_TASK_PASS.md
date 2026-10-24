@@ -32,10 +32,12 @@ SH7058 Rev.3 table 19.2 and section 19.3.2 specify SDSR reserved readback 0x0B00
 
 Software manual sections 7.2.4-12 define conditional delayed and register-relative branches. Added BT/S/BF/S/BRAF/BSRF. A not-taken conditional has no delay-slot instruction; the next instruction executes normally. Taken branches capture their destination before the slot, BSRF saves PC+4 to PR, and a branch in a slot fails before link mutation. The runner retains a pending destination if the step limit ends before a required slot, so a later bounded run resumes correctly.
 
-211 tests pass with every private-ROM integration case enabled; public CI runs the same suite with private-ROM cases skipped. [Final redacted reference evidence](evidence/lf9veb-after-b10.json) still reports 188 attempts and unknown SDSR state at EF8/6321/F7C2. B10 has not been demonstrated to advance this reference trace.
+212 tests pass with every private-ROM integration case enabled; public CI runs the same suite with private-ROM cases skipped. [Final redacted reference evidence](evidence/lf9veb-after-b10.json) still reports 188 attempts and unknown SDSR state at EF8/6321/F7C2. B10 has not been demonstrated to advance this reference trace.
 
 Final full backlog review: no changes beyond existing #1 evidence work for H-UDI TRST/serial history. Parent #2 CPU/boot and #3 engine scenarios remain open. B16/#19 exceptions, B19/#22 timing, B13-15/#16-18 FPU, B21/#28 interrupts, B22/#29 timers, B23/#30 ADC, B24/#31 crank/cam, B25/#32 outputs, B27/#34 harness and B28/#35 UI retain their evidence/dependency requirements. No new speculative task is introduced. B12, B20, B11, B39 and B10 each require successful CI and a Windows release linked in their issue before closure.
 
 ## Reproduction and limits
 
 Use the same legally held original-reference ROM with power reset, NMI high, 300 instructions, and physical pins unspecified. Public reports contain only reduced whitelisted diagnostics; manufacturer ROM bytes, names, private paths and full traces are not committed. H-UDI is deliberately unknown until supported by explicit reset/serial history. Do not substitute a synthetic TRST event for evidence of real ECU wiring or claim full boot from instruction counts.
+
+An optional exact-hash reference regression additionally verifies successful PLDR/RSTCSR/TCNT/TCSR writes, execution of the original PR stack-save instruction and the precise known H-UDI stop when still at 188 attempts. Future genuine progress may exceed that baseline without failing an obsolete exact-count assertion.

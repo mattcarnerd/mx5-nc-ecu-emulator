@@ -60,3 +60,25 @@ class BranchTests(unittest.TestCase):
             d=cpu(op)
             with self.assertRaises(BootStop):d.execute()
             self.assertIsNone(d.pr)
+
+    def test_optional_reference_regression_after_all_five_changes(self):
+        import hashlib,os
+        from pathlib import Path
+        from ecu_workbench.nc_boot import diagnose_nc_reset
+        from ecu_workbench.trace_review import LF9VEB_SHA256
+        path=os.environ.get('MX5_NC_TEST_ROM')
+        if not path:self.skipTest('Private original-reference ROM unavailable')
+        data=Path(path).read_bytes()
+        if hashlib.sha256(data).hexdigest()!=LF9VEB_SHA256:self.skipTest('Not original-reference hash')
+        result=diagnose_nc_reset(ROMImage('private',data),max_steps=300,nmi_high=True)
+        self.assertGreaterEqual(result['executed_instructions'],188)
+        for register in ('PLDR','RSTCSR','TCNT','TCSR'):
+            self.assertTrue(any(a.get('register')==register and a.get('access')=='write'
+                                for a in result['modelled_peripheral_accesses']),register)
+        self.assertTrue(any(a['pc']=='0x00000764' and a['opcode']=='4F22' for a in result['trace']))
+        if result['executed_instructions']==188:
+            self.assertEqual(result['stop']['reason'],'unknown_peripheral_reset_state')
+            self.assertEqual(result['next_dependency']['instruction_pc'],'0x00000EF8')
+            self.assertEqual(result['next_dependency']['opcode'],'6321')
+            self.assertEqual(result['stop']['address'],'0xFFFFF7C2')
+        self.assertFalse(result['boot_complete'])
