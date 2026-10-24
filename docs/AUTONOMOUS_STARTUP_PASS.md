@@ -10,7 +10,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b72-no-clock-unknown.json and b72-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 361 tests pass. Experimental run reaches976 at BF on unknown GSR reset flag; next bounded work is opt-in explicit CAN reset-completion input, never an inferred hardware delay. Autonomous milestone requires original firmware recurring interrupts, not a larger count. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 361 tests pass. Experimental run reaches976 at BF on unknown GSR reset flag; next bounded work is opt-in explicit CAN reset-completion input, never an inferred hardware delay. Autonomous milestone requires original firmware recurring interrupts, not a larger count. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B73/#80
 
@@ -22,7 +22,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b73-no-clock-unknown.json and b73-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 365 tests pass. Generation checks cancel stale requests; default no completion unchanged. Supplied reset completion establishes low reset flags; supplied11-recessive event proves only reset flag clear. Assumed delay1 run reaches984 at BCR1 write E320, PC1CE. Next bounded register task follows; milestone not achieved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 365 tests pass. Generation checks cancel stale requests; default no completion unchanged. Supplied reset completion establishes low reset flags; supplied11-recessive event proves only reset flag clear. Assumed delay1 run reaches984 at BCR1 write E320, PC1CE. Next bounded register task follows; milestone not achieved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B74/#81
 
@@ -34,7 +34,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b74-no-clock-unknown.json and b74-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 368 tests pass. BCR1/BCR0 reserved readback remains unknown, writes require known configuration mode; cross-register constraints reported without oscillator/baud assumption. Reset completion resets latches. Too-early bus event remains a rejection; declared reset1/bus64 experiment reaches1012 at CMP/HI PCDF6/op3E36. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 368 tests pass. BCR1/BCR0 reserved readback remains unknown, writes require known configuration mode; cross-register constraints reported without oscillator/baud assumption. Reset completion resets latches. Too-early bus event remains a rejection; declared reset1/bus64 experiment reaches1012 at CMP/HI PCDF6/op3E36. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B75/#82
 
@@ -46,7 +46,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b75-no-clock-unknown.json and b75-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 370 tests pass. Boundary/equality/alias and unknown-operand behavior verified against SH-2E section7 CMP semantics. Declared completion scenario reaches1017 at NOT R4,R2 PC E0E/op6247; no interrupt milestone yet. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 370 tests pass. Boundary/equality/alias and unknown-operand behavior verified against SH-2E section7 CMP semantics. Declared completion scenario reaches1017 at NOT R4,R2 PC E0E/op6247; no interrupt milestone yet. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B76/#83
 
@@ -58,7 +58,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b76-no-clock-unknown.json and b76-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 372 tests pass. Explicit completion scenario reaches1022 attempts at FFFFD052 word read PC E18/op6331. No physical completion defaults or recurring interrupt claims introduced. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 372 tests pass. Explicit completion scenario reaches1022 attempts at FFFFD052 word read PC E18/op6331. No physical completion defaults or recurring interrupt claims introduced. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B77/#84
 
@@ -70,7 +70,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b77-no-clock-unknown.json and b77-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 374 tests pass. Mask latches resetFFFF, unknown manual/processing states retained, explicit reset completion restores masks. No CAN events or CPU interrupts fabricated. Completion scenario reaches1024 at MULU.W PCE1C/op204E. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 374 tests pass. Mask latches resetFFFF, unknown manual/processing states retained, explicit reset completion restores masks. No CAN events or CPU interrupts fabricated. Completion scenario reaches1024 at MULU.W PCE1C/op204E. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B78/#85
 
@@ -82,7 +82,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b78-no-clock-unknown.json and b78-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 376 tests pass. Unknown high bits do not matter to MULU.W; unknown low operands remain guarded. MACH/T/source registers unchanged. Declared scenario reaches1026 at STS MACL,R0 PCE20/op001A; next MACL transfer scoped separately. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 376 tests pass. Unknown high bits do not matter to MULU.W; unknown low operands remain guarded. MACH/T/source registers unchanged. Declared scenario reaches1026 at STS MACL,R0 PCE20/op001A; next MACL transfer scoped separately. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B79/#86
 
@@ -94,7 +94,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b79-no-clock-unknown.json and b79-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 378 tests pass. Undefined MACL transports unknown bits; computed products transfer exactly and preserve T/MACH. Declared scenario reaches1042 at ADD R7,R2 PCE52/op327C. Milestone still requires sustained original-firmware execution and recurring interrupts. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 378 tests pass. Undefined MACL transports unknown bits; computed products transfer exactly and preserve T/MACH. Declared scenario reaches1042 at ADD R7,R2 PCE52/op327C. Milestone still requires sustained original-firmware execution and recurring interrupts. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B80/#87
 
@@ -106,7 +106,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b80-no-clock-unknown.json and b80-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 380 tests pass. Boundary/wrap/alias/unknown-input guards verified. Declared completion scenario reaches1047, PCE5C/op2C21, mailbox0 identifier word FFFFD100 value0037. Next bounded work is documented mailbox identifier/control latches; no traffic inferred. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 380 tests pass. Boundary/wrap/alias/unknown-input guards verified. Declared completion scenario reaches1047, PCE5C/op2C21, mailbox0 identifier word FFFFD100 value0037. Next bounded work is documented mailbox identifier/control latches; no traffic inferred. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 ## B81/#88
 
@@ -118,7 +118,7 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b81-no-clock-unknown.json and b81-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 382 tests pass. First identifier word reserved bit15 guarded; second fullword accepted including values resembling control data at a different address. No receive data synthesized. Declared run reaches1057 at mailbox0 control2308 with prohibited MBC011. Next audit must verify CPU/arguments and applicable documentation, not silently accept undefined mode. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 382 tests pass. First identifier word reserved bit15 guarded; second fullword accepted including values resembling control data at a different address. No receive data synthesized. Declared run reaches1057 at mailbox0 control2308 with prohibited MBC011. Next audit must verify CPU/arguments and applicable documentation, not silently accept undefined mode. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
 
 
 ## Milestone acceptance and current evidence gate
@@ -157,4 +157,4 @@ OK
 
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b82-no-clock-unknown.json and b82-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
-Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 386 tests pass;25-case matrix and user-input request recorded. Both reviewed chip manuals and technical update prohibit mode011; no behavior waiver found. No physical ECU requirement invented, no prohibited mode accepted. Autonomous milestone unachieved and parents retain evidence gate; additional source/profile evidence genuinely needed for faithful progress. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 386 tests pass;25-case matrix and user-input request recorded. Both reviewed chip manuals and technical update prohibit mode011; no behavior waiver found. No physical ECU requirement invented, no prohibited mode accepted. Autonomous milestone unachieved and parents retain evidence gate; additional source/profile evidence genuinely needed for faithful progress. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
