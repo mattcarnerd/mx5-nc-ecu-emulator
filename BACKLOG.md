@@ -105,3 +105,5 @@ B62/#69 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md
 B63/#70 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). No new evidence resolves actual TRST history, silicon revision or reserved readback. Backlog separates physical evidence gates from executable software scenarios. B64/B65/B66 remain bounded; no duplicated physical research.
 
 B64/#71 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). 341 tests pass. Unknown default and both hypothetical readback branches checked; known-one writes remain rejected. B65 is limited to the next documented command exposed by the zero branch; no bus or board state invented.
+
+B65/#72 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). 342 tests pass. Explicit zero-readback run reaches960 attempts/959 completed at reset-undefined R11 stack save; one-readback remains rejected at592. Strict188 and original conditional592 preserved. Full reset processing, bus state and unknown-stack handling remain open.

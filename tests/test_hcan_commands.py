@@ -28,7 +28,7 @@ class HcanCommandTests(unittest.TestCase):
     def test_bad_width_and_unimplemented_modes_are_atomic(self):
         b=BootBus(program(0x0009).bus.image)
         for address in MCR_ADDRESSES:
-            for width,value in ((1,0),(4,0),(2,1),(2,2),(2,0xFFFF)):
+            for width,value in ((1,0),(4,0),(2,0x40),(2,2),(2,0xFFFF)):
                 with self.assertRaises(BootStop):b.write(address,width,value)
                 self.assertEqual(b.hcan.commands,[1,1]);self.assertEqual(b.peripheral_trace,[])
             with self.assertRaises(BootStop):b.write(address+1,2,0)
@@ -79,3 +79,25 @@ class HcanCommandTests(unittest.TestCase):
                     self.assertEqual(b.hcan.mailbox_writes[a],0x2700)
         with self.assertRaises(BootStop):b.write(0xFFFFD102,2,0x2700)
         with self.assertRaises(BootStop):b.read(0xFFFFD104,2)
+
+    def test_software_reset_command_channels_history_and_unknown_completion(self):
+        for power in (False,True):
+            b=BootBus(program(0x0009).bus.image,power_on=power,experimental_mcr_bit6=0)
+            b.write(0xFFFFD104,2,0x2700);b.write(0xFFFFD904,2,0x700)
+            history=dict(b.hcan.mailbox_writes)
+            for channel,address in enumerate(MCR_ADDRESSES):
+                b.write(address,2,0);b.write(address,2,1);b.write(address,2,1)
+                self.assertTrue(b.hcan.software_reset_requests[channel])
+                self.assertFalse(b.hcan.release_requests[channel])
+                self.assertEqual(b.read(address,2),1)
+                self.assertEqual(b.hcan.mailbox_writes,history)
+                event=[x for x in b.peripheral_trace if x.get('scope')=='CAN_software_reset_request_only'][-1]
+                self.assertEqual(event['value'],1)
+                self.assertEqual(event['reset_processing'],'unknown')
+                self.assertEqual(event['bus_synchronization'],'unknown')
+                with self.assertRaises(BootStop):b.read(address+2,2)
+            b.write(MCR_ADDRESSES[0],2,0)
+            self.assertEqual(b.hcan.commands,[0,1])
+            self.assertEqual(b.hcan.release_requests,[True,False])
+            self.assertEqual(b.hcan.software_reset_requests,[True,True])
+            with self.assertRaises(BootStop):b.read(0xFFFFD104,2)

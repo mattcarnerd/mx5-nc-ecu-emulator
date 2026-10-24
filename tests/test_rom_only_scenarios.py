@@ -96,5 +96,6 @@ class RomOnlyScenarios(unittest.TestCase):
             cpu=NCBootDiagnostic(image,experimental_mcr_bit6=bit);cpu.r[3]=MCR_ADDRESSES[0]
             r=cpu.run(3)
             self.assertEqual(r['executed_instructions'],3)
-            self.assertEqual(r['stop']['reason'],'unknown_register' if bit is None else 'unsupported_peripheral_mode')
-            self.assertFalse(any(e.get('access')=='write' for e in cpu.bus.peripheral_trace))
+            self.assertEqual(r['stop']['reason'],'unknown_register' if bit is None else 'instruction_limit' if bit==0 else 'unsupported_peripheral_mode')
+            self.assertEqual(any(e.get('access')=='write' for e in cpu.bus.peripheral_trace),bit==0)
+            self.assertEqual(cpu.bus.hcan.software_reset_requests[0],bit==0)

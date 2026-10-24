@@ -1,5 +1,5 @@
 from .known_bits import KnownBits
-"""B44 HCAN MCR reset-release requests only, Rev.3 table16.4/16.4.2.
+"""HCAN MCR reset/release command subset, Rev.3 table16.4/16.4.2.
 
 No CAN bus synchronization, frames, acknowledgements or GSR transitions are
 invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
@@ -19,6 +19,7 @@ class HcanResetCommands:
         self.experimental_mcr_bit6=experimental_mcr_bit6
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
+        self.software_reset_requests=[False,False]
         self.mailbox_writes={}
         self.trace,self.stop_type=trace,stop_type
 
@@ -30,13 +31,15 @@ class HcanResetCommands:
     def write(self,address,width,value):
         channel=self._channel(address,width,'write')
         value &= 0xFFFF
-        if value!=0:
-            raise self.stop_type('unsupported_peripheral_mode','Only observed HCAN reset-release word zero is modelled',
+        if value not in (0,1):
+            raise self.stop_type('unsupported_peripheral_mode','Only HCAN reset/release commands0/1 with reserved bits zero are modelled',
                                  address=address,width=width,access='write',value=value)
-        self.commands[channel]=0
-        self.release_requests[channel]=True
-        self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':0,
-                           'scope':'CAN_reset_release_request_only','bus_synchronization':'unknown'})
+        self.commands[channel]=value
+        self.release_requests[channel]=value==0
+        if value==1:self.software_reset_requests[channel]=True
+        self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
+                           'scope':'CAN_software_reset_request_only' if value else 'CAN_reset_release_request_only',
+                           'reset_processing':'unknown','bus_synchronization':'unknown'})
 
     def read(self,address,width):
         channel=self._channel(address,width,'read')

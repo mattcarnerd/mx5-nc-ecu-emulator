@@ -35,3 +35,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b64-no-clock-unknown.json and b64-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 341 tests pass. Unknown default and both hypothetical readback branches checked; known-one writes remain rejected. B65 is limited to the next documented command exposed by the zero branch; no bus or board state invented. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B65/#72
+
+B65: accept documented HCAN software-reset request without inventing completion.
+
+Validation: Ran 342 tests in 3.981s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b65-no-clock-unknown.json and b65-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 342 tests pass. Explicit zero-readback run reaches960 attempts/959 completed at reset-undefined R11 stack save; one-readback remains rejected at592. Strict188 and original conditional592 preserved. Full reset processing, bus state and unknown-stack handling remain open. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
