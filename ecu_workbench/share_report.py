@@ -110,6 +110,10 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     scheduled_events=boot.get("scheduled_interrupt_events",0)
     if type(scheduled_events) is not int or scheduled_events<0:
         raise ValueError("Invalid scheduled interrupt event count")
+    peripheral_counts=[boot.get(k,0) for k in ('explicit_peripheral_inputs','scheduled_peripheral_events')]
+    if any(type(n) is not int or n<0 for n in peripheral_counts):
+        raise ValueError('Invalid peripheral fixture provenance')
+    peripheral_injected=any(peripheral_counts)
     accesses = boot.get("modelled_peripheral_accesses", [])
     if not isinstance(accesses, list):
         raise ValueError("Expected peripheral access list")
@@ -153,7 +157,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         and a.get("value") == 0x3FFF for a in accesses
     )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
-                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"] and interrupt_requests==0 and scheduled_events==0)
+                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"] and interrupt_requests==0 and scheduled_events==0 and not peripheral_injected)
     dependency = boot.get("next_dependency")
     if not isinstance(dependency, dict):
         dependency = {}
@@ -178,6 +182,9 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         **scenario,
         "explicit_interrupt_requests":interrupt_requests,
         "injected_interrupt_scenario":interrupt_requests>0 or scheduled_events>0,
+        "injected_peripheral_scenario":peripheral_injected,
+        "explicit_peripheral_inputs":peripheral_counts[0],
+        "scheduled_peripheral_events":peripheral_counts[1],
         "scheduled_interrupt_events":scheduled_events,
         "rom_sha256": sha,
         "reference_lf9veb_scenario": same_reference,

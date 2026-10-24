@@ -15,6 +15,7 @@ class Atu1A:
         self.regs={a:(0xFFFF if a in (GR,GRB) else 0) if power_on else None for a in WIDTHS}
         self.read_flags=0;self.ticks=0;self.clock_supplied=False;self.pin=None;self.pin_b=None
         self.events=[]
+        self.event_sink=None;self.explicit_input_events=0
 
     def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER)
 
@@ -37,6 +38,7 @@ class Atu1A:
         self.events.append({'kind':kind,'counter':self.regs[TCNT] if counter is None else counter,'tick':self.ticks if tick is None else tick,
                             'time_unit':'explicit_selected_counter_ticks','interrupt_request':self.interrupt_pending})
         self.events[:]=self.events[-100:]
+        if self.event_sink:self.event_sink(dict(self.events[-1]))
 
     def read(self,a,width):
         self.guard(a,width,'read')
@@ -62,6 +64,7 @@ class Atu1A:
     def advance_ticks(self,count):
         if type(count) is not int or count<0:raise ValueError('Nonnegative integer selected-clock ticks required')
         self.known(TSTR);self.known(TCNT);self.known(TIOR)
+        self.explicit_input_events+=1
         self.clock_supplied=True
         start=self.regs[TCNT];self.ticks+=count
         if not self.regs[TSTR]&2:return
@@ -76,6 +79,7 @@ class Atu1A:
     def set_pin(self,level,channel="A"):
         if type(level) is not bool:raise ValueError('Explicit boolean TIO1A level required')
         if channel not in ("A","B"):raise ValueError("Capture channel must be A or B")
+        self.explicit_input_events+=1
         name="pin" if channel=="A" else "pin_b"
         old=getattr(self,name);setattr(self,name,level)
         mode=(self.known(TIOR)>>(4 if channel=="B" else 0))&7

@@ -84,6 +84,8 @@ def capture_boot_baseline(
             "virtual_time": run.get("virtual_time"),
             "explicit_interrupt_requests": run.get("explicit_interrupt_requests",0),
             "scheduled_interrupt_events": run.get("scheduled_interrupt_events",0),
+            "explicit_peripheral_inputs": run.get("explicit_peripheral_inputs",0),
+            "scheduled_peripheral_events": run.get("scheduled_peripheral_events",0),
             "execution_coverage": run.get("execution_coverage"),
             "pc_at_stop": run.get("pc_at_stop"),
             "last_fetched_pc": run.get("last_fetched_pc"),

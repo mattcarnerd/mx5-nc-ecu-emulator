@@ -28,6 +28,8 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
         status="Conditional hardware scenario — " + status
     if report.get("explicit_interrupt_requests",0) or report.get("scheduled_interrupt_events",0):
         status="Injected interrupt scenario — " + status
+    if report.get("explicit_peripheral_inputs",0) or report.get("scheduled_peripheral_events",0):
+        status="Explicit peripheral fixture — " + status
     summary = {
         **scenario,
         "boot_complete": False,
@@ -37,6 +39,8 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
         "virtual_time": report.get("virtual_time"),
         "execution_coverage": report.get("execution_coverage"),
         "scheduled_interrupt_events": report.get("scheduled_interrupt_events",0),
+        "explicit_peripheral_inputs":report.get("explicit_peripheral_inputs",0),
+        "scheduled_peripheral_events":report.get("scheduled_peripheral_events",0),
         "interrupt_entries": report.get("interrupt_entries",0),
         "explicit_interrupt_requests": report.get("explicit_interrupt_requests",0),
         "reset": report.get("reset"),

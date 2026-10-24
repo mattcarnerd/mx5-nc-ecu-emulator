@@ -11,6 +11,7 @@ class Adc0:
         self.csr=0 if power_on else None
         self.cr=15 if power_on else None
         self.input=None;self.sample=None;self.read_adf=False;self.on_start=None;self.generation=0
+        self.event_sink=None;self.explicit_input_events=0
 
     def handles(self,a):return a in (ADDR0,ADDR0+1,ADCSR0,ADCR0)
 
@@ -22,6 +23,7 @@ class Adc0:
         v,r=Fraction(str(voltage)),Fraction(str(reference))
         if r<=0 or v<0 or v>r:raise ValueError('Require 0 <= AN0 voltage <= explicit positive reference')
         self.input=(v,r)
+        self.explicit_input_events+=1
 
     def known(self,value,a,width):
         if value is None:self.fail('unknown_peripheral_reset_state','ADC prior state unknown',a,width,'read')
@@ -55,6 +57,7 @@ class Adc0:
             if not value&32:self.generation+=1;self.sample=None
             if starting:
                 self.generation+=1;self.sample=self.input
+                if self.event_sink:self.event_sink({"kind":"adc_start","generation":self.generation})
                 if self.on_start:self.on_start(self.generation)
         self.trace.append({'register':'ADCSR0' if a==ADCSR0 else 'ADCR0','access':'write','width':1,'value':value})
 
@@ -68,6 +71,7 @@ class Adc0:
         v,r=self.sample
         count=min(1023,int(v*1024/r))
         self.data=count<<6;self.cr=15;self.csr=self.known(self.csr,ADCSR0,1)|128
+        if self.event_sink:self.event_sink({'kind':'adc_complete','count':count,'value':self.data,'generation':self.generation})
         self.trace.append({'register':'ADDR0','access':'conversion','value':self.data,'count':count,
                            'scope':'explicit_ideal_AN0_fixture','completion':'explicit_event',
                            'interrupt_request':self.interrupt_pending})

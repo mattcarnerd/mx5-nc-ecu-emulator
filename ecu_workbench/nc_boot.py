@@ -121,6 +121,7 @@ class BootBus:
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
         self.raw_gpio_commands=[]
+        self.event_sink=None
         self.command_tick=lambda:None
         self.coverage=ExecutionCoverage()
         run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction)
@@ -350,6 +351,7 @@ class BootBus:
             'tick':self.command_tick(),'time_unit':'completed_instruction_ticks_before_write',
             'physical_pin_level':None,'ECU_function':'unknown_board_mapping'})
         self.raw_gpio_commands[:]=self.raw_gpio_commands[-100:]
+        if self.event_sink:self.event_sink({**self.raw_gpio_commands[-1],"kind":"gpio_command"})
         self.peripheral_trace.append({'register':'PCDR','access':'write',
                                       'value':value & ((1 << (8*width))-1),
                                       'width':width, 'known_mask':f'0x{self.pcdr_known_mask:04X}',
@@ -568,6 +570,8 @@ class NCBootDiagnostic:
         self.gbr: Optional[int] = None
         self.vbr=0
         self.executed=0;self.trace=[]
+        self.event_sink=None
+        self.scheduled_peripheral_events=0
         self.clock=InstructionClock()
         self.bus.command_tick=lambda:self.clock.ticks
         if self.adc_fixture:
@@ -781,6 +785,8 @@ class NCBootDiagnostic:
             'interrupt_entries':self.interrupt_entries,
             'explicit_interrupt_requests':self.explicit_interrupt_requests,
             'scheduled_interrupt_events':self.scheduled_interrupt_events,
+            'explicit_peripheral_inputs':self.bus.atu.explicit_input_events+self.bus.adc.explicit_input_events,
+            'scheduled_peripheral_events':self.scheduled_peripheral_events,
             'execution_coverage':self.coverage.report(),
             'interrupt_inputs':list(self.interrupt_input_events),
             'interval_interrupt_pending':self.interval_request,

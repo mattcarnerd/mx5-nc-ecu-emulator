@@ -35,12 +35,15 @@ def summarise(report: dict) -> dict:
     if any(type(n) is not int or n<0 for n in injected_counts):
         raise ValueError("Invalid injected interrupt provenance")
     injected=any(injected_counts)
+    peripheral_counts=[run.get(k,0) for k in ('explicit_peripheral_inputs','scheduled_peripheral_events')]
+    if any(type(n) is not int or n<0 for n in peripheral_counts):raise ValueError('Invalid peripheral fixture provenance')
+    peripheral_injected=any(peripheral_counts)
     if "adc_fixture" in report and report["adc_fixture"]!=scenario["adc_fixture"]:
         raise ValueError("ADC fixture mismatch in baseline")
     expected_scenario = (sha == LF9VEB_SHA256 and settings.get("reset") == "power"
                          and settings.get("nmi") == "high" and settings.get("max_steps") == 300
                          and not any(k.startswith("port_") for k in settings)
-                         and not scenario["conditional_hardware_scenario"] and not injected)
+                         and not scenario["conditional_hardware_scenario"] and not injected and not peripheral_injected)
     last = run.get("trace_tail")
     if not isinstance(last, list):
         raise ValueError("Invalid trace tail")
@@ -64,6 +67,7 @@ def summarise(report: dict) -> dict:
     return {
         **scenario,
         "injected_interrupt_scenario":injected,
+        "injected_peripheral_scenario":peripheral_injected,
         "rom_sha256": sha,
         "known_lf9veb": sha == LF9VEB_SHA256,
         "reference_scenario": expected_scenario,

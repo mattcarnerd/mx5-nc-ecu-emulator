@@ -8,6 +8,7 @@ from .sh2_control import read_sr,load_sr
 
 def record_exception(cpu,event):
     cpu.exception_events.append(event)
+    if cpu.event_sink:cpu.event_sink({"kind":"exception_"+event["event"],**event})
     if len(cpu.exception_events)>100:del cpu.exception_events[0]
 
 

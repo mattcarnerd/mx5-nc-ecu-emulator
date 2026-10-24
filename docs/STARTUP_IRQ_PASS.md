@@ -51,3 +51,34 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b55-no-clock-unknown.json and b55-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B54/B55 routes implemented; only IMI1A/ADI0/ITI supported. B56 combines actual synthetic firmware configuration, explicit capture/conversion events and raw output. Hardware evidence gates stay unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B56 integration fixture usage and finish line
+
+From the source checkout:
+
+    python -m ecu_workbench.integration_fixture --voltage 1 --reference 5 --adc-delay 8 --capture-delay 2 --capture-counter-ticks 17
+
+All numeric values here are explicit synthetic inputs, not measurements. The source CLI generates its own program; manufacturer firmware is not used. The Windows GUI release contains the CPU/peripheral implementation and existing startup/AN0 controls; this fixture has a separate source CLI, not a new GUI button.
+
+Firmware configures priorities, direction/latch, capture enable and ADC interrupt/start. IMI1A and ADI0 handlers read the actual peripheral registers, acknowledge their flags, preserve scratch registers on the emulated stack and return through RTE/slot. ADC6 can pre-empt ATU5; simultaneous requests select ADC6 first. The ADC handler derives a raw PortC latch command from the supplied conversion word; this is a synthetic transformation, not fuel/ignition logic.
+
+The ordered log uses one sequence number and completed-instruction tick domain. Selected-counter ticks retain separate named fields. Events cover ADC start/completion, explicit capture input, capture result, CPU entry/return and raw latch writes, with active ISR context. Events are capped256; no physical durations or ECU actuator mapping are inferred. Counts and an instruction limit alone cannot pass the fixture: both handlers must run once, clear their requests, restore the stack and return to the generated main fixture.
+
+[Explicit nested case](evidence/b56-integration-nested.json) and [simultaneous case](evidence/b56-integration-simultaneous.json) are reproducible public evidence. Tests also change voltage1 to4 and capture packet17 to123, verifying ADC count204 to819, captured register values and ADC-handler GPIO19 to12. These are supplied ideal fixtures, not fabricated board values. A too-short budget reports fixture_passed false.
+
+Direct ADC input and ATU clock/pin API calls are counted. Declared peripheral events are counted even if the budget ends before firing. Detailed/baseline/shareable/presenter/reviewer paths retain this provenance and exclude such runs from original reference classification. No original-ROM boot progress is claimed by this generated program.
+
+B52/B53 research reports leave the physical H-UDI/CAN gates unresolved; B54/B55 implement IMI1A/ADI0 only. Other interrupt sources, clock/profile verification and full firmware/engine operation stay open under parents1-3.
+
+## B56/#63
+
+Exercise generated capture ADC and GPIO firmware through interrupts (B56)
+Generated source ROM configures peripherals and priorities; ISR instructions capture/read, acknowledge, preserve scratch registers, emit raw GPIO and return. Explicit selected-clock/capture/voltage/reference/completion delays remain fixtures. Ordered bounded log proves nested and simultaneous priority cases; changed inputs alter actual reads/output commands; too-short budget fails. Input/scheduled-event provenance excludes reference classification even before events fire. No manufacturer firmware, NC pattern or engine claim.
+
+Validation: Ran 324 tests in 2.688s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b56-no-clock-unknown.json and b56-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All five requested bounded tasks completed in scope, subject to final CI/release. Research1/2 retain unresolved evidence under parent1; IMI1A/ADI0 routes and integration implemented. Other sources and physical/engine work remain open; no speculative duplicate issue added. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

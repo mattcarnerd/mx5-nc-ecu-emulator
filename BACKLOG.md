@@ -6,7 +6,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Verified current position
 
-- **312 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. This documentation audit does not represent a new test run.
+- **324 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Startup/interrupt pass B52-B56 reran the full suite and declared ROM scenarios; research gates remain unresolved.
 - Latest verified application: [v0.2.0-dev.114.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.114.1), with downloaded EXE checksum verified. [Implementation/test evidence](docs/EIGHT_TASK_COMPLETION.md).
 - **Default reference:** original LF9VEB SHA-256, power reset, NMI high, 300-instruction budget, no supplied physical pins, H-UDI/clock unknown. Stops at **188 attempted instructions**, reading SDSR at `0xFFFFF7C2`, PC `0x00000EF8`, opcode `6321`: unknown H-UDI state.
 - **Separate conditional investigation:** explicit H-UDI assumption plus artificial phi-per-completed-instruction=1 and a **10,000** budget stops at **592 attempts / 591 completed**, PC `0x000007B6`, opcode `2301`, word store to MCR0 `0xFFFFD000`. The written value still contains unknown reserved bit6 after read/OR1. No concrete value or reset side effect is selected. The same conditional run with a 300 budget reaches only the instruction limit.
@@ -14,7 +14,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Open work in priority order
 
-There are **three open parent workstreams**, plus the five explicitly requested bounded children B52-B56/#59-63 during this pass. Research children may close with documented unresolved evidence; their parent gates remain open. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
+There are **three open parent workstreams**, the five explicitly requested bounded children B52-B56/#59-63 are implemented/researched in the current pass and close only after CI/releases. Research children may close with documented unresolved evidence; their parent gates remain open. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
 
 | Priority | Work package | Current limitation / next concrete result | Tracked under |
 |---|---|---|---|
@@ -72,7 +72,7 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 2. B53/#60 CAN startup constraints audit: docs/HCAN_STARTUP_AUDIT.md; no reserved-bit waiver established.
 3. B54/#61 ATU IMI1A CPU route: implemented vector96/IPRD[7:4], held flag/acknowledgement and arbitration tests.
 4. B55/#62 ADC ADI0 CPU route: implemented vector190/IPRJ[11:8], firmware conversion-read/acknowledgement ISR.
-5. B56/#63 integrated synthetic firmware fixture.
+5. B56/#63 integrated synthetic firmware fixture: implemented source CLI and ordered nested/simultaneous evidence in docs/STARTUP_IRQ_PASS.md.
 
 B52/#59 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B52 research scope complete; hardware1 gate remains unresolved. B53 CAN audit next, B54/B55 verified vector routes then B56 integration. No duplicate broad research issue.
 
@@ -81,3 +81,7 @@ B53/#60 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS
 B54/#61 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B54 implemented; B55 adds ADI0 vector190/IPRJ[11:8], then B56 integration. B52/B53 evidence gates remain open under parents despite completed research.
 
 B55/#62 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B54/B55 routes implemented; only IMI1A/ADI0/ITI supported. B56 combines actual synthetic firmware configuration, explicit capture/conversion events and raw output. Hardware evidence gates stay unresolved.
+
+Current bounded result: IMI1A and ADI0 CPU routes and generated capture/ADC/GPIO integration are tested. Other sources remain unsupported. B52/B53 research is complete as documented unresolved evidence; no physical-profile gate is marked resolved. [Current pass](docs/STARTUP_IRQ_PASS.md).
+
+B56/#63 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). All five requested bounded tasks completed in scope, subject to final CI/release. Research1/2 retain unresolved evidence under parent1; IMI1A/ADI0 routes and integration implemented. Other sources and physical/engine work remain open; no speculative duplicate issue added.
