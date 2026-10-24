@@ -90,6 +90,9 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
             type(boot["conditional_hardware_scenario"]) is not bool or
             boot["conditional_hardware_scenario"]!=scenario["conditional_hardware_scenario"]):
         raise ValueError("Conditional H-UDI marker mismatch in diagnostic")
+    interrupt_requests=boot.get("explicit_interrupt_requests",0)
+    if type(interrupt_requests) is not int or interrupt_requests<0:
+        raise ValueError("Invalid explicit interrupt request count")
     accesses = boot.get("modelled_peripheral_accesses", [])
     if not isinstance(accesses, list):
         raise ValueError("Expected peripheral access list")
@@ -133,7 +136,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         and a.get("value") == 0x3FFF for a in accesses
     )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
-                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"])
+                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"] and interrupt_requests==0)
     dependency = boot.get("next_dependency")
     if not isinstance(dependency, dict):
         dependency = {}
@@ -156,6 +159,8 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "schema_version": 1,
         "kind": "nc_sh7058_shareable_blocker",
         **scenario,
+        "explicit_interrupt_requests":interrupt_requests,
+        "injected_interrupt_scenario":interrupt_requests>0,
         "rom_sha256": sha,
         "reference_lf9veb_scenario": same_reference,
         "settings": {

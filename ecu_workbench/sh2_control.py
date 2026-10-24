@@ -43,6 +43,7 @@ def execute_control(cpu, op, n):
             cpu.bus.write(address, 4, value)
         else:
             cpu.r[n] = value
+        cpu._interrupt_inhibit=1
         return True
     if key in loads:
         name = loads[key]
@@ -55,6 +56,7 @@ def execute_control(cpu, op, n):
             setattr(cpu, name, value)
         if memory:
             cpu.r[n] = (address + 4) & 0xFFFFFFFF
+        cpu._interrupt_inhibit=1
         return True
     if op in (0x0008, 0x0018):  # CLRT / SETT
         cpu.t = op == 0x0018

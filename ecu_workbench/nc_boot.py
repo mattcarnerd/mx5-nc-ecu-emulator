@@ -25,6 +25,7 @@ from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .virtual_clock import InstructionClock
 from .sh2_exception import execute_exception
+from .interrupts import service_interval_request
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
@@ -472,7 +473,7 @@ class BootBus:
 class NCBootDiagnostic:
     """Instruction subset sufficient to report exact first boot blocker.
 
-    Not cycle accurate, no interrupt execution, and no fabricated peripheral state.
+    Not cycle accurate; only explicit ITI requests are routed, with no fabricated peripheral events.
     """
     def __init__(self, rom: ROMImage, *, reset: str='power', nmi_high: Optional[bool]=None,
                  port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
@@ -503,6 +504,11 @@ class NCBootDiagnostic:
         self.clock=InstructionClock()
         self.exception_entries=0
         self.exception_events=[]
+        self.interval_request=False
+        self.explicit_interrupt_requests=0
+        self.interrupt_entries=0
+        self.interrupt_input_events=[]
+        self._interrupt_inhibit=0
         self._active_instruction=None
         self._fetch_pc=None
         self._pending_target=None
@@ -510,8 +516,17 @@ class NCBootDiagnostic:
         v=self.r[n]
         if v is None:raise BootStop('unknown_register',f'R{n} used before its reset-undefined value was initialised')
         return v
+    def set_interval_request(self,asserted):
+        if type(asserted) is not bool:raise ValueError('ITI request level must be a boolean')
+        self.interval_request=asserted
+        self.explicit_interrupt_requests+=1
+        self.interrupt_input_events.append({'source':'ITI','asserted':asserted,'tick':self.clock.ticks,
+                                            'provenance':'explicit_api_injection'})
+        if len(self.interrupt_input_events)>100:del self.interrupt_input_events[0]
+
     def execute(self, *, delay_slot: bool=False):
         self.clock.dispatch_due()
+        if self._interrupt_inhibit:self._interrupt_inhibit-=1
         target=self._execute_instruction(delay_slot=delay_slot)
         self.clock.completed_instruction()
         return target
@@ -607,6 +622,8 @@ class NCBootDiagnostic:
         stop={'reason':'instruction_limit','detail':f'Maximum {max_steps} instructions reached'}
         while self.executed < max_steps:
             try:
+                self.clock.dispatch_due()
+                if service_interval_request(self):continue
                 in_slot=self._pending_target is not None
                 target=self.execute(delay_slot=in_slot)
                 if in_slot:
@@ -651,6 +668,10 @@ class NCBootDiagnostic:
             'virtual_time':self.clock.report(),
             'exception_entries':self.exception_entries,
             'exception_events':list(self.exception_events),
+            'interrupt_entries':self.interrupt_entries,
+            'explicit_interrupt_requests':self.explicit_interrupt_requests,
+            'interrupt_inputs':list(self.interrupt_input_events),
+            'interval_interrupt_pending':self.interval_request,
             'stop':stop,
             'next_dependency':dependency,
             'trace':self.trace[-min(100,len(self.trace)):],
