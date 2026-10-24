@@ -15,7 +15,7 @@ class HcanCommandTests(unittest.TestCase):
             self.assertEqual(event['register'],f'MCR_{channel}')
             self.assertEqual(event['bus_synchronization'],'unknown')
         with self.assertRaises(BootStop) as c:b.read(MCR_ADDRESSES[0]+2,2)
-        self.assertEqual(c.exception.kind,'unmodelled_peripheral')
+        self.assertEqual(c.exception.kind,'unknown_peripheral_reset_state')
 
     def test_manual_prior_state_and_readback_are_not_invented(self):
         b=BootBus(program(0x0009).bus.image,power_on=False)

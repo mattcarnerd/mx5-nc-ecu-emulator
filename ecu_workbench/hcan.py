@@ -5,6 +5,7 @@ No CAN bus synchronization, frames, acknowledgements or GSR transitions are
 invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
+GSR_ADDRESSES=(0xFFFFD002,0xFFFFD802)
 
 def mcr_scenario_metadata(bit):
     if bit is not None and (type(bit) is not int or bit not in (0,1)):
@@ -20,6 +21,7 @@ class HcanResetCommands:
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
+        self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
         self.mailbox_writes={}
         self.trace,self.stop_type=trace,stop_type
 
@@ -34,6 +36,7 @@ class HcanResetCommands:
         if value not in (0,1):
             raise self.stop_type('unsupported_peripheral_mode','Only HCAN reset/release commands0/1 with reserved bits zero are modelled',
                                  address=address,width=width,access='write',value=value)
+        self.gsr[channel]=KnownBits(0,0)  # processing/bus status is not supplied
         self.commands[channel]=value
         self.release_requests[channel]=value==0
         if value==1:self.software_reset_requests[channel]=True
@@ -47,6 +50,31 @@ class HcanResetCommands:
         raise self.stop_type('unknown_peripheral_reset_state',
             f'MCR_{channel} full-word readback includes unspecified reserved bit6; no value fabricated',
             address=address,width=width,access='read')
+
+    def _gsr_channel(self,address,width,access):
+        if width==2 and address in GSR_ADDRESSES:return GSR_ADDRESSES.index(address)
+        raise self.stop_type('unsupported_access_size','HCAN GSR requires aligned word access',
+                             address=address,width=width,access=access)
+
+    def read_gsr_known(self,address,width=2):
+        channel=self._gsr_channel(address,width,'read')
+        bits=self.gsr[channel]
+        self.trace.append({'register':f'GSR_{channel}','access':'read','width':2,
+                           'known_value':bits.value,'known_mask':bits.mask,
+                           'unknown_mask':0xFFFF ^ bits.mask,
+                           'scope':'status_only_no_reset_completion_or_bus_simulation'})
+        return bits
+
+    def read_gsr(self,address,width):
+        self._gsr_channel(address,width,'read')
+        raise self.stop_type('unknown_peripheral_reset_state',
+                            'GSR reserved readback/status not fully known; use typed CPU read',
+                            address=address,width=width,access='read')
+
+    def write_gsr(self,address,width,value):
+        self._gsr_channel(address,width,'write')
+        raise self.stop_type('read_only_peripheral','GSR is read-only',
+                             address=address,width=width,access='write',value=value)
 
     @staticmethod
     def mailbox_region(address):

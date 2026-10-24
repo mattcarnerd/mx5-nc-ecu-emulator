@@ -121,3 +121,5 @@ B67/#74 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PA
 B68/#75 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 351 tests pass. Zero-readback experiment now reaches973 attempts at GSR0 word read FFFFD002, PCDB2/op6351. No register initialized artificially; raw RAM/peripheral/control guards remain. B70 will be narrowed to GSR reset-status uncertainty after B69.
 
 B69/#76 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). Supported integer MOV memory paths and register copies now transport masks consistently; unknown addresses and peripheral values still stop. Expected experimental dependency remains GSR0 at PCDB2. Other CPU/floating-point consumers remain concrete-only.
+
+B70/#77 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 356 tests pass. GSR low6 reset bits are0x0C; reserved15:6 readback is not guaranteed. After software reset/release requests dynamic flags remain unknown. Zero-readback experiment reaches974 attempts, PCDB4/op633D EXTU.W on partial GSR; no reset completion or CAN state guessed.

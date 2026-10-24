@@ -35,3 +35,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b69-no-clock-unknown.json and b69-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Supported integer MOV memory paths and register copies now transport masks consistently; unknown addresses and peripheral values still stop. Expected experimental dependency remains GSR0 at PCDB2. Other CPU/floating-point consumers remain concrete-only. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B70/#77
+
+B70: model GSR power-on flag subset and preserve uncertain reset/bus status.
+
+Validation: Ran 356 tests in 3.990s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b70-no-clock-unknown.json and b70-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 356 tests pass. GSR low6 reset bits are0x0C; reserved15:6 readback is not guaranteed. After software reset/release requests dynamic flags remain unknown. Zero-readback experiment reaches974 attempts, PCDB4/op633D EXTU.W on partial GSR; no reset completion or CAN state guessed. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
