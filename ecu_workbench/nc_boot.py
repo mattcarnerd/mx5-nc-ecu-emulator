@@ -374,9 +374,23 @@ class BootBus:
             self.coverage.bus_failed(error,a,width,'read')
             raise
 
+    def write_cpu_value(self,address,width,bits):
+        required=(1<<(width*8))-1
+        unknown=required & ~bits.mask
+        if unknown:
+            error=BootStop('unknown_register',
+                f'Store contains unknown written bits 0x{unknown:08X}; known mask 0x{bits.mask & required:08X}; no concrete value selected',
+                address=address,width=width,access='write')
+            self.coverage.bus_failed(error,address,width,'write')
+            raise error
+        self.write(address,width,bits.value & required)
+
     def read_cpu_word(self,address):
         if address in MCR_ADDRESSES:
-            return self.hcan.read_known_word(address)
+            try:return self.hcan.read_known_word(address)
+            except BootStop as error:
+                self.coverage.bus_failed(error,address,2,'read')
+                raise
         return KnownBits.exact(self.read(address,2))
 
     def _read(self, a: int, width: int) -> int:
@@ -623,11 +637,11 @@ class NCBootDiagnostic:
         # B07 pre-decrement stores and post-increment loads.
         if execute_pre_post(self,op,n,m): return None
         if (op&0xF00F)==0x2000:  # mov.b Rm,@Rn
-            self.bus.write(self.reg(n),1,self.reg(m));return None
+            self.bus.write_cpu_value(self.reg(n),1,self.reg_bits(m));return None
         if (op&0xF00F)==0x2001:  # mov.w Rm,@Rn
-            self.bus.write(self.reg(n),2,self.reg(m));return None
+            self.bus.write_cpu_value(self.reg(n),2,self.reg_bits(m));return None
         if (op&0xF00F)==0x2002:  # mov.l Rm,@Rn
-            self.bus.write(self.reg(n),4,self.reg(m));return None
+            self.bus.write_cpu_value(self.reg(n),4,self.reg_bits(m));return None
         if (op&0xF00F)==0x6000:  # mov.b @Rm,Rn (sign-extend)
             self.r[n]=sign_extend(self.bus.read(self.reg(m),1),8)&0xFFFFFFFF;return None
         if (op&0xF00F)==0x6001:  # mov.w @Rm,Rn (sign-extend)

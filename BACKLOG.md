@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status:** B47 records inactive CAN mailbox commands. 278 tests pass. Default188/no-clock assumptions225 unchanged; explicit H-UDI+phi1 reaches300 budget, separately labelled10000 budget stops590 on MCR reserved readback. B48/#55 adds known-bit value machinery before CPU integration. No full boot or physical timing is claimed. [Current pass](docs/FOURTH_FIVE_TASK_PASS.md).
+**Current status:** B47-B51 add inactive CAN mailbox commands and conservative partial known-bit CPU loads/logical operations/direct stores. 291 local tests pass. Default300 remains188; no-clock H-UDI assumptions225; explicit H-UDI+phi1/budget300 reaches instruction limit. Separate budget10000 stops592 at MCR0 word write with unknown reserved bit6, PC7B6/op2301. Hardware research#1 tracks the evidence prerequisite; no value is silently chosen. No physical timing, CAN traffic or full boot is claimed. [Current pass](docs/FOURTH_FIVE_TASK_PASS.md).
 
 ## Working agreement — one issue = one development pass
 
@@ -180,3 +180,5 @@ B48/#55 review:281 tests; primitive only, stops unchanged. All open bodies/rows 
 B49/#56 review:284 tests; default188, conditional10000 now591 at OR. All open bodies/rows reviewed; add B50/#57 conservative logical propagation. Other scopes unchanged.
 
 B50/#57 review:287 tests; partial OR now stops592 at direct word store. Full open-body/row review adds B51/#58 width-aware store validation, preserving reserved-bit uncertainty. Other dependencies unchanged.
+
+B51/#58 full backlog review:291 tests; actual blocked write now has address/width/mask and no fabricated concrete value. All open bodies/rows reviewed; extend existing hardware#1 with reserved MCR bit6 evidence gate. No duplicate task; other dependencies unchanged.
