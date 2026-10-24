@@ -1,6 +1,6 @@
 # Active ECU emulator backlog
 
-Reviewed against main, all three open GitHub issues, source and the latest completed pass on **24 October 2026**.
+Reviewed against main, the open parent and explicitly scoped child GitHub issues, source and the latest completed pass on **24 October 2026**.
 
 The goal is a virtual NC ECU executing supported firmware and interacting with an engine model. It is not currently a fully booted ECU. The earlier eight-task list described bounded feature subsets; completing it did not complete this goal.
 
@@ -14,7 +14,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Open work in priority order
 
-There are **three open parent workstreams**, not three small remaining tasks. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
+There are **three open parent workstreams**, plus the five explicitly requested bounded children B52-B56/#59-63 during this pass. Research children may close with documented unresolved evidence; their parent gates remain open. The items below are work packages and evidence gates, not an invented fixed countdown or percentage to completion. Split implementation packages into bounded child issues only after their register/trace evidence and acceptance tests are specific enough.
 
 | Priority | Work package | Current limitation / next concrete result | Tracked under |
 |---|---|---|---|
@@ -65,3 +65,13 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 - [Third five-task pass](docs/THIRD_FIVE_TASK_PASS.md)
 - [Fourth five-task pass](docs/FOURTH_FIVE_TASK_PASS.md)
 - [Eight-task completion evidence](docs/EIGHT_TASK_COMPLETION.md)
+
+## Current five-task execution queue
+
+1. B52/#59 H-UDI evidence audit: report at docs/HUDI_STARTUP_AUDIT.md; board state unresolved.
+2. B53/#60 CAN startup constraints audit.
+3. B54/#61 ATU IMI1A CPU route.
+4. B55/#62 ADC ADI0 CPU route.
+5. B56/#63 integrated synthetic firmware fixture.
+
+B52/#59 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B52 research scope complete; hardware1 gate remains unresolved. B53 CAN audit next, B54/B55 verified vector routes then B56 integration. No duplicate broad research issue.
