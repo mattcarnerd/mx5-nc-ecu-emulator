@@ -139,3 +139,5 @@ B74/#81 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_START
 B75/#82 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 370 tests pass. Boundary/equality/alias and unknown-operand behavior verified against SH-2E section7 CMP semantics. Declared completion scenario reaches1017 at NOT R4,R2 PC E0E/op6247; no interrupt milestone yet.
 
 B76/#83 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 372 tests pass. Explicit completion scenario reaches1022 attempts at FFFFD052 word read PC E18/op6331. No physical completion defaults or recurring interrupt claims introduced.
+
+B77/#84 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 374 tests pass. Mask latches resetFFFF, unknown manual/processing states retained, explicit reset completion restores masks. No CAN events or CPU interrupts fabricated. Completion scenario reaches1024 at MULU.W PCE1C/op204E.

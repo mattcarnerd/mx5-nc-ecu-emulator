@@ -28,7 +28,7 @@ from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
-from .hcan import HcanResetCommands, MCR_ADDRESSES, GSR_ADDRESSES, BCR_MASKS
+from .hcan import HcanResetCommands, MCR_ADDRESSES, GSR_ADDRESSES, BCR_MASKS, MBIMR_ADDRESSES
 from .virtual_clock import InstructionClock
 from .execution_harness import ExecutionCoverage
 from .sh2_exception import execute_exception
@@ -440,6 +440,7 @@ class BootBus:
         return self.read_cpu_value(address,2)
 
     def _read(self, a: int, width: int) -> int:
+        if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'read')
         if a in BCR_MASKS or a-1 in BCR_MASKS:return self.hcan.read_bcr(a,width)
         if a in GSR_ADDRESSES or a-1 in GSR_ADDRESSES:return self.hcan.read_gsr(a,width)
         if self.adc.handles(a):return self.adc.read(a,width)
@@ -518,6 +519,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'write',value)
         if a in BCR_MASKS or a-1 in BCR_MASKS:return self.hcan.write_bcr(a,width,value)
         if a in GSR_ADDRESSES or a-1 in GSR_ADDRESSES:return self.hcan.write_gsr(a,width,value)
         if self.adc.handles(a):return self.adc.write(a,width,value)

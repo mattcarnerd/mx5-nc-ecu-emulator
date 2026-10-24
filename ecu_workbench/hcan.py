@@ -6,6 +6,7 @@ invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
 GSR_ADDRESSES=(0xFFFFD002,0xFFFFD802)
+MBIMR_ADDRESSES=(0xFFFFD050,0xFFFFD052,0xFFFFD850,0xFFFFD852)
 BCR_MASKS={0xFFFFD004:0xF733,0xFFFFD006:0x00FF,0xFFFFD804:0xF733,0xFFFFD806:0x00FF}
 
 def mcr_scenario_metadata(bit):
@@ -24,6 +25,7 @@ class HcanResetCommands:
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
         self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
+        self.mbimr={a:0xFFFF if power_on else None for a in MBIMR_ADDRESSES}
         self.bcr={a:KnownBits(0,mask) if power_on else KnownBits(0,0) for a,mask in BCR_MASKS.items()}
         self.mailbox_writes={}
         self.trace,self.stop_type=trace,stop_type
@@ -45,6 +47,7 @@ class HcanResetCommands:
         self.release_requests[channel]=value==0
         if value==1:
             self.software_reset_requests[channel]=True
+            for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=None
             for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):self.bcr[address]=KnownBits(0,0)
         self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
                            'scope':'CAN_software_reset_request_only' if value else 'CAN_reset_release_request_only',
@@ -60,8 +63,22 @@ class HcanResetCommands:
             address=address,width=width,access='read')
 
     def complete_reset_subset(self,channel):
+        for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=0xFFFF
         for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):
             self.bcr[address]=KnownBits(0,BCR_MASKS[address])
+
+    def mask_access(self,address,width,access,value=None):
+        if width!=2 or address not in MBIMR_ADDRESSES:
+            raise self.stop_type('unsupported_access_size','MBIMR requires aligned word access',
+                                 address=address,width=width,access=access)
+        if access=='write':self.mbimr[address]=value&0xFFFF
+        result=self.mbimr[address]
+        if result is None:
+            raise self.stop_type('unknown_peripheral_reset_state','Mailbox mask prior/reset-processing state unknown',
+                                 address=address,width=width,access=access)
+        self.trace.append({'register':f'MBIMR_{address:08X}','access':access,'width':2,'value':result,
+                           'scope':'mailbox_interrupt_mask_only_no_bus_events'})
+        return result
 
     def _bcr_guard(self,address,width,access):
         if width!=2 or address not in BCR_MASKS:
