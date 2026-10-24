@@ -77,7 +77,7 @@ class HcanResetCommands:
                                  address=address,width=width,access=access)
         if access=='write':self.mbimr[address]=value&0xFFFF
         result=self.mbimr[address]
-        if result is None or (access=='read' and self.effect_unknown_channels[int(address>=0xFFFFD800)]):
+        if result is None:
             raise self.stop_type('unknown_peripheral_reset_state','Mailbox mask prior/reset-processing state unknown',
                                  address=address,width=width,access=access)
         self.trace.append({'register':f'MBIMR_{address:08X}','access':access,'width':2,'value':result,

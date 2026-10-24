@@ -202,3 +202,17 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b85-no-clock-unknown.json and b85-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 394 tests cover both channels/all mailboxes and big-endian overlap without invented receive contents or transmission. Strict scenario unchanged; separate recording experiment reaches1140 at software-owned MBIMR read. Next task examines whether unknown-effect scope unnecessarily hides documented static latches; dynamic CAN status remains unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+B86/#93 refines the recording experiment: MBIMR bits are software-owned R/W mask latches (section16.5.7), not bus-activity feedback. Reads may retain their actual prior CPU-written or explicitly reset-established value. An unknown reset-processing value remains unknown; no constant is selected to satisfy a read. Dynamic status and prohibited mailbox effects remain unknown, and the unresolved marker persists. This isolation contract is part of the experiment, not validated prohibited-mode behavior.
+
+## B86/#93
+
+B86: preserve software-owned mailbox mask values under isolated unresolved effects.
+
+Validation: Ran 396 tests in 38.640s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b86-no-clock-unknown.json and b86-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 396 tests pass. MBIMR reads retain only CPU/reset-established latch values; pending reset unknown remains a stop. Dynamic CAN status remains unknown and recorder marker persists. Separate experiment reaches1222 at GSR reset-status branch PCDD6/op8903. Strict scene still rejects2308; next work can isolate explicitly supplied reset-status inputs without validating prohibited mailbox behavior. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
