@@ -23,6 +23,7 @@ from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
+from .hcan import HcanResetCommands, MCR_ADDRESSES
 from .virtual_clock import InstructionClock
 from .execution_harness import ExecutionCoverage
 from .sh2_exception import execute_exception
@@ -118,6 +119,7 @@ class BootBus:
         run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction)
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop,
                                     clock_supplied=phi_cycles_per_instruction is not None)
+        self.hcan=HcanResetCommands(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.hudi=HudiStatus(trace=self.peripheral_trace,stop_type=BootStop,scenario=hudi_scenario)
         self.rstcsr=ResetControl(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         # SYSCR2 clock/source control: write word with 0x3C key, read byte.
@@ -372,6 +374,7 @@ class BootBus:
             raise
 
     def _read(self, a: int, width: int) -> int:
+        if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.read(a,width)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.read(a,width)
         if a in (0xFFFFEC10,0xFFFFEC11):
@@ -442,6 +445,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.write(a,width,value)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.write(a,width,value)
         if a in (0xFFFFEC10,0xFFFFEC11):
