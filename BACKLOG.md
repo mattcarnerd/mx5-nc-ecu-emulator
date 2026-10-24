@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (24 October 2026):** Original-reference LF9VEB power reset/NMI high/300/no pins passes PLDR, PR stack save, disabled watchdog setup and SHLL8. **188 attempts**, next word read **SDSR 0xFFFFF7C2**, opcode **6321**, instruction PC **0x00000EF8**, stop PC **0x00000EFA**. Renesas specifies TRST initialization only for H-UDI, so power reset cannot supply a fabricated SDTRF bit. Add a bounded H-UDI status task before remaining CPU coverage. [Pass evidence](docs/FIVE_TASK_PASS.md) records precise per-task reruns; issue records link CI and versioned EXEs. Full boot remains unconfirmed.
+**Current status (24 October 2026):** Original-reference LF9VEB power reset/NMI high/300/no pins passes PLDR, PR stack save, disabled watchdog setup and SHLL8. **188 attempts**, next word read **SDSR 0xFFFFF7C2**, opcode **6321**, instruction PC **0x00000EF8**, stop PC **0x00000EFA**. Renesas specifies TRST initialization only for H-UDI, so power reset cannot supply a fabricated SDTRF bit. B39 models SDSR and now stops explicitly on unknown H-UDI reset state at the same 188th attempt. Next genuine prerequisite is verified board TRST/serial history under #1; no reset value is assumed. [Pass evidence](docs/FIVE_TASK_PASS.md) records precise per-task reruns; issue records link CI and versioned EXEs. Full boot remains unconfirmed.
 
 ## Working agreement — one issue = one development pass
 
@@ -29,6 +29,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 | When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
+| 2026-10-24 | B39 / #46 H-UDI SDSR | 204 local tests pass, private ROM enabled. Default original-reference rerun remains **188 attempts**, but now correctly stops as **unknown_peripheral_reset_state** on SDSR word read at EF8/6321: SDTRF requires TRST/serial history, not an invented power-reset value. Added byte/word status subset, explicit synthetic TRST/serial events and CPU-set flag semantics; combined SDIR/SDSR 32-bit accesses remain unsupported. Reviewed complete remaining open backlog: put verified board H-UDI/TRST history under existing #1 hardware-evidence workstream, no duplicate research issue; B10 remains fifth requested coverage task. No other scope/dependency/priority changes. See #46 for CI/EXE verification. |
 | 2026-10-24 | B11 / #14 shifts and rotates | 200 tests pass with private integration enabled. Observed 4618 SHLL8 R6 passed. Exact rerun reaches **188 attempts**, unmodelled **SDSR 0xFFFFF7C2 word read**, opcode **6321** at PC **0x00000EF8** (stop PC 0x00000EFA). Reviewed complete backlog and all 18 open issues (B20 publication pending): no existing issue covers H-UDI status; add one bounded P0 task for SDSR state/width semantics. Rev.3 table 19.2 explicitly says power/manual reset does NOT initialize H-UDI; TRST history is missing, so never default SDSR to 0x0B01. B10 remains next independent CPU coverage; defer B16 from this five-task pass. All other dependencies/priorities unchanged. |
 | 2026-10-24 | B20 / #27 watchdog register subset | 197 tests pass with all private-ROM integration cases enabled. RSTCSR 0x5A1F passed; subsequent observed TCNT 0x5A00 and disabled TCSR programming also implemented under the same bounded watchdog subset. Exact rerun: **175 attempts**, unsupported **4618 (SHLL8 R6)** at PC **0x00000D90**, stop PC 0x00000D92. Reviewed all 18 remaining open issues (#1-3, #13-14, #16-19, #22, #27-32, #34-35) and all backlog rows: promote existing B11/#14 to P0, do it next; no duplicate. B10/B16 remain coverage work; no timing, FPU, interrupt, ADC or physical-output priorities change. Running watchdog timing remains unsupported and fails explicitly on TME enable. CI/release linked in #27 before closure. |
 | 2026-10-24 | B12 / #15 control transfers | 191 tests pass with the private original ROM; observed PR stack save passed. Exact rerun: 157 attempts, RSTCSR word `0x5A1F` at PC `0x0000076A`, opcode `2231`. Reviewed all 19 open issues (#1-3, #13-19, #22, #27-32, #34-35) and complete backlog: promote/narrow existing B20/#27 to P0, no duplicate. User requested five tasks; B20 replaces B19 in this pass, followed by B10, B11 and B16 coverage. Other scopes/dependencies unchanged. CI and EXE links recorded in #15 before closure. No full boot claim. |
@@ -86,6 +87,10 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B20](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/27)** | Observed watchdog RSTCSR keyed access subset | Exact 0x5A1F word write at 0xFFFFEC12; reset/width/protection tests; no guessed watchdog time | B12 |
 
 | **[B11](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/14)** | Observed SHLL8 R6 plus documented shift/rotate subset | Exact 4618 blocker plus T/sign/width tests | B08 |
+
+| **[B39](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/46)** | Observed H-UDI SDSR state subset | Implemented: explicit unknown SDTRF at default reset; synthetic TRST/serial events only | B11 |
+
+**Next authentic prerequisite (#1):** independently verify H-UDI TRST history / external debug activity for this ECU. SDSR is not initialized by RES. Do not inject 0x0B01 or a serial-complete value to claim progress.
 
 ## P1 — Verify ECU families, refactor peripherals, then implement observed CPU gaps
 

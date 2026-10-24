@@ -21,3 +21,9 @@ SH7058 Rev.3 section 13.2.3/13.2.4 specifies RSTCSR word writes at EC12 and byte
 Software manual sections 7.2.44-47 and 7.2.51-56 define fixed shifts and rotations. Added SHLL/SHAL/SHLR/SHAR, shifts by 2/8/16 and ROTL/ROTR/ROTCL/ROTCR with explicit incoming T for carry rotation. Multi-bit shifts preserve T. Tests cover zero/sign/wrap and unknown states.
 
 200 local tests pass. [Post-B11 evidence](evidence/lf9veb-after-b11.json) reaches 188 attempts: SDSR word read at FFFFF7C2, instruction PC EF8, opcode 6321. Reviewed all remaining open issues and complete backlog; no H-UDI task exists, so add one bounded P0 SDSR issue. Do not substitute the TRST-only initial value for missing reset history. B16 is displaced from this five-task pass by this real blocker; B10 remains independent coverage. No other priority/dependency changes.
+
+## B39 H-UDI status and review
+
+SH7058 Rev.3 table 19.2 and section 19.3.2 specify SDSR reserved readback 0x0B00 and the independent SDTRF flag. Neither power nor manual reset initializes this register. Implement byte/word access with unknown flag by default; explicit synthetic TRST and serial-complete events demonstrate known-state readback. CPU writes can set the flag; no spontaneous debugger or serial activity is generated. Combined long access through SDIR/SDSR is outside this subset.
+
+204 tests pass with private integration enabled. [Post-B39 evidence](evidence/lf9veb-after-b39.json) remains at 188 attempts with unknown_peripheral_reset_state instead of unmodelled_peripheral. This is a more precise blocker, not further firmware execution. Reviewed the entire remaining backlog: track verified board TRST/serial-history evidence under existing #1, no duplicate research ticket. B10 is the fifth requested task; all other priorities/dependencies unchanged. No fabricated physical state is used.
