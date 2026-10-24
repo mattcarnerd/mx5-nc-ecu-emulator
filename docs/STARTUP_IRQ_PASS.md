@@ -12,3 +12,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b52-no-clock-unknown.json and b52-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B52 research scope complete; hardware1 gate remains unresolved. B53 CAN audit next, B54/B55 verified vector routes then B56 integration. No duplicate broad research issue. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B53/#60
+
+Audit HCAN constraints without fabricating reserved readback (B53)
+Reviewed Rev.3 reserved-bit/mailbox rules, product technical-update listing and TN-SH7-A534A/J with its earlier-manual scope. No applicable reserved-bit waiver established. Retain existing unknown-mask store stop and inactive2700 caveat; document profile/conformance question and missing MCU/read-write evidence. Existing partial-value/no-side-effect regressions rerun; no firmware patch or guessed CAN state.
+
+Validation: Ran 312 tests in 2.567s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b53-no-clock-unknown.json and b53-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B53 research complete with unresolved evidence gate; parents1-3 stay open. B54 ATU source route then B55 ADC and B56 integrated fixture are independent synthetic implementation work. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

@@ -69,9 +69,11 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 ## Current five-task execution queue
 
 1. B52/#59 H-UDI evidence audit: report at docs/HUDI_STARTUP_AUDIT.md; board state unresolved.
-2. B53/#60 CAN startup constraints audit.
+2. B53/#60 CAN startup constraints audit: docs/HCAN_STARTUP_AUDIT.md; no reserved-bit waiver established.
 3. B54/#61 ATU IMI1A CPU route.
 4. B55/#62 ADC ADI0 CPU route.
 5. B56/#63 integrated synthetic firmware fixture.
 
 B52/#59 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B52 research scope complete; hardware1 gate remains unresolved. B53 CAN audit next, B54/B55 verified vector routes then B56 integration. No duplicate broad research issue.
+
+B53/#60 completed scope/test review: see [eight-task pass](docs/STARTUP_IRQ_PASS.md). B53 research complete with unresolved evidence gate; parents1-3 stay open. B54 ATU source route then B55 ADC and B56 integrated fixture are independent synthetic implementation work.
