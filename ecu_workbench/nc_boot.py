@@ -11,6 +11,7 @@ from typing import Optional
 from .core import ROMImage
 from .known_bits import KnownBits
 from .fpu import FpuState,execute_fpu
+from .atu import Atu1A
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
 from .port_e import PortE, PEDR_ADDRESS
@@ -121,6 +122,7 @@ class BootBus:
         run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction)
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop,
                                     clock_supplied=phi_cycles_per_instruction is not None)
+        self.atu=Atu1A(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.hcan=HcanResetCommands(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.hudi=HudiStatus(trace=self.peripheral_trace,stop_type=BootStop,scenario=hudi_scenario)
         self.rstcsr=ResetControl(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
@@ -395,6 +397,7 @@ class BootBus:
         return KnownBits.exact(self.read(address,2))
 
     def _read(self, a: int, width: int) -> int:
+        if self.atu.handles(a):return self.atu.read(a,width)
         if self.hcan.mailbox_region(a):return self.hcan.mailbox_read(a,width)
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.read(a,width)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
@@ -467,6 +470,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if self.atu.handles(a):return self.atu.write(a,width,value)
         if self.hcan.mailbox_region(a):return self.hcan.mailbox_write(a,width,value)
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.write(a,width,value)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):

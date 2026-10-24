@@ -38,3 +38,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b15-no-clock-unknown.json and b15-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Three requested FPU subsets implemented; full FPU remains outside scope. B22 timer precedes B24 waveform; B23 ADC precedes B28 UI. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+## B22/#29
+
+Implement bounded ATU-II channel1A counter/capture/compare path (B22)
+Rev.3 table11.3/11.2.1/4/5/6: TCNT1A/GR1A, byte TSTR1/TIOR1A/TCR1A and word TSR1A/TIER1A. Explicit selected-counter-clock packets,16-bit wrap, GR1A edge/compare, read1/write0 flag clear and module interrupt request events. Other channels/modes rejected. No oscillator/prescaler ratio, CPU interrupt vector or physical output invented; CPU dispatch of this additional source remains future parent scope.
+
+Validation: Ran 302 tests in 2.603s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b22-no-clock-unknown.json and b22-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B22 enables B24 synthetic waveform capture. ADC B23 enables B28 sensor UI. No new issue needed for completed bounded source-level interrupt event scope. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.

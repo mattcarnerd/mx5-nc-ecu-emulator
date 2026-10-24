@@ -190,3 +190,5 @@ B13/#16 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPL
 B14/#17 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B14 enables B15 arithmetic; timer and ADC remain next independent scopes.
 
 B15/#18 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). Three requested FPU subsets implemented; full FPU remains outside scope. B22 timer precedes B24 waveform; B23 ADC precedes B28 UI.
+
+B22/#29 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B22 enables B24 synthetic waveform capture. ADC B23 enables B28 sensor UI. No new issue needed for completed bounded source-level interrupt event scope.
