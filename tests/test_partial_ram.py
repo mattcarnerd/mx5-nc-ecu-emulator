@@ -38,3 +38,31 @@ class PartialRamTests(unittest.TestCase):
             with self.assertRaises(ValueError):b.write_cpu_value(RAM_BASE,width,KnownBits(0,0))
             with self.assertRaises(ValueError):b.read_cpu_value(RAM_BASE,width)
         with self.assertRaises(BootStop):b.read_cpu_value(RAM_BASE+1,4)
+
+    def test_direct_indexed_displacement_and_copy_preserve_masks(self):
+        from ecu_workbench.core import ROMImage
+        forms=((0x2120,0x6310,1,0,2),(0x2121,0x6311,2,0,2),(0x2122,0x6312,4,0,2),
+               (0x0124,0x031C,1,4,2),(0x0125,0x031D,2,4,2),(0x0126,0x031E,4,4,2),
+               (0x1122,0x5312,4,8,2),(0x8014,0x8414,1,4,0),(0x8114,0x8514,2,8,0))
+        for store,load,width,offset,source in forms:
+            for bits in (KnownBits(0,0),KnownBits(0x81234567,0x7FFF00F7)):
+                d=program(store,load);d.r[1]=RAM_BASE+256;d.r[0]=4;d.r[source]=bits
+                d.t=True;d.execute()
+                self.assertEqual(d.bus.read_cpu_value(RAM_BASE+256+offset,width).value,bits.value&((1<<(8*width))-1))
+                d.execute()
+                destination=0 if load in (0x8414,0x8514) else 3
+                self.assertEqual(d.transport_bits(destination),bits.sign_extend(width))
+                self.assertTrue(d.t)
+        d=program(0x6103);d.r[0]=None;d.execute()
+        self.assertEqual(d.r[1],KnownBits(0,0))
+
+    def test_mov_unknown_addresses_and_partial_peripheral_writes_still_stop(self):
+        for op in (0x2122,0x0126,0x1122):
+            d=program(op);d.r[1]=KnownBits(RAM_BASE,0xFFFFFFFC);d.r[0]=0;d.r[2]=None
+            result=d.run(1)
+            self.assertEqual(result['stop']['reason'],'unknown_register')
+            self.assertFalse(any(d.bus.ram_valid))
+        for op in (0x2121,0x0125,0x1120):
+            d=program(op);d.r[1]=0xFFFFD000;d.r[0]=0;d.r[2]=None
+            r=d.run(1);self.assertEqual(r['stop']['reason'],'unknown_register')
+            self.assertEqual(d.bus.peripheral_trace,[])

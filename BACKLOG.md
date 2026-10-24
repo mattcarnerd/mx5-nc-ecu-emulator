@@ -119,3 +119,5 @@ B66/#73 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md
 B67/#74 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 349 tests pass; partial RAM transport preserves overlap masks while concrete reads/peripheral writes require known bits. Updated earlier RAM-store test to the new documented transport contract; strict and ROM-only stops unchanged before B68 stack opcodes.
 
 B68/#75 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). 351 tests pass. Zero-readback experiment now reaches973 attempts at GSR0 word read FFFFD002, PCDB2/op6351. No register initialized artificially; raw RAM/peripheral/control guards remain. B70 will be narrowed to GSR reset-status uncertainty after B69.
+
+B69/#76 completed scope/test review: see [eight-task pass](docs/UNKNOWN_STACK_PASS.md). Supported integer MOV memory paths and register copies now transport masks consistently; unknown addresses and peripheral values still stop. Expected experimental dependency remains GSR0 at PCDB2. Other CPU/floating-point consumers remain concrete-only.

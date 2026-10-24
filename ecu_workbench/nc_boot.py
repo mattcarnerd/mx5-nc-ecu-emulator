@@ -703,17 +703,17 @@ class NCBootDiagnostic:
         # B07 pre-decrement stores and post-increment loads.
         if execute_pre_post(self,op,n,m): return None
         if (op&0xF00F)==0x2000:  # mov.b Rm,@Rn
-            self.bus.write_cpu_value(self.reg(n),1,self.reg_bits(m));return None
+            self.bus.write_cpu_value(self.reg(n),1,self.transport_bits(m));return None
         if (op&0xF00F)==0x2001:  # mov.w Rm,@Rn
-            self.bus.write_cpu_value(self.reg(n),2,self.reg_bits(m));return None
+            self.bus.write_cpu_value(self.reg(n),2,self.transport_bits(m));return None
         if (op&0xF00F)==0x2002:  # mov.l Rm,@Rn
-            self.bus.write_cpu_value(self.reg(n),4,self.reg_bits(m));return None
+            self.bus.write_cpu_value(self.reg(n),4,self.transport_bits(m));return None
         if (op&0xF00F)==0x6000:  # mov.b @Rm,Rn (sign-extend)
-            self.r[n]=sign_extend(self.bus.read(self.reg(m),1),8)&0xFFFFFFFF;return None
+            self.r[n]=self.bus.read_cpu_value(self.reg(m),1).sign_extend(1).compact();return None
         if (op&0xF00F)==0x6001:  # mov.w @Rm,Rn (sign-extend)
             self.r[n]=self.bus.read_cpu_word(self.reg(m)).sign_extend_word().compact();return None
         if (op&0xF00F)==0x6002:  # mov.l @Rm,Rn
-            self.r[n]=self.bus.read(self.reg(m),4);return None
+            self.r[n]=self.bus.read_cpu_value(self.reg(m),4).compact();return None
         if (op&0xF00F)==0x600C:  # extu.b Rm,Rn
             self.r[n]=self.reg(m)&0xFF;return None
         if (op&0xF00F)==0x600D:  # extu.w Rm,Rn
@@ -723,7 +723,7 @@ class NCBootDiagnostic:
         if (op&0xF00F)==0x600F:  # exts.w Rm,Rn
             self.r[n]=sign_extend(self.reg(m)&0xFFFF,16)&0xFFFFFFFF;return None
         if (op&0xF00F)==0x6003:  # mov Rm,Rn
-            self.r[n]=self.reg_bits(m).compact();return None
+            self.r[n]=self.transport_bits(m).compact();return None
         # B08 register and immediate logical operations, all SH-2 masks.
         if execute_logic(self,op,n,m): return None
         # B09 signed/unsigned comparisons, explicit carry/borrow arithmetic.
