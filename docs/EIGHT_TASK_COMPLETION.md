@@ -51,3 +51,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b22-no-clock-unknown.json and b22-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B22 enables B24 synthetic waveform capture. ADC B23 enables B28 sensor UI. No new issue needed for completed bounded source-level interrupt event scope. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+## B23/#30
+
+Implement one AN0 ADC conversion fixture (B23)
+Rev.3 section17: ADDR0 left-aligned10-bit, ADCSR0 ADF/ADIE single AN0 and ADCR0 software ADST, known power reset versus unknown manual state. Explicit voltage/reference required, no assumed5V; ideal transfer floor1024 ratio/clamp1023 is fixture quantization, not measured analog accuracy. Explicit completion event and start-time sample policy, no physical latency guessed. Read1/write0 ADF, cancellation token and module interrupt request tested. Other ADC modes rejected.
+
+Validation: Ran 305 tests in 2.400s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b23-no-clock-unknown.json and b23-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B23 enables B28 explicit sensor controls and synthetic firmware-read proof. B24 depends on existing B22 capture path; B25 can label only raw GPIO pending board mapping. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
