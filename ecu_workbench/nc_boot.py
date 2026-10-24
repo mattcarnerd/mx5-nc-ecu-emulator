@@ -374,6 +374,7 @@ class BootBus:
             raise
 
     def _read(self, a: int, width: int) -> int:
+        if self.hcan.mailbox_region(a):return self.hcan.mailbox_read(a,width)
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.read(a,width)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.read(a,width)
@@ -445,6 +446,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if self.hcan.mailbox_region(a):return self.hcan.mailbox_write(a,width,value)
         if a in MCR_ADDRESSES or a-1 in MCR_ADDRESSES:return self.hcan.write(a,width,value)
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.write(a,width,value)

@@ -39,3 +39,27 @@ class HcanCommandTests(unittest.TestCase):
         d=NCBootDiagnostic(ROMImage('synthetic',bytes(data)));r=d.run(4)
         self.assertTrue(d.bus.hcan.release_requests[0]);self.assertEqual(r['stop']['reason'],'instruction_limit')
         self.assertFalse(r['boot_complete'])
+
+    def test_mailbox_zero_initialization_all_documented_words(self):
+        b=BootBus(program(0x0009).bus.image)
+        self.assertEqual(b.hcan.mailbox_writes,{})
+        for base in (0xFFFFD100,0xFFFFD900):
+            for mailbox in range(32):
+                for offset in range(0,20,2):
+                    address=base+mailbox*32+offset
+                    b.write(address,2,0)
+                    self.assertEqual(b.hcan.mailbox_writes[address],0)
+        self.assertEqual(len(b.hcan.mailbox_writes),640)
+        self.assertEqual(len(b.peripheral_trace),640)
+        with self.assertRaises(BootStop):b.read(0xFFFFD100,2)
+
+    def test_mailbox_gaps_width_values_and_isolation(self):
+        b=BootBus(program(0x0009).bus.image,power_on=False)
+        for address,width,value in ((0xFFFFD114,2,0),(0xFFFFD11E,2,0),
+                                    (0xFFFFD101,2,0),(0xFFFFD100,4,0),
+                                    (0xFFFFD108,1,0),(0xFFFFD100,2,1)):
+            with self.assertRaises(BootStop):b.write(address,width,value)
+            self.assertEqual(b.hcan.mailbox_writes,{})
+        b.write(0xFFFFD100,2,0)
+        self.assertNotIn(0xFFFFD900,b.hcan.mailbox_writes)
+        self.assertEqual(BootBus(program(0x0009).bus.image).hcan.mailbox_writes,{})

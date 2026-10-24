@@ -23,3 +23,11 @@ Complete open-backlog/body/row review: add B44/#51 for the newly observed reset-
 SH7058 table16.4/section16.4.2 identify MCR_0/1 and word-only access. This subset records only the observed zero reset-release request, with known power reset request and unknown manual prior state. It does not declare synchronization, eleven recessive bits, GSR transitions or CAN traffic. Nonzero unsupported modes fail; full MCR readback fails explicitly because reserved bit6 is not guaranteed, rather than manufacturing a word.
 
 272 local tests pass. [Default](evidence/b44-no-clock-unknown.json) remains188; no-clock H-UDI runs remain225. Explicit [TRST+clock1](evidence/b44-clock1-trst-reset.json) and [serial-complete+clock1](evidence/b44-clock1-transfer-complete.json) reach238, next mailbox header zero at FFFFD100/PC79C/op2541. Full backlog review: add non-duplicate B45/#52 for documented mailbox initialization only; other scopes/dependencies unchanged. #1 board/CAN evidence remains unresolved.
+
+## B45/#52 HCAN mailbox zero initialization
+
+SH7058 Rev.3 table16.2/figure16.3 maps 32 mailboxes per channel, stride32 with20 documented bytes. Only aligned zero-word writes to these fields are supported; gaps, other widths and nonzero configurations fail. Written locations are recorded separately from unknown initial RAM. Reads remain unsupported, including reserved readback. No CAN traffic or unsupported timer feature is inferred. 274 tests pass, including all640 documented words, gaps, widths, reset isolation and channel isolation.
+
+Default/no-clock results remain188/225. Explicit H-UDI+clock1 reaches239, next DT R7 at PC79E/op4710. Evidence: [conditional](evidence/b45-clock1-trst-reset.json), [default](evidence/b45-no-clock-unknown.json).
+
+Mandatory full backlog review: read all12 open issue bodies and backlog rows. Add non-duplicate B46/#53 for this observed DT instruction. Parents#1-3 and FPU#16-18/timer#29/ADC#30/crank#31/output#32/UI#35 retain dependencies; physical board assumptions remain unresolved. Closure requires CI/release links.

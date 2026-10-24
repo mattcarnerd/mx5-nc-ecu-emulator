@@ -168,3 +168,5 @@ These are **future milestones, not 'one-go' tickets**, until dependencies and ev
 - Prior emulator code: [`ecu_workbench/nc_boot.py`](ecu_workbench/nc_boot.py).
 
 Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and TCNT writes are observed; TCSR programming support is synthetic-only. No TCSR write or running watchdog is claimed.
+
+B45/#52 review: mailbox zero initialization complete; 274 tests. All open issue bodies/rows reviewed; observed DT becomes B46/#53. Other dependencies unchanged. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).

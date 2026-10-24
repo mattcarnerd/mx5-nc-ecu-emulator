@@ -9,6 +9,7 @@ class HcanResetCommands:
     def __init__(self,*,power_on,trace,stop_type):
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
+        self.mailbox_writes={}
         self.trace,self.stop_type=trace,stop_type
 
     def _channel(self,address,width,access):
@@ -31,4 +32,27 @@ class HcanResetCommands:
         channel=self._channel(address,width,'read')
         raise self.stop_type('unknown_peripheral_reset_state',
             f'MCR_{channel} full-word readback includes unspecified reserved bit6; no value fabricated',
+            address=address,width=width,access='read')
+
+    @staticmethod
+    def mailbox_region(address):
+        return any(base <= address < base+0x400 for base in (0xFFFFD100,0xFFFFD900))
+
+    def mailbox_write(self,address,width,value):
+        base=0xFFFFD100 if address<0xFFFFD900 else 0xFFFFD900
+        channel=int(base==0xFFFFD900)
+        mailbox,offset=divmod(address-base,32)
+        if width!=2 or offset%2 or offset>0x12:
+            raise self.stop_type('unsupported_access_size','Mailbox initialization supports aligned documented words only',
+                                 address=address,width=width,access='write',value=value)
+        if value & 0xFFFF:
+            raise self.stop_type('unsupported_peripheral_mode','Only zero mailbox initialization is modelled',
+                                 address=address,width=width,access='write',value=value)
+        self.mailbox_writes[address]=0
+        self.trace.append({'register':f'MB{mailbox}_{channel}+{offset:02X}',
+                           'access':'write','width':2,'value':0,'scope':'mailbox_zero_initialization_only'})
+
+    def mailbox_read(self,address,width):
+        raise self.stop_type('unknown_peripheral_reset_state',
+            'Mailbox readback and CAN receive state are outside initialization-only support',
             address=address,width=width,access='read')
