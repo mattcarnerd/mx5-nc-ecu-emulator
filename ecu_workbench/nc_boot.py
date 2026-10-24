@@ -10,6 +10,7 @@ import hashlib
 from typing import Optional
 from .core import ROMImage
 from .known_bits import KnownBits
+from .fpu import FpuState,execute_fpu
 from .boot_reporting import explain_stop
 from .port_d import PortD, PDDR_ADDRESS, PDPR_ADDRESS
 from .port_e import PortE, PEDR_ADDRESS
@@ -537,6 +538,7 @@ class NCBootDiagnostic:
         if sp & 3 or not (RAM_BASE <= sp < RAM_LIMIT):
             raise BootStop('invalid_reset_vector',f'Invalid {reset} SP 0x{sp:08X}')
         self.r: list[Optional[int]]=[None]*16;self.r[15]=sp
+        self.fpu=FpuState()
         self.pr:Optional[int]=None
         self.t: Optional[bool] = None  # T bit not known from partial reset SR value
         self.known_sr_mask=0xF0
@@ -622,6 +624,7 @@ class NCBootDiagnostic:
         if handled: return target
         if op==0x0009: return None
         if execute_control(self,op,n): return None
+        if execute_fpu(self,op,n,m): return None
         if execute_shift(self,op,n): return None
         if (op&0xF0FF)==0x4010:  # DT Rn, SH-2E section7.2.21
             result=(self.reg(n)-1)&0xFFFFFFFF

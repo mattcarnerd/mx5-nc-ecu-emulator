@@ -184,3 +184,5 @@ B50/#57 review:287 tests; partial OR now stops592 at direct word store. Full ope
 B51/#58 full backlog review:291 tests; actual blocked write now has address/width/mask and no fabricated concrete value. All open bodies/rows reviewed; extend existing hardware#1 with reserved MCR bit6 evidence gate. No duplicate task; other dependencies unchanged.
 
 Final B47-B51 cross-check: inactive2700 retains NMC despite section16.3.1 initialization requirement. Trace records the caveat; command-only progression does not certify CAN operation. Full review decisions unchanged.
+
+B13/#16 completed scope/test review: see [eight-task pass](docs/EIGHT_TASK_COMPLETION.md). B13 enables B14, which enables B15. Timer/ADC/input/output tasks retain dependencies.
