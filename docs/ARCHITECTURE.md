@@ -114,6 +114,29 @@ and manual-reset state. No physical pin outputs, alternate functions,
 or separate read-only PJPR input register are emulated. Synthetic
 opcode `2151` tests do not constitute a complete firmware boot.
 
+## B37 and B06–B09 — verified code versus authentic-ROM evidence
+
+An uploaded original-reference LF9VEB reduced report (power reset,
+NMI high, 300 steps, no fabricated external inputs) shows **117 attempted
+instructions**, with verified Port E/F/G/H/J writes; the next *attempted*
+store is word `0xFFFF` to **PKDR `0xFFFFF778`**, opcode `2151` at PC
+`0x00000D00`. Renesas SH7058 Rev.3 §22.11 Tables 22.19–22.20
+identifies the 16-bit Port K data latch, zero after power-on reset and
+direction-dependent software readback. `ecu_workbench/port_k.py`
+models those rules; external pin states and alternate timer outputs
+are not invented.
+
+The four separate integer CPU helpers added as B06–B09 extend
+`NCBootDiagnostic.execute` using documented SH-2 memory addressing,
+register mutation, logical/T-bit and signed/unsigned compare arithmetic.
+Unsupported instructions still fail closed. Full synthetic suites test
+the behaviour in isolation and do **not** imply a successful original
+ROM boot or that any particular instruction form has been encountered
+in the genuine LF9VEB startup path. A subsequent original ROM rerun
+is needed to identify the first *post-PKDR* blocker. No FPU,
+interrupts, real-time peripherals, or engine outputs have been
+validated by this development pass.
+
 ## Boot acceptance criteria
 
 A ROM is *emulated* only when we can demonstrate, with recorded traces:

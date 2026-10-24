@@ -409,3 +409,40 @@ load the same original-reference ROM, select **Power reset**, **NMI high**,
 choose **Save shareable blocker JSON…**. The new
 `pjdr_word_write_ffff_in_peripheral_trace` key confirms the PJDR write
 only if present in the peripheral trace.
+
+## Five-ticket development pass (24 October 2026)
+
+Five **separately tested** backlog tasks were completed in response to a
+request for a five-item pass:
+
+- **B37 / #44 — Port K PKDR:** The original-reference LF9VEB local report
+  reached 117 attempted instructions, after verified Port E/F/G/H/J
+  writes. First failure was 16-bit `0xFFFF` write to `PKDR
+  0xFFFFF778`, opcode `2151` at `0x00000D00`. The Renesas SH7058
+  Rev.3 §22.11 Port K 16-bit latch is now modelled. Pin reads require
+  explicit pin levels; alternate outputs are **not** simulated. The
+  `pkdr_word_write_ffff_in_peripheral_trace` field confirms completion
+  only from an observed peripheral trace.
+- **B06 / #9 — SH-2 indexed/displacement MOV:** word/byte/long indexed
+  by R0, scaled displacement long loads/stores, short byte/word forms.
+  Tests cover byte ordering, sign-extension and invalid bus accesses.
+- **B07 / #10 — SH-2 auto-increment/decrement MOV:** post-increment
+  loads, pre-decrement stores, source/destination alias rules and
+  register mutation ordering on faults.
+- **B08 / #11 — SH-2 logical/T-bit:** register TST/AND/OR/XOR and
+  immediate R0 forms. `TST.B` via GBR remains unmodelled pending a
+  validated GBR register state.
+- **B09 / #12 — SH-2 compare and carry:** CMP/EQ, CMP/HS
+  (unsigned), CMP/GE (signed), ADDC and SUBC with 32-bit carry/borrow
+  and explicit unknown incoming T stops.
+
+All five are synthetic-testable without original manufacturer firmware.
+The current real-ROM milestone **remains 117 attempted instructions**
+until a new shareable trace from the *same* local original-reference ROM
+is provided. None of the four CPU groups is asserted to have run in
+original ECU firmware yet. The virtual ECU does not run a complete
+engine-control loop.
+
+To test the updated build: **Power reset**, **NMI high**, **300
+instructions**, leave physical pin levels unspecified, run startup
+diagnostic and choose **Save shareable blocker JSON…**.
