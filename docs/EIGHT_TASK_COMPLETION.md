@@ -64,3 +64,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b23-no-clock-unknown.json and b23-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B23 enables B28 explicit sensor controls and synthetic firmware-read proof. B24 depends on existing B22 capture path; B25 can label only raw GPIO pending board mapping. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
+
+## B24/#31
+
+Deliver explicit synthetic crank and cam edges into ATU captures (B24)
+Explicit RPM, selected-counter tick rate, synthetic teeth/revolution and720-degree cam phase produce deterministic edges. Caller enables capture; crank maps TIO1A/GR1A and cam TIO1B/GR1B on shared TCNT1A, with separate flags/interrupt requests. No NC pattern, board pin mapping or oscillator assumed. Capture events and registers verified; compare-event timestamp correction records actual match tick/value within a packet.
+
+Validation: Ran 307 tests in 2.362s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b24-no-clock-unknown.json and b24-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B24 capture fixture complete; B25 raw GPIO tracing and B28 ADC sensor controls remain. Valid NC tooth/pin mapping stays hardware parent scope. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User explicitly requested these eight bounded features; synthetic coverage is distinguished from observed firmware use.
