@@ -699,6 +699,9 @@ class NCBootDiagnostic:
         handled,target=execute_exception(self,op,pc,delay_slot)
         if handled: return target
         if op==0x0009: return None
+        if (op&0xF0FF)==0x001A:  # STS MACL,Rn; no T or interrupt-mask change
+            self.r[n]=KnownBits(0,0) if self.macl is None else self.macl
+            return None
         if execute_control(self,op,n): return None
         if execute_fpu(self,op,n,m): return None
         if execute_shift(self,op,n): return None

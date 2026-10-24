@@ -143,3 +143,5 @@ B76/#83 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_START
 B77/#84 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 374 tests pass. Mask latches resetFFFF, unknown manual/processing states retained, explicit reset completion restores masks. No CAN events or CPU interrupts fabricated. Completion scenario reaches1024 at MULU.W PCE1C/op204E.
 
 B78/#85 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 376 tests pass. Unknown high bits do not matter to MULU.W; unknown low operands remain guarded. MACH/T/source registers unchanged. Declared scenario reaches1026 at STS MACL,R0 PCE20/op001A; next MACL transfer scoped separately.
+
+B79/#86 completed scope/test review: see [eight-task pass](docs/AUTONOMOUS_STARTUP_PASS.md). 378 tests pass. Undefined MACL transports unknown bits; computed products transfer exactly and preserve T/MACH. Declared scenario reaches1042 at ADD R7,R2 PCE52/op327C. Milestone still requires sustained original-firmware execution and recurring interrupts.
