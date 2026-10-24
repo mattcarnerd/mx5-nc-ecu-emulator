@@ -6,6 +6,7 @@ invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
 GSR_ADDRESSES=(0xFFFFD002,0xFFFFD802)
+ACK_FIXED={base+offset:(1 if offset&2 else 0) for base in MCR_ADDRESSES for offset in (0x30,0x32,0x38,0x3A)}
 MBIMR_ADDRESSES=(0xFFFFD050,0xFFFFD052,0xFFFFD850,0xFFFFD852)
 BCR_MASKS={0xFFFFD004:0xF733,0xFFFFD006:0x00FF,0xFFFFD804:0xF733,0xFFFFD806:0x00FF}
 
@@ -27,6 +28,7 @@ class HcanResetCommands:
         self.release_requests=[False,False]
         self.software_reset_requests=[False,False]
         self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
+        self.ack={a:KnownBits(0,0xFFFF if power_on else fixed) for a,fixed in ACK_FIXED.items()}
         self.mbimr={a:0xFFFF if power_on else None for a in MBIMR_ADDRESSES}
         self.bcr={a:KnownBits(0,mask) if power_on else KnownBits(0,0) for a,mask in BCR_MASKS.items()}
         self.mailbox_writes={};self.mailbox_data_writes={}
@@ -49,6 +51,7 @@ class HcanResetCommands:
         self.release_requests[channel]=value==0
         if value==1:
             self.software_reset_requests[channel]=True
+            self.invalidate_ack(channel)
             for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=None
             for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):self.bcr[address]=KnownBits(0,0)
         self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
@@ -67,9 +70,34 @@ class HcanResetCommands:
             address=address,width=width,access='read')
 
     def complete_reset_subset(self,channel):
+        for a in ACK_FIXED:
+            if int(a>=0xFFFFD800)==channel:self.ack[a]=KnownBits(0,0xFFFF)
         for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=0xFFFF
         for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):
             self.bcr[address]=KnownBits(0,BCR_MASKS[address])
+
+    def invalidate_ack(self,channel):
+        for address,fixed in ACK_FIXED.items():
+            if int(address>=0xFFFFD800)==channel:self.ack[address]=KnownBits(0,fixed)
+
+    def ack_access(self,address,width,access,value=None,typed=False):
+        if width!=2 or address not in ACK_FIXED:
+            raise self.stop_type('unsupported_access_size','CAN acknowledge status requires aligned word access',
+                                 address=address,width=width,access=access)
+        bits=self.ack[address];fixed=ACK_FIXED[address]
+        if access=='write':
+            clear=(value&0xFFFF)&~fixed
+            bits=KnownBits(bits.value&~clear,(bits.mask|clear|fixed)&0xFFFF)
+            self.ack[address]=bits
+        self.trace.append({'register':f'ACK_{address:08X}','access':access,'width':2,
+                           'known_value':bits.value,'known_mask':bits.mask,
+                           'scope':'write_one_clear_status_no_transmission_or_abort_simulation'})
+        if access=='write':return
+        if typed:return bits
+        if bits.mask&0xFFFF!=0xFFFF:
+            raise self.stop_type('unknown_peripheral_reset_state','CAN acknowledge bits unknown; no completion invented',
+                                 address=address,width=width,access=access)
+        return bits.value
 
     def mask_access(self,address,width,access,value=None):
         if width!=2 or address not in MBIMR_ADDRESSES:
@@ -199,6 +227,7 @@ class HcanResetCommands:
     def record_unresolved_mailbox(self,address,width,value,reason):
         channel=int(address>=0xFFFFD900)
         self.effect_unknown_channels[channel]=True
+        self.invalidate_ack(channel)
         prior=self.gsr[channel]
         self.gsr[channel]=KnownBits(prior.value&8,prior.mask&8) if self.preserve_supplied_reset_status else KnownBits(0,0)
         self.unresolved_command_count+=1
