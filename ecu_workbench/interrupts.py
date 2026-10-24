@@ -1,4 +1,4 @@
-"""Bounded SH7058 on-chip arbitration: ITI and ATU IMI1A, Rev.3 table7.3.
+"""Bounded SH7058 on-chip arbitration: ITI, ATU IMI1A and ADC ADI0, Rev.3 table7.3.
 
 Highest configured priority wins; supported equal-priority sources use table
 order. Entry does not acknowledge a held module flag. Other source families
@@ -10,6 +10,8 @@ ITI_VECTOR=224
 IPRL_ADDRESS=0xFFFFED16
 IMI1A_VECTOR=96
 IPRD_ADDRESS=0xFFFFED06
+ADI0_VECTOR=190
+IPRJ_ADDRESS=0xFFFFED12
 
 
 def enabled_flag_request(flag,enable,bit):
@@ -25,6 +27,7 @@ def routed_requests(cpu):
     return [
         ('IMI1A',IMI1A_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],1),True),
         ('IMI1B',97,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],2),False),
+        ('ADI0',ADI0_VECTOR,IPRJ_ADDRESS,8,cpu.bus.adc.interrupt_pending,True),
         ('ITI',ITI_VECTOR,IPRL_ADDRESS,4,cpu.interval_request,True),
     ]
 

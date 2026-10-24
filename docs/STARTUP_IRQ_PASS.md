@@ -38,3 +38,16 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b54-no-clock-unknown.json and b54-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B54 implemented; B55 adds ADI0 vector190/IPRJ[11:8], then B56 integration. B52/B53 evidence gates remain open under parents despite completed research. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B55/#62
+
+Deliver ADC ADI0 completion through CPU interrupt arbitration (B55)
+Rev.3 table7.3 ADI0 vector190/offset2F8, IPRJ FFFFED12[11:8]. ADF+ADIE is held until firmware clears ADF via read1/write0 or disables ADIE. Synthetic firmware starts conversion, ISR reads supplied AN0 result, acknowledges and returns; changing voltage changes ISR/main results. Priority/mask/disable/unknown state and simultaneous ATU/ADC/ITI order tested. Artificial completion delay remains explicit.
+
+Validation: Ran 319 tests in 2.647s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b55-no-clock-unknown.json and b55-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. B54/B55 routes implemented; only IMI1A/ADI0/ITI supported. B56 combines actual synthetic firmware configuration, explicit capture/conversion events and raw output. Hardware evidence gates stay unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

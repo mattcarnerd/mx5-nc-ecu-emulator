@@ -3,7 +3,11 @@ from test_interrupts import irq_cpu
 from ecu_workbench.core import ROMImage
 from ecu_workbench.sh2_control import load_sr,read_sr
 from ecu_workbench.atu import TSR,TIER,TIOR,TSTR,GR
-from ecu_workbench.interrupts import IPRD_ADDRESS,IPRL_ADDRESS
+from ecu_workbench.interrupts import IPRD_ADDRESS,IPRL_ADDRESS,IPRJ_ADDRESS
+from ecu_workbench.adc import ADCSR0,ADCR0,ADDR0
+from ecu_workbench.nc_boot import NCBootDiagnostic
+from test_sensor_fixture import sensor_rom
+from ecu_workbench.sensor_fixture import adc_fields
 
 
 def module_cpu(*words):
@@ -56,3 +60,41 @@ class ModuleInterruptTests(unittest.TestCase):
         data=bytearray(d.bus.image.data);data[0x500:0x504]=bytes.fromhex('002B0009')
         d.bus.image=ROMImage('synthetic',bytes(data));d.run(3)
         self.assertEqual(d.interrupt_entries,2);self.assertTrue(d.bus.atu.interrupt_pending)
+
+    def test_adc_actual_firmware_start_completion_isr_read_and_return(self):
+        for voltage,count in ((1,204),(4,819)):
+            d=NCBootDiagnostic(sensor_rom(),adc_fixture=adc_fields(voltage,5,2))
+            data=bytearray(d.bus.image.data);data[0x2F8:0x2FC]=(0x600).to_bytes(4,'big')
+            for i,op in enumerate((0x6761,0x6050,0xE040,0x2500,0x7901,0x002B,0x0009)):
+                data[0x600+2*i:0x602+2*i]=op.to_bytes(2,'big')
+            d.bus.image=ROMImage('synthetic',bytes(data));d.r[5]=ADCSR0;d.r[6]=ADDR0;d.r[9]=0
+            d.bus.write(IPRJ_ADDRESS,2,0x600);d.bus.write(ADCSR0,1,64);load_sr(d,0);sp=d.r[15]
+            result=d.run(13)
+            self.assertEqual(result['stop']['reason'],'instruction_limit')
+            self.assertEqual(d.r[7]&0xFFFF,count<<6);self.assertEqual(d.r[3]&0xFFFF,count<<6)
+            self.assertEqual(d.r[9],1);self.assertEqual(d.r[15],sp)
+            self.assertEqual(d.exception_events[0]['vector'],190)
+            self.assertEqual(d.exception_events[0]['saved_pc'],'0x00000108')
+            self.assertEqual(d.exception_events[0]['source'],'ADI0')
+            self.assertFalse(d.bus.adc.interrupt_pending)
+
+    def test_adc_mask_disable_unknown_and_arbitration(self):
+        for priority,mask,enable,expected in ((0,0,True,0),(5,5,True,0),(6,5,True,1),(6,0,False,0)):
+            d=module_cpu();d.bus.adc.csr=0xC0 if enable else 0x80
+            d.bus.write(IPRJ_ADDRESS,2,priority<<8);load_sr(d,mask<<4)
+            data=bytearray(d.bus.image.data);data[0x2F8:0x2FC]=(0x400).to_bytes(4,'big')
+            d.bus.image=ROMImage('synthetic',bytes(data));d.run(1)
+            self.assertEqual(d.interrupt_entries,expected)
+        d=module_cpu();capture_request(d);d.bus.adc.csr=0xC0;d.bus.write(IPRJ_ADDRESS,2,0x500)
+        d.set_interval_request(True);d.run(1)
+        self.assertEqual(d.exception_events[0]['source'],'IMI1A')
+        d=module_cpu();d.bus.adc.csr=None;d.bus.write(IPRJ_ADDRESS,2,0x500);sp=d.r[15]
+        self.assertEqual(d.run(1)['stop']['reason'],'unknown_peripheral_reset_state');self.assertEqual(d.r[15],sp)
+
+    def test_adc_request_clear_by_enable_and_adf_read_before_write(self):
+        d=module_cpu();d.bus.adc.csr=0xC0
+        d.bus.adc.write(ADCSR0,1,64);self.assertTrue(d.bus.adc.interrupt_pending)
+        d.bus.adc.read(ADCSR0,1);d.bus.adc.write(ADCSR0,1,64)
+        self.assertFalse(d.bus.adc.interrupt_pending)
+        d.bus.adc.csr=0xC0;d.bus.adc.write(ADCSR0,1,0)
+        self.assertFalse(d.bus.adc.interrupt_pending);self.assertEqual(d.bus.adc.csr,128)
