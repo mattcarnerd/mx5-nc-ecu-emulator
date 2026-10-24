@@ -20,6 +20,7 @@ from .port_k import PortK, PKDR_ADDRESS
 from .peripheral_router import PeripheralRouter
 from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
+from .sh2_logic import execute_logic
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
 RAM_BASE, RAM_LIMIT = 0xFFFF0000, 0xFFFFC000
@@ -516,8 +517,8 @@ class NCBootDiagnostic:
             self.r[n]=sign_extend(self.reg(m)&0xFFFF,16)&0xFFFFFFFF;return None
         if (op&0xF00F)==0x6003:  # mov Rm,Rn
             self.r[n]=self.reg(m);return None
-        if (op&0xF00F)==0x2008:  # tst Rm,Rn -> T=1 when zero
-            self.t=(self.reg(n)&self.reg(m))==0;return None
+        # B08 register and immediate logical operations, all SH-2 masks.
+        if execute_logic(self,op,n,m): return None
         if (op&0xFF00)==0x8900:  # bt disp
             if delay_slot: raise BootStop('illegal_delay_slot',f'BT in delay slot at 0x{pc:X}')
             if self.t is None: raise BootStop('unknown_status',f'T flag unknown at 0x{pc:X}')
