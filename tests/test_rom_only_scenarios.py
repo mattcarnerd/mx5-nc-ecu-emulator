@@ -99,3 +99,65 @@ class RomOnlyScenarios(unittest.TestCase):
             self.assertEqual(r['stop']['reason'],'unknown_register' if bit is None else 'instruction_limit' if bit==0 else 'unsupported_peripheral_mode')
             self.assertEqual(any(e.get('access')=='write' for e in cpu.bus.peripheral_trace),bit==0)
             self.assertEqual(cpu.bus.hcan.software_reset_requests[0],bit==0)
+
+    def test_completed_count_is_not_attempt_count_and_rejects_invalid(self):
+        d=self.diagnostic(0)
+        d['nc_boot']['completed_instructions']=0
+        self.assertEqual(make_shareable_blocker_report(d)['completed_instructions'],0)
+        for count in (-1,2,True,'1'):
+            changed=copy.deepcopy(d);changed['nc_boot']['completed_instructions']=count
+            with self.assertRaises(ValueError):make_shareable_blocker_report(changed)
+
+    def test_matrix_is_deterministic_explicit_and_reduced(self):
+        from ecu_workbench.rom_only_matrix import run_rom_only_matrix
+        image=program(0x0009).bus.image
+        result=run_rom_only_matrix(image,max_steps=2,nmi_high=True)
+        self.assertEqual(result,run_rom_only_matrix(image,max_steps=2,nmi_high=True))
+        self.assertEqual(len(result['cases']),19)
+        self.assertEqual(len({r['case_id'] for r in result['cases']}),19)
+        self.assertEqual(result['cases'][0]['report']['settings']['max_steps'],300)
+        for row in result['cases'][1:]:
+            report=row['report'];self.assertEqual(report['settings']['max_steps'],2)
+            self.assertFalse(report['reference_lf9veb_scenario'])
+            self.assertNotIn('trace',report);self.assertNotIn('image',report)
+            if report['experimental_mcr_bit6'] is not None:self.assertTrue(report['conditional_hardware_scenario'])
+        self.assertFalse(result['boot_complete']);self.assertFalse(result['hardware_profile_verified'])
+        for budget in (True,0,100001):
+            with self.assertRaises(ValueError):run_rom_only_matrix(image,max_steps=budget,nmi_high=True)
+        with self.assertRaises(ValueError):run_rom_only_matrix(image,max_steps=1,nmi_high=1)
+
+    def test_private_original_scenario_matrix(self):
+        import os
+        from ecu_workbench.core import ROMImage
+        from ecu_workbench.rom_only_matrix import run_rom_only_matrix
+        from ecu_workbench.trace_review import LF9VEB_SHA256
+        source=os.environ.get('MX5_NC_TEST_ROM')
+        if not source:self.skipTest('Optional locally supplied original-hash regression')
+        image=ROMImage.from_file(source)
+        if image.sha256!=LF9VEB_SHA256:self.skipTest('Regression requires exact original hash')
+        result=run_rom_only_matrix(image,max_steps=10000,nmi_high=True)
+        self.assertEqual(result,run_rom_only_matrix(image,max_steps=10000,nmi_high=True))
+        for row in result['cases']:
+            r=row['report'];hudi=r['hudi_scenario'];phi=r['phi_cycles_per_instruction'];bit=r['experimental_mcr_bit6']
+            expected=188 if hudi=='unknown' else 225 if phi is None else 960 if bit==0 else 592
+            self.assertEqual(r['executed_instructions'],expected,row['case_id'])
+            self.assertEqual(r['completed_instructions'],expected-1)
+            self.assertEqual(r['reference_lf9veb_scenario'],row['case_id']=='strict-reference-settings' or
+                hudi=='unknown' and phi is None and bit is None and r['settings']['max_steps']==300)
+            if expected==960:
+                self.assertEqual(r['stop']['reason'],'unknown_register')
+                self.assertEqual(r['next_dependency']['instruction_pc'],'0x000001BA')
+                self.assertEqual(r['next_dependency']['opcode'],'2FB6')
+            elif bit==1 and expected==592:
+                self.assertEqual(r['stop']['memory_access']['value'],'0x00000041')
+
+    def test_matrix_cli_output_is_json_and_contains_no_local_paths(self):
+        from ecu_workbench.rom_only_matrix import main as matrix_main
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'private.bin';path.write_bytes(program(0x0009).bus.image.data)
+            output=Path(tmp)/'matrix.json'
+            self.assertEqual(matrix_main(['--rom',str(path),'--steps','1','--nmi','unknown','--output',str(output)]),0)
+            text=output.read_text(encoding='utf-8');result=json.loads(text)
+            self.assertEqual(len(result['cases']),19)
+            self.assertNotIn(str(path),text)
+            self.assertNotIn('private.bin',text)

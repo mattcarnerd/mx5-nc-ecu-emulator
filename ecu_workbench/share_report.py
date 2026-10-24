@@ -62,6 +62,9 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     count = boot.get("executed_instructions", 0)
     if type(count) is not int or not 0 <= count <= 100000:
         raise ValueError("Invalid attempted instruction count")
+    completed=boot.get('completed_instructions')
+    if completed is not None and (type(completed) is not int or not 0<=completed<=count):
+        raise ValueError('Invalid completed instruction count')
     stop = boot.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str) or not _SAFE_REASON.fullmatch(stop["reason"]):
         raise ValueError("Invalid diagnostic stop")
@@ -200,6 +203,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
             "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit,
         },
         "executed_instructions": count,
+        "completed_instructions":completed,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),
         "stop": {
             "reason": stop["reason"],
