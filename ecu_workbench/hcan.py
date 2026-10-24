@@ -6,8 +6,17 @@ invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
 
+def mcr_scenario_metadata(bit):
+    if bit is not None and (type(bit) is not int or bit not in (0,1)):
+        raise ValueError('experimental_mcr_bit6 must be omitted,0 or1')
+    return {'experimental_mcr_bit6':bit,'conditional_mcr_scenario':bit is not None,
+            'mcr_scenario_note':('Experimental constant MCR reserved-bit6 readback fixture on both channels; not measured hardware.'
+                                 if bit is not None else 'MCR reserved-bit6 readback unknown.')}
+
 class HcanResetCommands:
-    def __init__(self,*,power_on,trace,stop_type):
+    def __init__(self,*,power_on,trace,stop_type,experimental_mcr_bit6=None):
+        mcr_scenario_metadata(experimental_mcr_bit6)
+        self.experimental_mcr_bit6=experimental_mcr_bit6
         self.commands=[1 if power_on else None for _ in MCR_ADDRESSES]
         self.release_requests=[False,False]
         self.mailbox_writes={}
@@ -31,6 +40,7 @@ class HcanResetCommands:
 
     def read(self,address,width):
         channel=self._channel(address,width,'read')
+        if self.experimental_mcr_bit6 is not None:return self.read_known_word(address).concrete()
         raise self.stop_type('unknown_peripheral_reset_state',
             f'MCR_{channel} full-word readback includes unspecified reserved bit6; no value fabricated',
             address=address,width=width,access='read')
@@ -68,6 +78,11 @@ class HcanResetCommands:
         if command is None:
             raise self.stop_type('unknown_peripheral_reset_state','MCR prior command state unknown',
                                  address=address,width=2,access='read')
+        if self.experimental_mcr_bit6 is not None:
+            value=command|(self.experimental_mcr_bit6<<6)
+            self.trace.append({'register':f'MCR_{channel}','access':'read','width':2,'value':value,
+                               'scope':'experimental_reserved_bit_readback','experimental_mcr_bit6':self.experimental_mcr_bit6})
+            return KnownBits.exact(value)
         self.trace.append({'register':f'MCR_{channel}','access':'read','width':2,
                            'known_value':command,'known_mask':0xFFBF,'unknown_mask':0x0040})
         return KnownBits(command,0xFFBF)

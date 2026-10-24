@@ -103,3 +103,5 @@ B61/#68 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS
 B62/#69 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). ROM-only path selected from user context. No matching ECU available; provenance match does not resolve silicon or reset gates. Review keeps existing parents and five bounded children, no duplicate broad hardware task.
 
 B63/#70 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). No new evidence resolves actual TRST history, silicon revision or reserved readback. Backlog separates physical evidence gates from executable software scenarios. B64/B65/B66 remain bounded; no duplicated physical research.
+
+B64/#71 completed scope/test review: see [eight-task pass](docs/ROM_ONLY_PASS.md). 341 tests pass. Unknown default and both hypothetical readback branches checked; known-one writes remain rejected. B65 is limited to the next documented command exposed by the zero branch; no bus or board state invented.

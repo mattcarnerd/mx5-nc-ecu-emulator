@@ -26,11 +26,18 @@ def summarise(report: dict) -> dict:
     stop = run.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str):
         raise ValueError("Missing stop reason")
-    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"),settings.get("adc_fixture"))
+    scenario=run_scenario_metadata(settings.get("hudi_scenario", "unknown"),settings.get("phi_cycles_per_instruction"),settings.get("adc_fixture"),settings.get("experimental_mcr_bit6"))
     if "hudi_scenario" in report and report["hudi_scenario"]!=scenario["hudi_scenario"]:
         raise ValueError("H-UDI scenario mismatch in baseline")
     if "phi_cycles_per_instruction" in report and report["phi_cycles_per_instruction"]!=scenario["phi_cycles_per_instruction"]:
         raise ValueError("Clock scenario mismatch in baseline")
+    bit=scenario['experimental_mcr_bit6']
+    if bit is not None and 'experimental_mcr_bit6' not in report:
+        raise ValueError('MCR assumption missing from baseline')
+    if 'experimental_mcr_bit6' in report and (type(report['experimental_mcr_bit6']) is not type(bit) or report['experimental_mcr_bit6']!=bit):
+        raise ValueError('MCR scenario mismatch in baseline')
+    if 'conditional_mcr_scenario' in report and (type(report['conditional_mcr_scenario']) is not bool or report['conditional_mcr_scenario']!=scenario['conditional_mcr_scenario']):
+        raise ValueError('MCR conditional marker mismatch in baseline')
     injected_counts=[run.get(k,0) for k in ("explicit_interrupt_requests","scheduled_interrupt_events")]
     if any(type(n) is not int or n<0 for n in injected_counts):
         raise ValueError("Invalid injected interrupt provenance")

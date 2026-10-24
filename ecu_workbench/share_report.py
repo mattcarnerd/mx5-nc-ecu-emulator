@@ -86,7 +86,14 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     fixture=normalize_adc_fixture(settings.get('adc_fixture',boot.get('adc_fixture')))
     if normalize_adc_fixture(boot.get('adc_fixture'))!=fixture:
         raise ValueError('ADC fixture mismatch in diagnostic')
-    scenario=run_scenario_metadata(hudi_scenario,phi,fixture)
+    bit=settings.get('experimental_mcr_bit6',boot.get('experimental_mcr_bit6'))
+    scenario=run_scenario_metadata(hudi_scenario,phi,fixture,bit)
+    if bit is not None and 'experimental_mcr_bit6' not in boot:
+        raise ValueError('MCR assumption missing from executed report')
+    if 'experimental_mcr_bit6' in boot and (type(boot['experimental_mcr_bit6']) is not type(bit) or boot['experimental_mcr_bit6']!=bit):
+        raise ValueError('MCR scenario mismatch')
+    if 'conditional_mcr_scenario' in boot and (type(boot['conditional_mcr_scenario']) is not bool or boot['conditional_mcr_scenario']!=scenario['conditional_mcr_scenario']):
+        raise ValueError('MCR conditional marker mismatch')
     if "conditional_adc_scenario" in boot and (type(boot["conditional_adc_scenario"]) is not bool or boot["conditional_adc_scenario"]!=scenario["conditional_adc_scenario"]):
         raise ValueError("ADC conditional marker mismatch")
     if "phi_cycles_per_instruction" in boot and boot["phi_cycles_per_instruction"]!=phi:
@@ -190,7 +197,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
-            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture,
+            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit,
         },
         "executed_instructions": count,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),
