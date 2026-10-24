@@ -117,6 +117,19 @@ class ShareReportTests(unittest.TestCase):
             {"register":"PGDR","access":"write","width":2,"value":15})
         self.assertTrue(make_shareable_blocker_report(d)["pgdr_word_write_000f_in_peripheral_trace"])
 
+    def test_port_h_write_evidence_requires_actual_ffff_word_store(self):
+        d=detailed(count=250)
+        self.assertFalse(make_shareable_blocker_report(d)["phdr_word_write_ffff_in_peripheral_trace"])
+        d["nc_boot"]["modelled_peripheral_accesses"].extend([
+            {"register":"PHDR","access":"read","width":2,"value":0xFFFF},
+            {"register":"PHDR","access":"write","width":1,"value":0xFF},
+        ])
+        self.assertFalse(make_shareable_blocker_report(d)["phdr_word_write_ffff_in_peripheral_trace"])
+        d["nc_boot"]["modelled_peripheral_accesses"].append(
+            {"register":"PHDR","access":"write","width":2,"value":0xFFFF}
+        )
+        self.assertTrue(make_shareable_blocker_report(d)["phdr_word_write_ffff_in_peripheral_trace"])
+
     def test_mixed_traces_need_correct_width_value_and_access(self):
         d=detailed(port_e=False)
         d["nc_boot"]["modelled_peripheral_accesses"]=[
