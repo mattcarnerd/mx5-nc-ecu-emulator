@@ -475,7 +475,7 @@ B20 disabled watchdog register initialization, B11 fixed shifts/rotates,
 B39 H-UDI SDSR status modelling, and B10 delayed conditional/register branches.
 The original LF9VEB hash was verified locally and the same power-reset,
 NMI-high, 300-step, no-pin scenario rerun after each change. It passed PLDR,
-PR saving, watchdog setup and SHLL8, reaching **188 attempted instructions**.
+PR saving, RSTCSR/TCNT setup and SHLL8, reaching **188 attempted instructions**.
 The next dependency is **unknown H-UDI SDSR SDTRF state**, word read at
 `0xFFFFF7C2`, opcode `6321`, instruction PC `0x00000EF8`.
 
@@ -485,3 +485,5 @@ No full boot or engine behaviour is claimed. All **212 local tests pass**,
 including private-ROM integration cases; public CI skips the private cases.
 Per-task release/CI links are in #15, #27, #14, #46 and #13. See the
 [full pass evidence and backlog reviews](docs/FIVE_TASK_PASS.md).
+
+Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and TCNT writes are observed; TCSR programming support is synthetic-only. No TCSR write or running watchdog is claimed.

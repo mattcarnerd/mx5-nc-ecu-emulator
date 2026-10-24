@@ -72,7 +72,7 @@ class BranchTests(unittest.TestCase):
         if hashlib.sha256(data).hexdigest()!=LF9VEB_SHA256:self.skipTest('Not original-reference hash')
         result=diagnose_nc_reset(ROMImage('private',data),max_steps=300,nmi_high=True)
         self.assertGreaterEqual(result['executed_instructions'],188)
-        for register in ('PLDR','RSTCSR','TCNT','TCSR'):
+        for register in ('PLDR','RSTCSR','TCNT'):
             self.assertTrue(any(a.get('register')==register and a.get('access')=='write'
                                 for a in result['modelled_peripheral_accesses']),register)
         self.assertTrue(any(a['pc']=='0x00000764' and a['opcode']=='4F22' for a in result['trace']))

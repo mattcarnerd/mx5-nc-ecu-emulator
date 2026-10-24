@@ -12,7 +12,7 @@ Reviewed all 19 open issues and every backlog row. #1-3 parent scopes remain ope
 
 ## B20 watchdog initialization and review
 
-SH7058 Rev.3 section 13.2.3/13.2.4 specifies RSTCSR word writes at EC12 and byte reads at EC13. Implement keyed control/flag writes, read-before-clear and reserved-one readback. TCNT/TCSR programming at EC10 was then observed; include disabled programming and byte readback. Enabling counting stops explicitly because clock-driven watchdog operation is outside this task. Invalid-key/reserved encodings stop outside the supported write contract; no undocumented silicon effect is guessed. Manual-reset retained values remain unknown.
+SH7058 Rev.3 section 13.2.3/13.2.4 specifies RSTCSR word writes at EC12 and byte reads at EC13. Implement keyed control/flag writes, read-before-clear and reserved-one readback. TCNT programming at EC10 was then observed. Disabled TCSR programming and byte readback have synthetic coverage; no TCSR write is observed in the authentic trace before the current stop. Enabling counting stops explicitly because clock-driven watchdog operation is outside this task. Invalid-key/reserved encodings stop outside the supported write contract; no undocumented silicon effect is guessed. Manual-reset retained values remain unknown.
 
 197 tests pass locally. [Post-B20 redacted evidence](evidence/lf9veb-after-b20.json) reaches 175 attempts, unsupported SHLL8 R6 at D90. Review of all 18 open issues and complete backlog promotes existing B11/#14 to P0; no duplicate or other scope/dependency changes. FPU, timing, interrupts, ADC, engine signals and broader board support remain deferred. The five tasks are now B12, B20, B11, B10 and B16, with priorities reconsidered on every authentic rerun.
 
@@ -40,4 +40,6 @@ Final full backlog review: no changes beyond existing #1 evidence work for H-UDI
 
 Use the same legally held original-reference ROM with power reset, NMI high, 300 instructions, and physical pins unspecified. Public reports contain only reduced whitelisted diagnostics; manufacturer ROM bytes, names, private paths and full traces are not committed. H-UDI is deliberately unknown until supported by explicit reset/serial history. Do not substitute a synthetic TRST event for evidence of real ECU wiring or claim full boot from instruction counts.
 
-An optional exact-hash reference regression additionally verifies successful PLDR/RSTCSR/TCNT/TCSR writes, execution of the original PR stack-save instruction and the precise known H-UDI stop when still at 188 attempts. Future genuine progress may exceed that baseline without failing an obsolete exact-count assertion.
+An optional exact-hash reference regression additionally verifies successful PLDR/RSTCSR/TCNT writes, execution of the original PR stack-save instruction and the precise known H-UDI stop when still at 188 attempts. Future genuine progress may exceed that baseline without failing an obsolete exact-count assertion.
+
+Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and TCNT writes are observed; TCSR programming support is synthetic-only. No TCSR write or running watchdog is claimed.
