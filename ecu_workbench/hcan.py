@@ -165,6 +165,9 @@ class HcanResetCommands:
         if width!=2 or offset%2 or offset>0x12:
             raise self.stop_type('unsupported_access_size','Mailbox initialization supports aligned documented words only',
                                  address=address,width=width,access='write',value=value)
+        if offset==4 and (value>>8)&7 in (3,6):
+            raise self.stop_type('invalid_peripheral_write','HCAN mailbox MBC011/110 setting prohibited by SH7058 Rev.3',
+                                 address=address,width=width,access='write',value=value)
         identifier=offset in (0,2) and (offset==2 or value&0x8000==0)
         inactive=offset==4 and value in (0x0700,0x2700)
         if value & 0xFFFF and not inactive and not identifier:
@@ -173,6 +176,10 @@ class HcanResetCommands:
         self.mailbox_writes[address]=value & 0xFFFF
         self.trace.append({'register':f'MB{mailbox}_{channel}+{offset:02X}',
                            'access':'write','width':2,'value':value & 0xFFFF,
+                           'identifier_fields':({'standard_id':(value>>4)&0x7FF,'rtr':bool(value&8),
+                                                 'extended_format':bool(value&4),'extended_id_high2':value&3}
+                                                if identifier and offset==0 else {'extended_id_low16':value}
+                                                if identifier and offset==2 else None),
                            'scope':'mailbox_identifier_command_only' if identifier and value else 'mailbox_inactive_command' if inactive else 'mailbox_zero_initialization_only',
                            'configuration_note':('Inactive mailbox initialization requires non-MBC settings zero; NMC remains set in this observed command, so correct CAN operation is not guaranteed'
                                                  if inactive and value & 0x2000 else None)})

@@ -1,4 +1,4 @@
-# ROM-only investigation pass
+# Autonomous firmware startup investigation
 
 ## B72/#79
 
@@ -119,3 +119,42 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b81-no-clock-unknown.json and b81-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 382 tests pass. First identifier word reserved bit15 guarded; second fullword accepted including values resembling control data at a different address. No receive data synthesized. Declared run reaches1057 at mailbox0 control2308 with prohibited MBC011. Next audit must verify CPU/arguments and applicable documentation, not silently accept undefined mode. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+
+## Milestone acceptance and current evidence gate
+
+The user authorized autonomous work toward sustained original-firmware initialization and recurring interrupts. This remains an active, unachieved objective. B72-B82 are bounded implementation/research results, not a complete ECU milestone.
+
+Acceptance requires original firmware reaching identifiable initialization completion/main operation under a reproducible declared virtual profile, enabling and servicing modelled module interrupts repeatedly (at least3 completed handler entries/returns with main progress between them). A held unacknowledged request, repeated PCs, generated handler firmware or instruction-limit-only run does not count. Direct CPU interrupt injection cannot substitute for modelled recurring module requests. Physical clock/engine validation remains a separate goal.
+
+Implemented: partial extensions; opt-in CAN reset/recessive event fixtures; CAN bit-configuration latches/masks and mailbox identifier commands; CMP/HI, NOT, MULU.W, STS MACL and register ADD. No ROM bytes changed. Strict188 and original conditional592 preserved. No-completion bit6=0 reaches976. Explicit reset1/bus64 or256 reaches1057/1056 and no interrupt entries.
+
+The [mailbox-mode audit](MAILBOX_MODE_AUDIT.md) and [25-case matrix](evidence/b82-startup-matrix.json) document the new gate: mailbox0 control2308 contains prohibited MBC011. SH7058 Rev.3, related-part Rev.5 and the Renesas technical update all prohibit it. Independent generated arithmetic and the local caller audit confirm the value calculation; no applicable behavioral waiver found.
+
+### Completion fixture semantics and reproduction
+
+--hcan-reset-completion-ticks and --hcan-recessive-bus-ticks are optional supplied events, measured only in completed-instruction scheduling ticks. Neither is a measured peripheral delay, oscillator or serial bus timing. Omission retains unknown processing. At least one supplied delay must be positive. Both channel generations invalidate stale scheduled events. No frame receive/transmit or CAN IRQ is created.
+
+A supplied reset completion establishes documented low reset GSR bits and resets modelled BCR/MBIMR latches; mailbox RAM content is not invented. A separately supplied11-recessive-bit event proves only GSR3 clear. Where the fixture starts with known reset status, it holds that status until the declared event. Delays1 versus64 can change whether configuration writes are allowed; both are explicit experiments. BCR reserved readback remains unknown; cross-register constraints are reported, not a baud rate or validated bus.
+
+Windows CLI example:
+
+```
+MX5-NC-ECU-Emulator.exe --rom YOUR_LOCAL_IMAGE --reset power --nmi high --steps 100000 --hudi-scenario trst-reset --phi-cycles-per-instruction 1 --experimental-mcr-bit6 0 --hcan-reset-completion-ticks 1 --hcan-recessive-bus-ticks 64 --report local-diagnostic.json
+```
+
+Detailed reports/baselines/reduced exports preserve all assumptions and reject mismatch/missing execution provenance. No new GUI controls claimed. The final executable release validates this implementation, not the unachieved milestone.
+
+Next evidence: applicable documented MBC011 behavior, an independent CPU/profile correction or a separately identified compatible ROM/profile. User was asked for additional public source/reference if available; a physical ECU is not required to provide such a reference. Do not accept undefined modes merely to advance instruction counts.
+
+## B82/#89
+
+B82: audit prohibited MBC011 with independent arithmetic and primary-source constraints.
+
+Validation: Ran 386 tests in 4.738s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b82-no-clock-unknown.json and b82-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 386 tests pass;25-case matrix and user-input request recorded. Both reviewed chip manuals and technical update prohibit mode011; no behavior waiver found. No physical ECU requirement invented, no prohibited mode accepted. Autonomous milestone unachieved and parents retain evidence gate; additional source/profile evidence genuinely needed for faithful progress. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five ROM-only tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
