@@ -10,7 +10,7 @@ def execute_compare_carry(cpu,op,n,m):
         cpu.t=cpu.reg(0)==(sign_extend(op & 0xFF,8) & 0xFFFFFFFF)
         return True
     family=op & 0xF00F
-    if family not in (0x3000,0x3002,0x3003,0x300E,0x300A):
+    if family not in (0x3000,0x3002,0x3003,0x3006,0x300E,0x300A):
         return False
     left=cpu.reg(n)
     right=cpu.reg(m)
@@ -18,6 +18,8 @@ def execute_compare_carry(cpu,op,n,m):
         cpu.t=left==right
     elif family==0x3002:  # CMP/HS Rm,Rn (unsigned >=)
         cpu.t=left>=right
+    elif family==0x3006:  # CMP/HI Rm,Rn (unsigned strictly greater)
+        cpu.t=left>right
     elif family==0x3003:  # CMP/GE Rm,Rn (signed >=)
         from .nc_boot import sign_extend
         cpu.t=sign_extend(left,32)>=sign_extend(right,32)
