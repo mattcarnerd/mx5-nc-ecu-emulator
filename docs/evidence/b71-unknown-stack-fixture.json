@@ -1,0 +1,22 @@
+{
+  "kind": "generated_unknown_stack_fixture",
+  "fixture_passed": true,
+  "manufacturer_firmware_used": false,
+  "boot_complete": false,
+  "stack_restored": true,
+  "returned_to_main_fixture": true,
+  "handler_count": 1,
+  "restored_registers": {
+    "R10": {
+      "known_value": 0,
+      "known_mask": 0
+    },
+    "R11": {
+      "known_value": 0,
+      "known_mask": 0
+    }
+  },
+  "attempted_instructions": 80,
+  "completed_instructions": 80,
+  "note": "Known value is meaningful only under its known mask; mask0 selects no register value. Generated call/return is not original ECU boot."
+}
