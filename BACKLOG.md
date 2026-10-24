@@ -170,3 +170,5 @@ These are **future milestones, not 'one-go' tickets**, until dependencies and ev
 Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and TCNT writes are observed; TCSR programming support is synthetic-only. No TCSR write or running watchdog is claimed.
 
 B45/#52 review: mailbox zero initialization complete; 274 tests. All open issue bodies/rows reviewed; observed DT becomes B46/#53. Other dependencies unchanged. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).
+
+B46/#53 review: generic DT implemented; 277 tests. Full open-body/backlog review adds B47/#54 for observed HCAN control2700 at FFFFD104. Existing dependencies unchanged; default reference188 and conditionalphi1 reaches242. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).

@@ -31,3 +31,11 @@ SH7058 Rev.3 table16.2/figure16.3 maps 32 mailboxes per channel, stride32 with20
 Default/no-clock results remain188/225. Explicit H-UDI+clock1 reaches239, next DT R7 at PC79E/op4710. Evidence: [conditional](evidence/b45-clock1-trst-reset.json), [default](evidence/b45-no-clock-unknown.json).
 
 Mandatory full backlog review: read all12 open issue bodies and backlog rows. Add non-duplicate B46/#53 for this observed DT instruction. Parents#1-3 and FPU#16-18/timer#29/ADC#30/crank#31/output#32/UI#35 retain dependencies; physical board assumptions remain unresolved. Closure requires CI/release links.
+
+## B46/#53 SH-2E DT decrement and test
+
+Software manual section7.2.21 defines generic DT: decrement32 bits, set T exactly when result is zero, PC+2, preserve other status. Unknown source fails before changing the register/T/completed clock. 277 tests pass, covering all16 registers, zero/wrap/signed boundaries, BF loop, valid delayed slot and unknown source.
+
+Default remains188 and assumed H-UDI without supplied clock225. [Explicit TRST+phi1](evidence/b46-clock1-trst-reset.json) reaches242 attempts, next word2700 at FFFFD104, PC7A4/op8152. This is mailbox0 control (NMC=1, MBC=111 inactive) under hardware section16.3.2; mailbox0 receive-only restrictions and initialization ordering must be resolved in the next bounded task. No CAN behavior or physical timing is inferred.
+
+Mandatory full backlog review: read all13 open issue bodies and all backlog rows before B45 closure; no duplicate covers this control word. Add B47/#54 for investigation/implementation. #1 physical H-UDI/clock/CAN evidence, parents#2/#3 and FPU#16-18/timer#29/ADC#30/crank#31/output#32/UI#35 retain scope/dependencies. All five tasks B42-B46 have distinct documented scope, focused tests, reduced evidence and per-task CI/Windows release evidence required before closure. Private ROM remains local. Full boot remains unproven.
