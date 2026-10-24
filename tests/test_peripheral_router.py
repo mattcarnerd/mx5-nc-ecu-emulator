@@ -10,6 +10,7 @@ from ecu_workbench.port_g import PGDR_ADDRESS, PGIOR_ADDRESS
 from ecu_workbench.port_h import PHDR_ADDRESS, PHIOR_ADDRESS
 from ecu_workbench.port_j import PJDR_ADDRESS, PJIOR_ADDRESS
 from ecu_workbench.port_k import PKDR_ADDRESS, PKIOR_ADDRESS
+from ecu_workbench.port_l import PLDR_ADDRESS, PLIOR_ADDRESS
 from ecu_workbench.peripheral_router import PeripheralRouter
 
 
@@ -36,7 +37,7 @@ class RouterTests(unittest.TestCase):
                   "PCDR":PCDR_ADDRESS,"PDDR":PDDR_ADDRESS,
                   "PDPR":PDPR_ADDRESS,"PEDR":PEDR_ADDRESS,"PFDR":PFDR_ADDRESS,
                   "PGDR":PGDR_ADDRESS,"PHDR":PHDR_ADDRESS,
-                  "PJDR":PJDR_ADDRESS,"PKDR":PKDR_ADDRESS}
+                  "PJDR":PJDR_ADDRESS,"PKDR":PKDR_ADDRESS,"PLDR":PLDR_ADDRESS}
         self.assertEqual(set(r.name for r in b.port_router._by_base.values()),
                          set(expected))
         for name,base in expected.items():
@@ -49,13 +50,13 @@ class RouterTests(unittest.TestCase):
         directions={0xFFFFF730:0xFFFF,0xFFFFF73A:0x001F,
                     PDIOR_ADDRESS:0x3FFF,PEIOR_ADDRESS:0xFFFF,
                     PFIOR_ADDRESS:0xFFFF,PGIOR_ADDRESS:0x000F,
-                    PHIOR_ADDRESS:0xFFFF,PJIOR_ADDRESS:0xFFFF,PKIOR_ADDRESS:0xFFFF}
+                    PHIOR_ADDRESS:0xFFFF,PJIOR_ADDRESS:0xFFFF,PKIOR_ADDRESS:0xFFFF,PLIOR_ADDRESS:0x3FFF}
         for addr,mode in directions.items():
             b.write(addr,2,mode)
         for addr,value in ((PBDR_ADDRESS,0xD00D),(PCDR_ADDRESS,0x001B),
                            (PDDR_ADDRESS,0x1234),(PEDR_ADDRESS,0xBEEF),
                            (PFDR_ADDRESS,0xCAFE),(PGDR_ADDRESS,0x000A),
-                           (PHDR_ADDRESS,0xDADA),(PJDR_ADDRESS,0xBABE),(PKDR_ADDRESS,0xD00D)):
+                           (PHDR_ADDRESS,0xDADA),(PJDR_ADDRESS,0xBABE),(PKDR_ADDRESS,0xD00D),(PLDR_ADDRESS,0x1234)):
             with self.subTest(addr=hex(addr)):
                 b.write(addr,2,value)
                 self.assertEqual(b.read(addr,2),value)
@@ -63,12 +64,12 @@ class RouterTests(unittest.TestCase):
                 self.assertEqual(b.read(addr+1,1),value & 0xFF)
                 b.write(addr+1,1,0x05)
                 self.assertEqual(b.read(addr,2),(value & 0xFF00)|0x05)
-        self.assertEqual(b.peripheral_trace[-1]["register"],"PKDR")
+        self.assertEqual(b.peripheral_trace[-1]["register"],"PLDR")
 
     def test_32_bit_access_stops_before_unaligned_memory_check(self):
         b=BootBus(image())
         for address in (PBDR_ADDRESS,PBPR_ADDRESS,PCDR_ADDRESS,
-                        PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS,PGDR_ADDRESS,PHDR_ADDRESS,PJDR_ADDRESS,PKDR_ADDRESS):
+                        PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS,PGDR_ADDRESS,PHDR_ADDRESS,PJDR_ADDRESS,PKDR_ADDRESS,PLDR_ADDRESS):
             for mode in ("read","write"):
                 with self.subTest(address=hex(address),mode=mode):
                     with self.assertRaises(BootStop) as caught:
@@ -80,21 +81,21 @@ class RouterTests(unittest.TestCase):
 
     def test_unknown_addresses_and_input_levels_never_invented(self):
         b=BootBus(image())
-        for addr in (0xFFFFF786,0xFFFFF75E):
+        for addr in (0xFFFFF786,0xFFFFF788):
             for mode in ("read","write"):
                 with self.subTest(addr=hex(addr),mode=mode):
                     with self.assertRaises(BootStop) as caught:
                         b.read(addr,2) if mode=="read" else b.write(addr,2,0)
                     self.assertEqual(caught.exception.kind,"unmodelled_peripheral")
         for addr in (PBDR_ADDRESS,PBPR_ADDRESS,PCDR_ADDRESS,
-                     PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS,PGDR_ADDRESS,PHDR_ADDRESS,PJDR_ADDRESS,PKDR_ADDRESS):
+                     PDDR_ADDRESS,PDPR_ADDRESS,PEDR_ADDRESS,PFDR_ADDRESS,PGDR_ADDRESS,PHDR_ADDRESS,PJDR_ADDRESS,PKDR_ADDRESS,PLDR_ADDRESS):
             with self.subTest(addr=hex(addr)),self.assertRaises(BootStop) as caught:
                 b.read(addr,2)
             self.assertEqual(caught.exception.kind,"missing_input")
 
     def test_invalid_reserved_bits_and_read_only_are_unchanged(self):
         b=BootBus(image())
-        for addr,value in ((PCDR_ADDRESS,0x0020),(PDDR_ADDRESS,0x4000)):
+        for addr,value in ((PCDR_ADDRESS,0x0020),(PDDR_ADDRESS,0x4000),(PLDR_ADDRESS,0x4000)):
             with self.subTest(addr=hex(addr)),self.assertRaises(BootStop) as caught:
                 b.write(addr,2,value)
             self.assertEqual(caught.exception.kind,"invalid_peripheral_write")

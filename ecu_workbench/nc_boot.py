@@ -17,6 +17,7 @@ from .port_g import PortG, PGDR_ADDRESS, PG_VALID_MASK
 from .port_h import PortH, PHDR_ADDRESS
 from .port_j import PortJ, PJDR_ADDRESS
 from .port_k import PortK, PKDR_ADDRESS
+from .port_l import PortL, PLDR_ADDRESS, PL_VALID_MASK
 from .peripheral_router import PeripheralRouter
 from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
@@ -98,7 +99,8 @@ class BootBus:
                  port_g_pin_values: Optional[int]=None, port_g_pin_known_mask: int=PG_VALID_MASK,
                  port_h_pin_values: Optional[int]=None, port_h_pin_known_mask: int=0xFFFF,
                  port_j_pin_values: Optional[int]=None, port_j_pin_known_mask: int=0xFFFF,
-                 port_k_pin_values: Optional[int]=None, port_k_pin_known_mask: int=0xFFFF):
+                 port_k_pin_values: Optional[int]=None, port_k_pin_known_mask: int=0xFFFF,
+                 port_l_pin_values: Optional[int]=None, port_l_pin_known_mask: int=PL_VALID_MASK):
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
@@ -144,6 +146,9 @@ class BootBus:
         self.port_k = PortK(power_on=power_on, pfc=self.pfc, trace=self.peripheral_trace,
                             stop_type=BootStop, pin_values=port_k_pin_values,
                             pin_known_mask=port_k_pin_known_mask)
+        self.port_l = PortL(power_on=power_on, pfc=self.pfc, trace=self.peripheral_trace,
+                            stop_type=BootStop, pin_values=port_l_pin_values,
+                            pin_known_mask=port_l_pin_known_mask)
         # Register only known GPIO addresses; the original handlers retain
         # width, reset, reserved-bit and physical-input checks.
         self.port_router = PeripheralRouter()
@@ -169,6 +174,8 @@ class BootBus:
                                   read=self.port_j.read,write=self.port_j.write)
         self.port_router.add_word(name='PKDR',base=PKDR_ADDRESS,
                                   read=self.port_k.read,write=self.port_k.write)
+        self.port_router.add_word(name='PLDR',base=PLDR_ADDRESS,
+                                  read=self.port_l.read,write=self.port_l.write)
         # RAM bytes have no predetermined initial value after a reset.
         self.ram = bytearray(RAM_LIMIT-RAM_BASE)
         self.ram_valid = bytearray(RAM_LIMIT-RAM_BASE)
