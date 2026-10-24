@@ -17,7 +17,7 @@ class Atu1A:
         self.read_flags=0;self.ticks=0;self.clock_supplied=False;self.pin=None;self.pin_b=None
         self.events=[]
         self.event_sink=None;self.explicit_input_events=0
-        self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None
+        self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
     def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER)
 
@@ -52,7 +52,7 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
-        allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
+        allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
             self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write')
         if a in (TCR,PSCR) and value!=self.regs[a]:
@@ -69,9 +69,27 @@ class Atu1A:
     def begin_clock_fixture(self,*,phase):
         if type(phase) is not int or phase!=0:raise ValueError('Only explicitly declared zero phase fixture supported')
         if self.clock_mode is not None:raise ValueError('Clock fixture already bound; do not mix clock domains')
-        self.known(PSCR);self.known(TCR)
+        self.known(PSCR)
+        if self.known(TCR) not in range(6):self.fail('unsupported_peripheral_mode','Internal fixture requires internal clock selection')
         self.clock_mode='supplied_phi';self.fixture_phase=phase
         self.explicit_input_events+=1
+
+    def begin_external_clock_fixture(self):
+        if self.clock_mode is not None:raise ValueError('Clock fixture already bound')
+        if self.known(TCR)&15 not in (6,7):self.fail('unsupported_peripheral_mode','External fixture requires TCLKA or TCLKB')
+        self.clock_mode='external_pin'
+        self._advance_counter_ticks(0)
+
+    def set_clock_pin(self,pin,level):
+        if pin not in ('A','B') or type(level) is not bool:raise ValueError('Explicit TCLKA/B boolean level required')
+        if self.clock_mode!='external_pin':raise ValueError('Bind external clock fixture first')
+        control=self.known(TCR);old=self.clock_pins[pin]
+        selected=pin==('A' if control&15==6 else 'B')
+        edge=(control>>4)&3
+        accepted=(selected and old is not None and old!=level and
+                  (edge==2 or edge==0 and level or edge==1 and not level))
+        self._advance_counter_ticks(1 if accepted else 0)
+        self.clock_pins[pin]=level
 
     def clock_report(self):
         return {'source':self.clock_mode,'fixture_phase_origin':self.fixture_phase,

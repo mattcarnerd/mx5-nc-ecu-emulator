@@ -37,3 +37,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b59-no-clock-unknown.json and b59-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All 192 divider combinations checked; supplied fixture phase is explicit, clock frequency and physical timing remain unknown. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B60/#67
+
+B60: count explicitly supplied TCLKA/TCLKB edges with TCR1A edge selection.
+
+Validation: Ran 333 tests in 3.078s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b60-no-clock-unknown.json and b60-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Both sources and all four edge selections tested; first level establishes a baseline, unselected pins cannot advance the counter. TI10 and AGCKM remain unsupported. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User requested these five bounded tasks; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

@@ -93,3 +93,5 @@ B57/#64 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS
 B58/#65 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). B58 overflow prerequisite complete. B59 internal supplied clocks and B60 external selected edges follow; B61 integrates dual captures through rollover. Hardware gates remain unchanged.
 
 B59/#66 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). All 192 divider combinations checked; supplied fixture phase is explicit, clock frequency and physical timing remain unknown.
+
+B60/#67 completed scope/test review: see [eight-task pass](docs/TIMER_CLOCK_PASS.md). Both sources and all four edge selections tested; first level establishes a baseline, unselected pins cannot advance the counter. TI10 and AGCKM remain unsupported.

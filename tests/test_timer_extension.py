@@ -61,3 +61,34 @@ class TimerExtensionTests(unittest.TestCase):
         with self.assertRaises(BootStop):Atu1A(power_on=False,trace=[],stop_type=BootStop).begin_clock_fixture(phase=0)
         with self.assertRaises(ValueError):Atu1A(power_on=True,trace=[],stop_type=BootStop).advance_phi_cycles(1)
         b=program(0x0009).bus;b.write(PSCR,1,31);self.assertEqual(b.read(PSCR,1),31)
+
+    def test_external_clock_sources_edges_baseline_and_isolation(self):
+        for source in ('A','B'):
+            for edge,expected in ((0,2),(1,2),(2,4),(3,0)):
+                t=Atu1A(power_on=True,trace=[],stop_type=BootStop)
+                t.write(TCR,1,(6 if source=='A' else 7)|(edge<<4))
+                t.begin_external_clock_fixture();t.write(TCNT,2,0xFFFF);t.write(TSTR,1,2)
+                other='B' if source=='A' else 'A'
+                for level in (False,True,False,True,False):t.set_clock_pin(other,level)
+                self.assertEqual(t.read(TCNT,2),0xFFFF)
+                for level in (False,False,True,True,False,True,False):t.set_clock_pin(source,level)
+                self.assertEqual(t.read(TCNT,2),(0xFFFF+expected)&0xFFFF)
+                self.assertEqual(t.regs[TSR],0x100 if expected else 0)
+                t.write(TSTR,1,0);t.set_clock_pin(source,True)
+                self.assertEqual(t.read(TCNT,2),(0xFFFF+expected)&0xFFFF)
+                with self.assertRaises(ValueError):t.advance_phi_cycles(1)
+                with self.assertRaises(ValueError):t.advance_ticks(1)
+
+    def test_external_clock_validation_and_compare(self):
+        t=Atu1A(power_on=True,trace=[],stop_type=BootStop)
+        with self.assertRaises(ValueError):t.set_clock_pin('A',True)
+        with self.assertRaises(BootStop):t.begin_external_clock_fixture()
+        for control in (8,9,15,0x40,0x86):
+            with self.assertRaises(BootStop):t.write(TCR,1,control)
+        t.write(TCR,1,6)
+        with self.assertRaises(BootStop):t.begin_clock_fixture(phase=0)
+        t.begin_external_clock_fixture();t.write(GR,2,1);t.write(TIOR,1,1);t.write(TSTR,1,2)
+        t.set_clock_pin('A',False);t.set_clock_pin('A',True)
+        self.assertEqual(t.regs[TSR],1)
+        with self.assertRaises(ValueError):t.set_clock_pin('C',False)
+        with self.assertRaises(ValueError):t.set_clock_pin('A',1)
