@@ -29,7 +29,7 @@ class HcanResetCommands:
         self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
         self.mbimr={a:0xFFFF if power_on else None for a in MBIMR_ADDRESSES}
         self.bcr={a:KnownBits(0,mask) if power_on else KnownBits(0,0) for a,mask in BCR_MASKS.items()}
-        self.mailbox_writes={}
+        self.mailbox_writes={};self.mailbox_data_writes={}
         self.trace,self.stop_type=trace,stop_type
 
     def _channel(self,address,width,access):
@@ -167,6 +167,13 @@ class HcanResetCommands:
         base=0xFFFFD100 if address<0xFFFFD900 else 0xFFFFD900
         channel=int(base==0xFFFFD900)
         mailbox,offset=divmod(address-base,32)
+        if width in (1,2) and 8<=offset and offset+width<=16 and offset%width==0:
+            value &= (1<<(8*width))-1
+            for index,byte in enumerate(value.to_bytes(width,'big')):self.mailbox_data_writes[address+index]=byte
+            self.mailbox_writes[address]=value
+            self.trace.append({'register':f'MB{mailbox}_{channel}+{offset:02X}','access':'write',
+                               'width':width,'value':value,'scope':'mailbox_data_command_latch_no_transmission'})
+            return
         if width!=2 or offset%2 or offset>0x12:
             raise self.stop_type('unsupported_access_size','Mailbox initialization supports aligned documented words only',
                                  address=address,width=width,access='write',value=value)

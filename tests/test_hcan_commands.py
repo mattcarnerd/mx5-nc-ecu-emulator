@@ -57,7 +57,7 @@ class HcanCommandTests(unittest.TestCase):
         b=BootBus(program(0x0009).bus.image,power_on=False)
         for address,width,value in ((0xFFFFD114,2,0),(0xFFFFD11E,2,0),
                                     (0xFFFFD101,2,0),(0xFFFFD100,4,0),
-                                    (0xFFFFD108,1,0),(0xFFFFD100,2,0x8000)):
+                                    (0xFFFFD106,1,0),(0xFFFFD100,2,0x8000)):
             with self.assertRaises(BootStop):b.write(address,width,value)
             self.assertEqual(b.hcan.mailbox_writes,{})
         b.write(0xFFFFD100,2,0)

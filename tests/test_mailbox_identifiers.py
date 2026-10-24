@@ -21,6 +21,6 @@ class MailboxIdentifierTests(unittest.TestCase):
     def test_gaps_width_and_non_identifier_data_not_broadened(self):
         b=program(0x0009).bus
         for a,w,v in ((0xFFFFD100,4,0x37),(0xFFFFD101,2,0x37),
-                      (0xFFFFD114,2,0),(0xFFFFD108,2,1)):
+                      (0xFFFFD114,2,0),(0xFFFFD106,2,1)):
             with self.assertRaises(BootStop):b.write(a,w,v)
         self.assertEqual(b.hcan.mailbox_writes,{})

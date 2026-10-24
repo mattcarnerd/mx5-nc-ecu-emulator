@@ -190,3 +190,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b84-no-clock-unknown.json and b84-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 392-test full suite passed, plus expanded CLI recorder cases. Strict prohibited write still rejected; recorder logs without applying mailbox state and taints CAN feedback. Delayed completion cannot clear taint. Separate experiment reaches1059 at documented byte data initialization, PCE74/op2D50; faithful milestone and hardware gate remain unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B85/#92
+
+B85: accept documented byte/word mailbox data configuration writes.
+
+Validation: Ran 394 tests in 50.616s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b85-no-clock-unknown.json and b85-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 394 tests cover both channels/all mailboxes and big-endian overlap without invented receive contents or transmission. Strict scenario unchanged; separate recording experiment reaches1140 at software-owned MBIMR read. Next task examines whether unknown-effect scope unnecessarily hides documented static latches; dynamic CAN status remains unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
