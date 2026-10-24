@@ -24,6 +24,7 @@ from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .virtual_clock import InstructionClock
+from .sh2_exception import execute_exception
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
@@ -500,6 +501,8 @@ class NCBootDiagnostic:
         self.vbr=0
         self.executed=0;self.trace=[]
         self.clock=InstructionClock()
+        self.exception_entries=0
+        self.exception_events=[]
         self._active_instruction=None
         self._fetch_pc=None
         self._pending_target=None
@@ -525,6 +528,8 @@ class NCBootDiagnostic:
         self._active_instruction=entry
         self.executed+=1
         handled,target=execute_delayed_branch(self,op,n,pc,delay_slot)
+        if handled: return target
+        handled,target=execute_exception(self,op,pc,delay_slot)
         if handled: return target
         if op==0x0009: return None
         if execute_control(self,op,n): return None
@@ -644,6 +649,8 @@ class NCBootDiagnostic:
             'executed_instructions':self.executed,
             'completed_instructions':self.clock.ticks,
             'virtual_time':self.clock.report(),
+            'exception_entries':self.exception_entries,
+            'exception_events':list(self.exception_events),
             'stop':stop,
             'next_dependency':dependency,
             'trace':self.trace[-min(100,len(self.trace)):],
