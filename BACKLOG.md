@@ -174,3 +174,5 @@ B45/#52 review: mailbox zero initialization complete; 274 tests. All open issue 
 B46/#53 review: generic DT implemented; 277 tests. Full open-body/backlog review adds B47/#54 for observed HCAN control2700 at FFFFD104. Existing dependencies unchanged; default reference188 and conditionalphi1 reaches242. See [third pass](docs/THIRD_FIVE_TASK_PASS.md).
 
 B47/#54 full backlog review: add B48/#55 known-bit dependency for observed MCR read; other scopes unchanged. See fourth pass.
+
+B48/#55 review:281 tests; primitive only, stops unchanged. All open bodies/rows reviewed; add B49/#56 for partial MCR MOV.W. Other dependencies unchanged.
