@@ -32,7 +32,7 @@ from .hcan import HcanResetCommands, MCR_ADDRESSES
 from .virtual_clock import InstructionClock
 from .execution_harness import ExecutionCoverage
 from .sh2_exception import execute_exception
-from .interrupts import service_interval_request
+from .interrupts import service_interrupt_requests
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
@@ -732,7 +732,7 @@ class NCBootDiagnostic:
         while self.executed < max_steps:
             try:
                 self.clock.dispatch_due()
-                if service_interval_request(self):continue
+                if service_interrupt_requests(self):continue
                 in_slot=self._pending_target is not None
                 target=self.execute(delay_slot=in_slot)
                 if in_slot:
