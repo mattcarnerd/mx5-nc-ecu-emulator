@@ -518,3 +518,28 @@ The full local suite passes **221 tests**, including private-ROM regressions.
 The Windows selector was visually checked. See [scenario evidence and backlog
 review](docs/HUDI_SCENARIOS.md). Actual board H-UDI history remains unknown;
 none of these results proves full ECU boot.
+
+
+## Second five-task pass (24 October 2026)
+
+Implemented B41 immediate CMP/EQ, B19 completed-instruction clock/event queue,
+B16 TRAPA/RTE, B21 explicit WDT ITI routing and B27 execution coverage/harness.
+The full local suite passes **254 tests**, including private-ROM regressions.
+Each task has a backlog review and its own CI/release evidence in #48, #22,
+#19, #28 and #34.
+
+Detailed reports now separate fetched attempts from completed instructions,
+show bounded PC repeat/failure coverage and record exception/interrupt events.
+Virtual time uses **abstract completed-instruction ticks**; hardware CPU cycles
+and seconds remain unknown. Explicit ITI events can be scheduled through the
+harness API for synthetic tests. Neither a timer overflow nor a real interrupt
+is generated automatically, and injected runs cannot be classified as the
+original-reference scenario.
+
+The same original-reference ROM with unknown H-UDI still stops at **188
+attempts**. Both explicit H-UDI assumptions pass CMP/EQ and reach **225**, then
+stop before enabling the unmodelled running interval timer: `0xA53C` word
+write to `0xFFFFEC10`, opcode `2E11` at PC `0x00000786`. B42/#49 tracks that
+conditional timing dependency; #1 still tracks actual board reset history.
+No physical timing values or full boot are claimed. See [pass evidence and
+complete backlog reviews](docs/SECOND_FIVE_TASK_PASS.md).

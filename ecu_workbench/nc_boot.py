@@ -24,6 +24,7 @@ from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
 from .virtual_clock import InstructionClock
+from .execution_harness import ExecutionCoverage
 from .sh2_exception import execute_exception
 from .interrupts import service_interval_request
 from .sh2_control import execute_control
@@ -113,6 +114,7 @@ class BootBus:
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
+        self.coverage=ExecutionCoverage()
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.hudi=HudiStatus(trace=self.peripheral_trace,stop_type=BootStop,scenario=hudi_scenario)
         self.rstcsr=ResetControl(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
@@ -361,7 +363,13 @@ class BootBus:
                                       'scope':'mixed_pin_and_latch_values' if inputs else 'output_latch_only'})
         return value
 
-    def read(self, a: int, width: int) -> int:
+    def read(self,a:int,width:int)->int:
+        try:return self._read(a,width)
+        except BootStop as error:
+            self.coverage.bus_failed(error,a,width,'read')
+            raise
+
+    def _read(self, a: int, width: int) -> int:
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.read(a,width)
         if a in (0xFFFFEC10,0xFFFFEC11):
@@ -425,7 +433,13 @@ class BootBus:
         if not all(self.ram_valid[off:off+width]):
             raise BootStop('uninitialised_ram',f'Read of unknown reset RAM at 0x{a:08X}',address=a,width=width,access='read')
         return int.from_bytes(self.ram[off:off+width], 'big')
-    def write(self, a:int,width:int,value:int):
+    def write(self,a:int,width:int,value:int):
+        try:return self._write(a,width,value)
+        except BootStop as error:
+            self.coverage.bus_failed(error,a,width,'write',value)
+            raise
+
+    def _write(self, a:int,width:int,value:int):
         if a in (SDSR_ADDRESS,SDSR_ADDRESS+1):
             return self.hudi.write(a,width,value)
         if a in (0xFFFFEC10,0xFFFFEC11):
@@ -502,10 +516,12 @@ class NCBootDiagnostic:
         self.vbr=0
         self.executed=0;self.trace=[]
         self.clock=InstructionClock()
+        self.coverage=self.bus.coverage
         self.exception_entries=0
         self.exception_events=[]
         self.interval_request=False
         self.explicit_interrupt_requests=0
+        self.scheduled_interrupt_events=0
         self.interrupt_entries=0
         self.interrupt_input_events=[]
         self._interrupt_inhibit=0
@@ -525,15 +541,21 @@ class NCBootDiagnostic:
         if len(self.interrupt_input_events)>100:del self.interrupt_input_events[0]
 
     def execute(self, *, delay_slot: bool=False):
+        self.coverage.current_pc=None
         self.clock.dispatch_due()
         if self._interrupt_inhibit:self._interrupt_inhibit-=1
-        target=self._execute_instruction(delay_slot=delay_slot)
+        try:
+            target=self._execute_instruction(delay_slot=delay_slot)
+        finally:
+            self.coverage.current_pc=None
+        self.coverage.instruction_completed(delay_slot)
         self.clock.completed_instruction()
         return target
 
     def _execute_instruction(self, *, delay_slot: bool=False):
         pc=self.pc
         self._fetch_pc=pc
+        self.coverage.current_pc=pc
         self._active_instruction=None
         op=self.bus.read(pc,2)
         n,m=(op>>8)&15,(op>>4)&15
@@ -542,6 +564,7 @@ class NCBootDiagnostic:
         self.trace.append(entry)
         self._active_instruction=entry
         self.executed+=1
+        self.coverage.fetched(pc,delay_slot)
         handled,target=execute_delayed_branch(self,op,n,pc,delay_slot)
         if handled: return target
         handled,target=execute_exception(self,op,pc,delay_slot)
@@ -670,6 +693,8 @@ class NCBootDiagnostic:
             'exception_events':list(self.exception_events),
             'interrupt_entries':self.interrupt_entries,
             'explicit_interrupt_requests':self.explicit_interrupt_requests,
+            'scheduled_interrupt_events':self.scheduled_interrupt_events,
+            'execution_coverage':self.coverage.report(),
             'interrupt_inputs':list(self.interrupt_input_events),
             'interval_interrupt_pending':self.interval_request,
             'stop':stop,

@@ -26,7 +26,7 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
     scenario=scenario_metadata(report.get("hudi_scenario", "unknown"))
     if scenario["conditional_hardware_scenario"]:
         status="Conditional H-UDI scenario — " + status
-    if report.get("explicit_interrupt_requests",0):
+    if report.get("explicit_interrupt_requests",0) or report.get("scheduled_interrupt_events",0):
         status="Injected interrupt scenario — " + status
     summary = {
         **scenario,
@@ -35,6 +35,8 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
         "attempted_instructions": count,
         "completed_instructions": report.get("completed_instructions"),
         "virtual_time": report.get("virtual_time"),
+        "execution_coverage": report.get("execution_coverage"),
+        "scheduled_interrupt_events": report.get("scheduled_interrupt_events",0),
         "interrupt_entries": report.get("interrupt_entries",0),
         "explicit_interrupt_requests": report.get("explicit_interrupt_requests",0),
         "reset": report.get("reset"),

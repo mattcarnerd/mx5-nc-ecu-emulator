@@ -2,7 +2,7 @@
 
 > **Goal:** a virtual Mazda MX-5 NC engine ECU that executes real firmware from **any valid NC engine-ECU ROM**, regardless of calibration ID. Do not build a ROM editor/diff tool or duplicate NCFlash.
 
-**Current status (24 October 2026):** B41/#48 implements signed immediate CMP/EQ. Default original LF9VEB power/NMI-high/300/no-pins/unknown-H-UDI remains 188 attempts at unknown SDSR. Both explicit H-UDI assumptions reach **225 attempts**, stopping before unmodelled interval timer enable: word `0xA53C` to `0xFFFFEC10`, opcode `2E11`, PC `0x00000786`. This is conditional progress, not measured board state. B42/#49 tracks running timer timing with explicit clock provenance. The requested next five tasks are B41, B19, B16, B21 and B27; later four are prerequisite/coverage work and do not claim default-reference boot progress. [Pass evidence](docs/SECOND_FIVE_TASK_PASS.md).
+**Current status (24 October 2026):** This five-task pass implements **B41/#48 CMP/EQ immediate**, **B19/#22 abstract clock/event queue**, **B16/#19 TRAPA/RTE**, **B21/#28 explicit ITI routing**, and **B27/#34 execution harness**. Full local suite: **254 tests pass**, including all private original-ROM regressions. Default power/NMI-high/300/no-pins/unknown-H-UDI still stops at **188 attempts** on unknown SDSR. Both explicit H-UDI assumptions reach **225 attempts**, stopping before unmodelled running interval enable (TCSR word `0xA53C`, address `0xFFFFEC10`, PC `0x00000786`, opcode `2E11`). The latter four tasks are tested prerequisites/coverage and do not advance this ROM stop. **B42/#49** owns running timer timing with explicit phi-cycle provenance; **#1** remains authentic board/TRST history. No physical time, timer event, engine signal or full boot is fabricated. Per-task issues link CI/Windows releases before closure. [Pass evidence](docs/SECOND_FIVE_TASK_PASS.md).
 
 ## Working agreement — one issue = one development pass
 
@@ -29,6 +29,7 @@ Do this **automatically as part of handling a "do next task" request**. The user
 
 | When | Completed/reviewed item | Evidence and decisions |
 |---|---|---|
+| 2026-10-24 | B27 / #34 execution harness — fifth task | 254 local tests pass with every private integration enabled. Bounded PC visits/repeats, attempted/completed slot counts, exact bus-failure totals plus capped histories, and explicit scheduled ITI events are deterministic. Unfired scheduled events also retain injection provenance; repeated PCs/limits never imply boot. Default actual-ROM run remains 188/unknown SDSR, both H-UDI assumptions remain 225/TCSR A53C with no interrupt injected. Reviewed every remaining open issue/body and all backlog rows: **no changes** beyond B42/#49 running interval timing next conditionally and #1 actual board history. FPU/timer/capture/ADC/engine/UI work retains dependencies. CI/EXE evidence is linked in #34 before closure. |
 | 2026-10-24 | B21 / #28 explicit ITI route | 245 local tests pass including private cases. ITI vector224/offset380, IPRL[7:4], SR-mask/priority-zero checks, held requests, entry frame/mask update and transfer/branch-slot inhibition are synthetically verified. No timer source is generated; injected request provenance excludes reference classification. Same three actual-ROM settings remain 188 default / 225 conditional with no request injected. Complete open-backlog/row review: **no changes**; B27 now has clock/exception/interrupt prerequisites, B42 remains running timing, #1 real board history remains missing. Other FPU/timer/ADC/engine scopes unchanged. CI/EXE linked in #28 before closure. |
 | 2026-10-24 | B16 / #19 TRAPA/RTE | 237 local tests pass with private cases enabled. Implemented one documented exception entry/return path, exact frame ordering, VBR/vector lookup, pre-slot SR restore and explicit failures for unknown SR/memory. Synthetic vector/frame/fault/slot tests pass; other exception families still stop explicitly. Same three private-ROM scenarios remain 188 default / 225 conditional, no claim that TRAPA or RTE ran in the reference startup. Full remaining-open-backlog and row review: **no changes**; B21 is now implementable on the tested frame helper, B27 follows; B42 running timing and #1 H-UDI evidence remain open. FPU/ADC/engine priorities unchanged. CI/EXE linked in #19 before closure. |
 | 2026-10-24 | B19 / #22 abstract clock/event queue | 230 local tests pass, private cases enabled. One tick per completed instruction, separate attempted count; delay slots/resume/failures tested. Stable ordered explicit-event scheduling; CPU cycles/seconds remain unknown, not invented. Default remains 188/unknown SDSR; both H-UDI assumptions remain 225/TCSR A53C, now classified unsupported_hardware_access. Reviewed every open task and all backlog rows: **no changes**; B16 then B21 and B27 remain prerequisite/coverage work, B42 requires explicit phi-cycle evidence, #1 remains board-history work. Other FPU/ADC/engine scopes unchanged. CI/EXE linked in #22 before closure. |
@@ -116,6 +117,7 @@ Highest confidence, immediate work. The original-reference report now confirms *
 | **[B16](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/19)** | One architectural exception / RTE path | Vector entry/return and saved state tests | B12 |
 | **[B41](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/48)** | CMP/EQ immediate (880B at F0C) in explicitly conditional scenarios | Signed imm8 equality, preserve R0, T/unknown tests; keep default and assumptions distinct | B40, B09 |
 | **[B42](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/49)** | Running interval timer with explicit clock provenance (conditional TCSR A53C) | Counter/overflow/ITI supplied-cycle tests; no invented phi timing | B19, B16, B21, B41 |
+| **[B19](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/22)** | Completed-instruction clock and ordered event queue | Implemented; abstract ticks, physical cycles/seconds unknown; #22 links CI/release | B05 |
 
 ## P2 — Build truthful simulated hardware
 
@@ -123,7 +125,6 @@ Other hardware and deferred FPU work: implement only when confirmed necessary fo
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
-| **[B19](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/22)** | Deterministic instruction/cycle time | Repeatable virtual time and delay-slot accounting | B05 |
 | **[B21](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/28)** | One interrupt source dispatched to CPU | Priority/mask/vector route proven by tests | B16, B19 |
 | **[B22](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/29)** | One ATU-II counter/capture channel | Deterministic timer register behaviour and events | B19, B21 |
 | **[B23](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/30)** | One ADC channel reading external voltage | Explicit input, conversion/status output, missing input | B17, B19 |
@@ -139,7 +140,7 @@ Longer-horizon execution coverage and first sensor input; the early multi-ROM in
 
 | Order | Single-pass task | Testable finish line | Depends on |
 |---|---|---|---|
-| **[B27](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/34)** | Sustained-execution diagnostic harness | Bounded PC coverage/loops/interrupt evidence, no fake boot | B16, B19 |
+| **[B27](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/34)** | Bounded execution harness | Implemented: PC/repeat/failure/interrupt coverage, no boot inference | B16, B19 |
 | **[B28](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/35)** | One live simulated input exposed to app | GUI/CLI feeds actual peripheral read; synthetic proof | B23, B27 |
 
 ## Intentional stop line

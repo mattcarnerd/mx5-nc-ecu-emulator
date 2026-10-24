@@ -13,6 +13,7 @@ def service_interval_request(cpu):
     from .nc_boot import BootStop
     if not cpu.interval_request or cpu._pending_target is not None or cpu._interrupt_inhibit:
         return False
+    cpu.coverage.current_pc=None
     cpu._active_instruction=None
     cpu._fetch_pc=cpu.pc
     raw=cpu.bus.ipr[IPRL_ADDRESS]
