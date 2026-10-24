@@ -6,6 +6,7 @@ an invalid input is evidence that Mazda firmware successfully booted.
 from __future__ import annotations
 
 from typing import Any
+from .hudi import scenario_metadata
 
 
 def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
@@ -22,7 +23,11 @@ def present_reset_diagnostic(report: dict[str, Any]) -> dict[str, Any]:
     count = report.get("executed_instructions", 0)
     budget = reason == "instruction_limit"
     status = f"Stopped: {reason} — {count} attempted instructions; ECU boot NOT verified."
+    scenario=scenario_metadata(report.get("hudi_scenario", "unknown"))
+    if scenario["conditional_hardware_scenario"]:
+        status="Conditional H-UDI scenario — " + status
     summary = {
+        **scenario,
         "boot_complete": False,
         "phase": "reset_diagnostic_only",
         "attempted_instructions": count,

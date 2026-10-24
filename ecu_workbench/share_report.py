@@ -10,6 +10,7 @@ import json
 import re
 from pathlib import Path
 from .trace_review import LF9VEB_SHA256
+from .hudi import scenario_metadata
 
 _HEX8 = re.compile(r"^0x[0-9A-Fa-f]{8}$")
 _OPCODE = re.compile(r"^[0-9A-Fa-f]{4}$")
@@ -79,6 +80,16 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     if provided is not None and type(provided) is not bool:
         raise ValueError("Invalid explicit-input setting")
 
+    hudi_scenario=settings.get("hudi_scenario", boot.get("hudi_scenario", "unknown"))
+    scenario=scenario_metadata(hudi_scenario)
+    if "hudi_scenario" in boot and boot["hudi_scenario"]!=hudi_scenario:
+        raise ValueError("H-UDI scenario mismatch in diagnostic")
+    if scenario["conditional_hardware_scenario"] and "hudi_scenario" not in boot:
+        raise ValueError("Conditional H-UDI scenario missing from executed report")
+    if "conditional_hardware_scenario" in boot and (
+            type(boot["conditional_hardware_scenario"]) is not bool or
+            boot["conditional_hardware_scenario"]!=scenario["conditional_hardware_scenario"]):
+        raise ValueError("Conditional H-UDI marker mismatch in diagnostic")
     accesses = boot.get("modelled_peripheral_accesses", [])
     if not isinstance(accesses, list):
         raise ValueError("Expected peripheral access list")
@@ -122,7 +133,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         and a.get("value") == 0x3FFF for a in accesses
     )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
-                      and limit == 300 and provided is False)
+                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"])
     dependency = boot.get("next_dependency")
     if not isinstance(dependency, dict):
         dependency = {}
@@ -131,7 +142,9 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     stopping_at_port_e = stop["reason"] == "unmodelled_peripheral" and (
         (stop_memory and stop_memory.get("address") == "0xFFFFF754") or
         (dependency_memory and dependency_memory.get("address") == "0xFFFFF754"))
-    if not same_reference:
+    if scenario["conditional_hardware_scenario"]:
+        assessment = "conditional_hardware_scenario"
+    elif not same_reference:
         assessment = "not_reference_scenario"
     elif observed_port_e_write:
         assessment = "port_e_write_observed_in_diagnostic"
@@ -142,11 +155,12 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
     result = {
         "schema_version": 1,
         "kind": "nc_sh7058_shareable_blocker",
+        **scenario,
         "rom_sha256": sha,
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
-            "explicit_pin_values": provided,
+            "explicit_pin_values": provided, "hudi_scenario": hudi_scenario,
         },
         "executed_instructions": count,
         "pc_at_stop": _hex8(boot.get("pc_at_stop")),

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from .hudi import scenario_metadata
 
 LF9VEB_SHA256 = "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf"
 
@@ -25,9 +26,13 @@ def summarise(report: dict) -> dict:
     stop = run.get("stop")
     if not isinstance(stop, dict) or not isinstance(stop.get("reason"), str):
         raise ValueError("Missing stop reason")
+    scenario=scenario_metadata(settings.get("hudi_scenario", "unknown"))
+    if "hudi_scenario" in report and report["hudi_scenario"]!=scenario["hudi_scenario"]:
+        raise ValueError("H-UDI scenario mismatch in baseline")
     expected_scenario = (sha == LF9VEB_SHA256 and settings.get("reset") == "power"
                          and settings.get("nmi") == "high" and settings.get("max_steps") == 300
-                         and not any(k.startswith("port_") for k in settings))
+                         and not any(k.startswith("port_") for k in settings)
+                         and not scenario["conditional_hardware_scenario"])
     last = run.get("trace_tail")
     if not isinstance(last, list):
         raise ValueError("Invalid trace tail")
@@ -49,6 +54,7 @@ def summarise(report: dict) -> dict:
     else:
         assessment = "past_previous_instruction_count_only"
     return {
+        **scenario,
         "rom_sha256": sha,
         "known_lf9veb": sha == LF9VEB_SHA256,
         "reference_scenario": expected_scenario,

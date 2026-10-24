@@ -49,7 +49,7 @@ class BaselineTests(unittest.TestCase):
         rom = fixture(bytes.fromhex("0009"))
         for nmi, label in ((None, "unknown"), (True, "high"), (False, "low")):
             report = capture_boot_baseline(rom, reset="manual", nmi_high=nmi, max_steps=1)
-            self.assertEqual(report["inputs"], {"reset": "manual", "nmi": label, "max_steps": 1})
+            self.assertEqual(report["inputs"], {"reset": "manual", "nmi": label, "max_steps": 1, "hudi_scenario": "unknown"})
             self.assertEqual(report["result"]["trace_tail"][0]["pc"], "0x00000180")
             self.assertEqual(report["result"]["initial_sp"], "0xFFFFBF00")
 

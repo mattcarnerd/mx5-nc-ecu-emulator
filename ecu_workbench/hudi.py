@@ -4,11 +4,31 @@ RES does not reset H-UDI. External TRST/serial activity is never inferred.
 SDIR/SDDR, TAP and combined 32-bit transactions remain unsupported.
 """
 SDSR_ADDRESS=0xFFFFF7C2
+HUDI_SCENARIOS=('unknown','trst-reset','transfer-complete')
+HUDI_SCENARIO_LABELS={
+    'Unknown (default)': 'unknown',
+    'Assume TRST reset': 'trst-reset',
+    'Assume transfer complete': 'transfer-complete',
+}
+
+def scenario_metadata(scenario):
+    if scenario not in HUDI_SCENARIOS:
+        raise ValueError('Invalid H-UDI scenario')
+    conditional=scenario!='unknown'
+    return {'hudi_scenario':scenario, 'conditional_hardware_scenario':conditional,
+            'hardware_scenario_note': (
+                'Conditional simulation: assumed H-UDI state; not verified ECU hardware history.'
+                if conditional else 'H-UDI initial state unknown; no TRST/serial history assumed.')}
+
 
 class HudiStatus:
-    def __init__(self, *, trace, stop_type):
+    def __init__(self, *, trace, stop_type, scenario="unknown"):
+        scenario_metadata(scenario)
+        self.scenario=scenario
         self.sdtrf=None
         self.trace,self.stop_type=trace,stop_type
+        if scenario=="trst-reset":self.trst_reset()
+        elif scenario=="transfer-complete":self.serial_transfer_completed()
 
     def trst_reset(self):
         """Explicit test-reset event supplied by a caller; not a power reset."""

@@ -15,6 +15,7 @@ from .nc_boot import diagnose_nc_reset
 from .boot_presenter import present_reset_diagnostic
 from .share_report import make_shareable_blocker_report
 from .nc_rom import assess_nc_rom
+from .hudi import HUDI_SCENARIO_LABELS
 
 
 class Workbench(tk.Tk):
@@ -27,6 +28,7 @@ class Workbench(tk.Tk):
         self.report: dict | None = None
         self.reset = tk.StringVar(value="power")
         self.nmi = tk.StringVar(value="unknown")
+        self.hudi_scenario = tk.StringVar(value="Unknown (default)")
         self.steps = tk.StringVar(value="300")
         self.port_b_pins = tk.StringVar(value="")
         self.port_b_mask = tk.StringVar(value="0xFFFF")
@@ -73,6 +75,14 @@ class Workbench(tk.Tk):
         )
         self.run_button.pack(side="right")
         self.run_button.state(["disabled"])
+
+        scenario_row = ttk.Frame(panel)
+        scenario_row.pack(fill="x", pady=(0, 8))
+        ttk.Label(scenario_row, text="H-UDI scenario").pack(side="left")
+        ttk.Combobox(scenario_row, textvariable=self.hudi_scenario,
+                     values=tuple(HUDI_SCENARIO_LABELS), state="readonly", width=29).pack(side="left", padx=8)
+        ttk.Label(scenario_row, text="Assumptions explore possibilities; board state remains unverified.",
+                  wraplength=410).pack(side="left")
 
         pin_controls = ttk.Frame(panel)
         pin_controls.pack(fill="x", pady=(0, 8))
@@ -177,6 +187,7 @@ class Workbench(tk.Tk):
                 reset=self.reset.get(),
                 nmi_high={"unknown": None, "high": True, "low": False}[self.nmi.get()],
                 max_steps=maximum,
+                hudi_scenario=HUDI_SCENARIO_LABELS[self.hudi_scenario.get()],
                 port_b_pin_values=(int(self.port_b_pins.get(), 0) if self.port_b_pins.get().strip() else None),
                 port_b_pin_known_mask=int(self.port_b_mask.get(), 0),
                 port_c_pin_values=(int(self.port_c_pins.get(),0) if self.port_c_pins.get().strip() else None),
@@ -193,6 +204,7 @@ class Workbench(tk.Tk):
                     "reset": self.reset.get(),
                     "nmi": self.nmi.get(),
                     "max_steps": maximum,
+                    "hudi_scenario": result["hudi_scenario"],
                     "explicit_pin_values": any(
                         variable.get().strip() for variable in
                         (self.port_b_pins, self.port_c_pins, self.port_d_pins)

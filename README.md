@@ -487,3 +487,34 @@ Per-task release/CI links are in #15, #27, #14, #46 and #13. See the
 [full pass evidence and backlog reviews](docs/FIVE_TASK_PASS.md).
 
 Authentic-trace clarification: before the current 188-attempt stop, RSTCSR and TCNT writes are observed; TCSR programming support is synthetic-only. No TCSR write or running watchdog is claimed.
+
+
+## Conditional H-UDI scenarios (B40 / #47)
+
+The Windows **H-UDI scenario** selector offers **Unknown (default)**,
+**Assume TRST reset**, and **Assume transfer complete**. The last two are
+explicit simulation assumptions, not measured ECU history. The same choice
+is available as `--hudi-scenario unknown`, `--hudi-scenario trst-reset`, or
+`--hudi-scenario transfer-complete` in the CLI (including `--baseline`).
+The API accepts `hudi_scenario` with those same values.
+
+The selection is saved with the executed result and exported in detailed,
+baseline and shareable JSON. Assumed runs carry
+`conditional_hardware_scenario: true` and cannot be classified as the
+original-reference scenario. Legacy reports without this setting retain the
+unknown/default interpretation. No TRST/TCK waveform or serial transfer is
+simulated automatically.
+
+Local comparison with the verified original-reference ROM, power reset,
+NMI high, 300 steps and no physical pin values:
+
+| H-UDI choice | Attempts | Stop |
+|---|---:|---|
+| Unknown (reference default) | 188 | Unknown SDSR SDTRF at `0xFFFFF7C2`; PC `0x00000EF8`, opcode `6321` |
+| Assume TRST reset (conditional) | 212 | Unsupported `880B` (`CMP/EQ #11,R0`) at PC `0x00000F0C` |
+| Assume transfer complete (conditional) | 212 | Same unsupported instruction at PC `0x00000F0C` |
+
+The full local suite passes **221 tests**, including private-ROM regressions.
+The Windows selector was visually checked. See [scenario evidence and backlog
+review](docs/HUDI_SCENARIOS.md). Actual board H-UDI history remains unknown;
+none of these results proves full ECU boot.

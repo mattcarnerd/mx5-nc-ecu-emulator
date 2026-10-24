@@ -26,7 +26,7 @@ from .sh2_compare import execute_compare_carry
 from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
-from .hudi import HudiStatus, SDSR_ADDRESS
+from .hudi import HudiStatus, SDSR_ADDRESS, scenario_metadata
 from .watchdog import ResetControl, WatchdogTimer, RSTCSR_WRITE, RSTCSR_READ
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
@@ -105,12 +105,13 @@ class BootBus:
                  port_h_pin_values: Optional[int]=None, port_h_pin_known_mask: int=0xFFFF,
                  port_j_pin_values: Optional[int]=None, port_j_pin_known_mask: int=0xFFFF,
                  port_k_pin_values: Optional[int]=None, port_k_pin_known_mask: int=0xFFFF,
-                 port_l_pin_values: Optional[int]=None, port_l_pin_known_mask: int=PL_VALID_MASK):
+                 port_l_pin_values: Optional[int]=None, port_l_pin_known_mask: int=PL_VALID_MASK,
+                 hudi_scenario: str="unknown"):
         self.image = image
         self.bsc = {addr:(reset if power_on else None) for addr, (_,reset) in BSC_REGISTERS.items()}
         self.peripheral_trace=[]
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
-        self.hudi=HudiStatus(trace=self.peripheral_trace,stop_type=BootStop)
+        self.hudi=HudiStatus(trace=self.peripheral_trace,stop_type=BootStop,scenario=hudi_scenario)
         self.rstcsr=ResetControl(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         # SYSCR2 clock/source control: write word with 0x3C key, read byte.
         # SH7058 manual sect. 5.1.3 & 5.2.3: power-on initial 0x01.
@@ -474,14 +475,15 @@ class NCBootDiagnostic:
     def __init__(self, rom: ROMImage, *, reset: str='power', nmi_high: Optional[bool]=None,
                  port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
                  port_c_pin_values: Optional[int]=None, port_c_pin_known_mask: int=PC_VALID_MASK,
-                 port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF):
+                 port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF,
+                 hudi_scenario: str="unknown"):
         if len(rom.data) != ROM_LIMIT:
             raise BootStop('unsupported_image_size','SH7058 1 MiB full-flash profile requires exactly 1,048,576 bytes')
         if reset not in ('power','manual'): raise ValueError('reset must be power or manual')
         self.bus=BootBus(rom,power_on=(reset=="power"),nmi_high=nmi_high,
                          port_b_pin_values=port_b_pin_values, port_b_pin_known_mask=port_b_pin_known_mask,
                          port_c_pin_values=port_c_pin_values, port_c_pin_known_mask=port_c_pin_known_mask,
-                         port_d_pin_values=port_d_pin_values, port_d_pin_known_mask=port_d_pin_known_mask); self.vectors=ResetVectors.read(rom.data); self.reset=reset
+                         port_d_pin_values=port_d_pin_values, port_d_pin_known_mask=port_d_pin_known_mask, hudi_scenario=hudi_scenario); self.vectors=ResetVectors.read(rom.data); self.reset=reset
         self.pc=self.vectors.power_pc if reset=='power' else self.vectors.manual_pc
         sp=self.vectors.power_sp if reset=='power' else self.vectors.manual_sp
         if self.pc & 1 or not (ROM_BASE <= self.pc < ROM_LIMIT):
@@ -609,6 +611,7 @@ class NCBootDiagnostic:
                                 fetch_pc=self._fetch_pc)
         return {
             'engine':'SH7058 reset diagnostic (partial SH-2 integer instruction subset)',
+            **scenario_metadata(self.bus.hudi.scenario),
             'rom_sha256':hashlib.sha256(self.bus.image.data).hexdigest(),
             'rom_size_bytes':len(self.bus.image.data),
             'profile':'sh7058-1m-readonly',
@@ -642,9 +645,11 @@ class NCBootDiagnostic:
 def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi_high: Optional[bool]=None,
                       port_b_pin_values: Optional[int]=None, port_b_pin_known_mask: int=0xFFFF,
                       port_c_pin_values: Optional[int]=None, port_c_pin_known_mask: int=PC_VALID_MASK,
-                      port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF) -> dict:
+                      port_d_pin_values: Optional[int]=None, port_d_pin_known_mask: int=0xFFFF,
+                      hudi_scenario: str="unknown") -> dict:
+    scenario_metadata(hudi_scenario)
     try:
-        return NCBootDiagnostic(rom, reset=reset, nmi_high=nmi_high,
+        return NCBootDiagnostic(rom, reset=reset, nmi_high=nmi_high, hudi_scenario=hudi_scenario,
                                 port_b_pin_values=port_b_pin_values,
                                 port_b_pin_known_mask=port_b_pin_known_mask,
                                 port_c_pin_values=port_c_pin_values,
@@ -653,6 +658,7 @@ def diagnose_nc_reset(rom: ROMImage, reset: str='power', max_steps: int=200, nmi
                                 port_d_pin_known_mask=port_d_pin_known_mask).run(max_steps=max_steps)
     except BootStop as e:
         return {'engine':'SH7058 reset diagnostic','profile':'sh7058-1m-readonly','reset':reset,'nmi_high':nmi_high,
+                **scenario_metadata(hudi_scenario),
                 'stop':e.report(),
                 'next_dependency':explain_stop(e.report(),trace=[]),
                 'boot_complete':False}
