@@ -572,3 +572,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b114-no-clock-unknown.json and b114-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 474 tests pass. Sharedvector80/IPRC7:4 and OVI0vector92/IPRD11:8 verified priority/mask/ack/RTE/stack/SR/held/delay-slot paths. Generated firmware handles3 repeated interval entries; no originalfirmware IRQ/initclaim. Othercounter/ADC/capture/FFstarts remainguarded. Next remaining timer runtime groups/channel10; currentbacklog updated. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B115/#122
+
+B115: add explicit-Pphi upcounter bank with atomic unsupported-event boundary.
+
+Validation: Ran 478 tests in 8.926s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b115-no-clock-unknown.json and b115-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 478 tests pass. Independentdivisors/packetpartition/stop-resumephase, atomic crossbankeventstop, externalclock/manual/activewrite/phaseguards verified. New0..7FAPIstartfixture stopsbeforeunmodelledGR/OCR/overflow; FF/channel10 rejected. No fakeflags/pulse/IRQs; originalsourceROM stillblocked atFF. Next channel10 initialruntime dependencies or required event models fromprimarysource. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
