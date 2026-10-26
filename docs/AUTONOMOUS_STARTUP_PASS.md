@@ -670,3 +670,15 @@ Responding to the user request, inspected ROMDrop master tree, README, branches/
 Ran six declared scenarios per image: strict, H-UDI/phi1, explicit reset-completion, priorRAM/pin recorder exploration, optional startup timers without and with ordered-watchdog-stop policy. Actual downloaded v190 EXE checksum was verified before execution and strict/latest experimental results matched both images. Public CI will rerun the existing505-test suite; no emulator code changed in this comparison task, so local suite was not redundantly rerun.
 
 Mandatory review: every open issue body and backlog row refreshed; bounded comparison child130, parents1/2/3 retain unresolved hardware/CPU/peripheral scope. Both new images request prohibited MBC011, so merely acquiring another image does not settle the gate. The LF9VEB reference remains unchanged. Zero original-firmware IRQs; no sustained initialization. See provenance and evidence/b123-* reports.
+
+## B124/#131
+
+B124: independently audit reached SH arithmetic/addressing with pinned SLEIGH semantics
+
+Validation: Ran 509 tests in 9.002s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b124-no-clock-unknown.json and b124-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 864 generated vectors and all three reached nine-instruction windows match. Entry state is emulator-supplied, so full earlier reset/caller behavior is not independently certified. Primary SH7058S profile retains the same register layout/prohibition; hardware mode behavior remains unresolved. No default/guard relaxed; next evidence is earlier CPU/profile discrepancy or applicable011 behavior. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

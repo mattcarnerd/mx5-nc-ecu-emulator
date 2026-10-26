@@ -47,3 +47,7 @@ The downloaded v0.2.0-dev.189.1 Windows EXE was checksum-verified before executi
 ## B123: independent public image comparison
 
 The user requested another ROM from ROMDrop. Full LFNPEA and LF4XEC issue attachments were downloaded and identified locally; see ROM_PROVENANCE.md. Both hit MBC011 under explicit completion assumptions: LFNPEA word2308 at PCE70, LF4XEC word0308 at PCCBC. LFNPEA reproduces the later symbolic MBC/DLC store under the fully labelled timer experiment; LF4XEC reaches an unknown-T branch in its recorder-only exploration. Zero CPU IRQs in every supplied matrix case. Different images do not automatically resolve undocumented behavior, and no image is patched or substituted for the LF9VEB reference. The comparison strengthens the need for applicable behavior evidence or an independent CPU/profile correction. No full-image bytes are published.
+
+## B124 independent semantic check
+
+[Ghidra SLEIGH/pypcode audit](INDEPENDENT_SH2_AUDIT.md) now independently decodes and evaluates the three reached nine-instruction windows and matches864 generated vectors. Every window store and final R0 agree, including final2308/0308 to FFFFD104. This narrows the checked arithmetic/addressing issue but is not an independent full-reset trace: entry registers come from our emulator. SH7058S Rev5 uses the same control address/MBC bits and prohibition. Exact silicon remains unverified; no hardware behavior exception or mode conversion is inferred. The gate remains unresolved.
