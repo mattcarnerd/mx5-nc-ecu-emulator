@@ -462,3 +462,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b106-no-clock-unknown.json and b106-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 452 tests pass. TMDR0 only with channels3-5 stopped; individual TCR3/4/5 latches enforce reserved/clock/stop guards. No PWM/pin/counter/IRQ effects invented. Explicit PBPD0/FFFF investigations reach58628/58626 attempts at TCR6A FFFFF521 byte44, PCBE80/op2260. B103 downloaded release169 checksum and actualEXE strict/exploration verification recorded. Next stopped timer6/7 clockfields from verified manual section11.2.3. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B107/#114
+
+B107: add stopped timer6/7 clockfields and observed PMDR0 configuration.
+
+Validation: Ran 454 tests in 8.639s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b107-no-clock-unknown.json and b107-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 455 tests pass. Paired divisorfields0..5 /reservedbits validate atomically, perTSTR2stopguard; PMDR0 only with timer6stopped. No PWM/counters/IRQs invented. Next stop recorded in b107-exploration; strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

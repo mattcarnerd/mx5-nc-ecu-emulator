@@ -15,6 +15,7 @@ EXTRA_TCR_STOP={TCR1B:8,TCR2A:4,TCR2B:8,TCR3:0x10,TCR4:0x20,TCR5:0x40}
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
+PWM_TCR_STOP={0xFFFFF521:0x03,0xFFFFF520:0x0C,0xFFFFF5A1:0x30,0xFFFFF5A0:0xC0}
 TMDR=0xFFFFF484
 TRGMDR=0xFFFFF466
 TCNR=0xFFFFF662
@@ -24,7 +25,7 @@ DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -68,6 +69,10 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a in PWM_TCR_STOP:
+            if value&0x88 or value&7>5 or (value>>4)&7>5:
+                self.fail('invalid_peripheral_write','Timer6/7 clockfields require reserved7/3zero and selectors0..5',a,width,'write')
+            if self.known(TSTR2)&PWM_TCR_STOP[a]:self.fail('unsupported_peripheral_mode','Configure timer6/7 clocks only while selected counters stopped',a,width,'write')
         if a==TMDR:
             if value&0xF8:self.fail('invalid_peripheral_write','TMDR reserved bits7..3 require zero',a,width,'write')
             if value or self.known(TSTR)&0x70:self.fail('unsupported_peripheral_mode','TMDR subset supports stopped channels3..5 and PWM disabled only',a,width,'write')
