@@ -352,3 +352,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b97-no-clock-unknown.json and b97-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 433 tests pass. Rev3 table8.1/8.2-8.3 support UBAR/UBAMR/UBBR/UBCR storage only with proveninactive breakconditions. Module stop resets UBC, unknown manual/clock state guarded; reserved writes/combined accesses atomic. Experimental PBPD0/FFFF reaches58571/58569 attempts at UBBR E8 enabling data-write breakconditions, PCBDA6/op2011,0 IRQs. Next examine active UBC semantics rather than ignoring debug interrupts. Strict and CAN gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B98/#105
+
+B98: accept known CPU data-write UBC setup with fail-closed match guard.
+
+Validation: Ran 435 tests in 6.607s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b98-no-clock-unknown.json and b98-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 435 tests pass. Address-mask/size matching guards concrete/partial stores before any sideeffect; unsupported read/fetch/unknown matching rejects setup. No UBC IRQ or trigger timing fabricated. PBPD0/FFFF experiments now reach58586/58584 attempts at FFFFF400 byte0, PCBE2C/op2740,0 IRQs. Next identify ATU control register. Strict/CAN gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

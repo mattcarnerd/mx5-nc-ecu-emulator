@@ -400,6 +400,7 @@ class BootBus:
             raise
 
     def write_cpu_value(self,address,width,bits):
+        self.ubc.guard_cpu_write(address,width,syscr2=self.syscr2)
         if width not in (1,2,4):raise ValueError('Unsupported width')
         required=(1<<(width*8))-1
         unknown=required & ~bits.mask
@@ -530,6 +531,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        self.ubc.guard_cpu_write(a,width,syscr2=self.syscr2)
         if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'write',value)
         if self.ubc.handles(a):return self.ubc.access(a,width,'write',value,syscr2=self.syscr2)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'write',value)

@@ -1,4 +1,4 @@
-"""Rev3 sections8.1-8.3: inactive UBC configuration, no comparator/output model."""
+"""Rev3 sections8.1-8.3: UBC configuration and guarded CPU data-write matches; no IRQ/output timing."""
 BASE=0xFFFFEC00
 class UserBreakConfig:
     def __init__(self, *, power_on,trace,stop_type):
@@ -26,7 +26,21 @@ class UserBreakConfig:
         for i,mask in ((8,0),(10,0),(11,7)):
             if known[i] and proposed[i]&~mask:stop('invalid_peripheral_write','UBC reserved bits require zero')
         # At least one CP/ID/RW group00 is sufficient proof that no match occurs.
-        if not known[9] or all(proposed[9]&mask for mask in (0xC0,0x30,0x0C)):
-            stop('unsupported_peripheral_mode','Active or unknown UBC break matching outside subset')
+        if not known[9]:stop('unsupported_peripheral_mode','Unknown UBC break matching outside subset')
+        active=all(proposed[9]&mask for mask in (0xC0,0x30,0x0C))
+        if active and (not proposed[9]&0x40 or proposed[9]&0x30!=0x20 or proposed[9]&0x0C!=8 or not all(known[:8])):
+            stop('unsupported_peripheral_mode','Only fully known CPU data-write UBC matching is guarded')
         self.data,self.valid=proposed,known
         self.trace.append({'register':'UBC','address':f'0x{a:08X}','access':'write','width':width,'value':value,'scope':'inactive_break_configuration'})
+
+    def guard_cpu_write(self,a,width,*,syscr2):
+        if syscr2 is None or syscr2&1 or not self.valid[9]:return
+        control=self.data[9]
+        if not all(control&mask for mask in (0xC0,0x30,0x0C)):return
+        size=control&3
+        if size and width!={1:1,2:2,3:4}[size]:return
+        target=int.from_bytes(self.data[:4],'big');mask=int.from_bytes(self.data[4:8],'big')
+        if (a^target)&(~mask&0xFFFFFFFF):return
+        raise self.stop_type('unsupported_peripheral_mode',
+            'UBC CPU data-write condition matches; user-break IRQ/UBCTRG timing unmodelled, store not applied',
+            address=a,width=width,access='write')
