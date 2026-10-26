@@ -1,4 +1,5 @@
 """ATU-II channel1A/GR1A subset; explicit selected-counter-clock ticks only."""
+from .atu_aux_timers import AuxiliaryTimerRuntime,MEMBERS as AUX_COUNTERS
 from .atu_channel10 import Channel10InitialRuntime
 from .atu_counter0 import Counter0Runtime,TCNT0,TSR0,TIER0
 from .atu_upcounter_bank import UpcounterBankRuntime,MEMBERS as BANK_COUNTERS
@@ -52,6 +53,7 @@ class Atu1A:
         self.counter0=Counter0Runtime(self)
         self.upcounter_bank=UpcounterBankRuntime(self,power_on=power_on)
         self.channel10=Channel10InitialRuntime(self,power_on=power_on)
+        self.aux_timers=AuxiliaryTimerRuntime(self,power_on=power_on)
         self.channel8_counters=[0 if power_on else None for _ in range(16)]
         self.channel8_reload_value=0 if power_on else None
         self.channel8_reload_enabled=False if power_on else None
@@ -114,6 +116,7 @@ class Atu1A:
             if value not in (0,1):self.fail('unsupported_peripheral_mode','Counter0 fixture supports only TCNT0 start; other channel runtimes unmodelled',a,width,'write',value)
             if value:self.counter0.guard_start()
         if a==TCR11:
+            if self.aux_timers.enabled and value!=self.regs[a]:self.fail('unsupported_peripheral_mode','Timer11 clock change after binding outside phase subset',a,width,'write',value)
             if value&0xC8:self.fail('invalid_peripheral_write','TCR11 reserved bits7/6/3 require zero',a,width,'write')
             if self.known(TSTR3)&1:self.fail('unsupported_peripheral_mode','TCR11 configuration requires stopped counter11',a,width,'write')
         if a==RLDENR:
@@ -127,6 +130,7 @@ class Atu1A:
         if a==PMDR and (value or self.known(TSTR2)&0x0F):
             self.fail('unsupported_peripheral_mode','PMDR subset accepts observed0 only with timer6 counters stopped; PWM outputs unmodelled',a,width,'write')
         if a in PWM_TCR_STOP:
+            if self.aux_timers.enabled and value!=self.regs[a]:self.fail('unsupported_peripheral_mode','Timer6/7 clock change after binding outside phase subset',a,width,'write',value)
             if value&0x88 or value&7>5 or (value>>4)&7>5:
                 self.fail('invalid_peripheral_write','Timer6/7 clockfields require reserved7/3zero and selectors0..5',a,width,'write')
             if self.known(TSTR2)&PWM_TCR_STOP[a]:self.fail('unsupported_peripheral_mode','Configure timer6/7 clocks only while selected counters stopped',a,width,'write')
@@ -153,9 +157,12 @@ class Atu1A:
             # including retained unknown manual state, untouched.
             self.trace.append({'register':'DSTR','access':'write','width':2,'value':0,'scope':'write_zero_no_operation'})
             return
-        if a in (TSTR2,TSTR3) and value!=0:
-            self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write',value)
+        if a in (TSTR2,TSTR3):
+            if self.aux_timers.enabled:self.aux_timers.guard_start(a,value)
+            elif value:self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write',value)
         if a in PSCR_EXTRA:
+            if self.aux_timers.enabled and a in (0xFFFFF406,0xFFFFF408) and value!=self.regs[a]:
+                self.fail('unsupported_peripheral_mode','Timer6/7 prescaler changes after binding outside phase subset',a,width,'write',value)
             if a==0xFFFFF40A and self.channel10.enabled and value!=self.regs[a]:
                 self.fail('unsupported_peripheral_mode','Channel10 clock changes after binding require phase handling',a,width,'write',value)
             if value&0xE0:self.fail('invalid_peripheral_write','PSCR reserved bits7..5 require zero',a,width,'write')
@@ -180,6 +187,7 @@ class Atu1A:
             _,start,bit,_=STOPPED_COUNTERS[a]
             if a==TCNT0 and self.counter0.enabled:return
             if a in BANK_COUNTERS and self.upcounter_bank.enabled and operation=='read':return
+            if a in AUX_COUNTERS and self.aux_timers.enabled and operation=='read':return
             if self.known(start)&bit:
                 self.fail('unsupported_peripheral_mode','Counter execution outside stopped-register subset',a,width,operation)
 
@@ -188,9 +196,12 @@ class Atu1A:
                 and (self.channel8_reload_enabled is False or self.channel8_reload_value==0))
 
     def begin_startup_timer_clock_fixture(self,*,phase):
+        self.aux_timers.guard_start(TSTR2,self.known(TSTR2))
+        self.aux_timers.guard_start(TSTR3,self.known(TSTR3))
         self.channel10.guard_start()
         self.upcounter_bank.bind(phase=phase)
         self.channel10.enabled=True
+        self.aux_timers.enabled=True
 
     def begin_upcounter_bank_clock_fixture(self,*,phase):
         self.upcounter_bank.bind(phase=phase)
@@ -224,7 +235,7 @@ class Atu1A:
         self.clock_pins[pin]=level
 
     def clock_report(self):
-        return {'source':self.clock_mode,'upcounter_bank_fixture':self.upcounter_bank.enabled,
+        return {'source':self.clock_mode,'upcounter_bank_fixture':self.upcounter_bank.enabled,'auxiliary_timer_fixture':self.aux_timers.enabled,
                 'channel10_startup_fixture':self.channel10.enabled,
                 'channel10_initial_candidates':self.channel10.initial_fixture,
                 'channel10_zero_reload_policy':self.channel10.zero_reload_policy,
@@ -241,9 +252,11 @@ class Atu1A:
         pulses=(self.phi_cycles+count)//divisor-self.phi_cycles//divisor
         channel10_plan=self.channel10.prepare(count)
         plan=self.upcounter_bank.prepare(count)
+        aux_plan=self.aux_timers.prepare(count)
         self.counter0.advance_phi(count)
         self._advance_counter_ticks(pulses)
         self.regs.update(plan)
+        self.regs.update(aux_plan)
         self.channel10.apply(channel10_plan)
         self.phi_cycles+=count
 

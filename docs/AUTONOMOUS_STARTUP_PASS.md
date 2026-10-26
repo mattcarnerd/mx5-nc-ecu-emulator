@@ -608,3 +608,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b117-no-clock-unknown.json and b117-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 488 tests pass. Fixture validation/envelope/defaultoptout/atomic startvalidation/failedpacket ordering and generated first-start ROM verified. WindowsEXEsmoke nowalsoactivatesactualtimerfixture. SourceROMmatrix defaultzero-policy blocksfirstpacket; experimentalwrap proceedsonepacket thenTSTR2FF F400 atPCBED4,58670/58668attempts,0IRQs. All Pphi/reset/policy/order assumptions retained; originalfirmware milestone remainsunachieved. Next bounded timer6/7runtime before PWMstart. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B118/#125
+
+B118: add timer6/7/11 counts until unsupported PWM/APC/compare boundaries.
+
+Validation: Ran 492 tests in 5.912s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b118-no-clock-unknown.json and b118-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 492 tests pass. Independentcounter reset/divisor/startphase/partition and atomiccrossbankeventstop verified; compare/PWM/APC/overflow effects remainexplicitstops. Allclock/mode/activewrite/unknown guards retained. Experimentalwrap sourceROM nowapplies18timerpackets and reaches58687/58685 attempts at WDT TCSR A518/FFFFEC10, PCC00C/op2021,0IRQs. Defaultzero-policy stillguarded. Next verify watchdogstop/clock-change semantics againstmanual beforecorrecting. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
