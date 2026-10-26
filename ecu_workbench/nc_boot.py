@@ -11,6 +11,7 @@ from typing import Optional
 from .core import ROMImage
 from .known_bits import KnownBits
 from .syscr1 import SystemControl1, ADDRESS as SYSCR1_ADDRESS
+from .ubc import UserBreakConfig
 from .fpu import FpuState,execute_fpu
 from .atu import Atu1A
 from .adc import Adc0
@@ -136,6 +137,7 @@ class BootBus:
         # SYSCR2 clock/source control: write word with 0x3C key, read byte.
         # SH7058 manual sect. 5.1.3 & 5.2.3: power-on initial 0x01.
         self.syscr2 = 0x01 if power_on else None
+        self.ubc=UserBreakConfig(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.syscr1=SystemControl1(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         # SH7058 section 7.1.4: IPRx power-on reset to 0; ICR bit 15
         # reads the physical NMI pin state and is not faked by this model.
@@ -446,6 +448,7 @@ class BootBus:
 
     def _read(self, a: int, width: int) -> int:
         if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'read')
+        if self.ubc.handles(a):return self.ubc.access(a,width,'read',syscr2=self.syscr2)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'read')
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'read')
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'read')
@@ -528,6 +531,7 @@ class BootBus:
 
     def _write(self, a:int,width:int,value:int):
         if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'write',value)
+        if self.ubc.handles(a):return self.ubc.access(a,width,'write',value,syscr2=self.syscr2)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'write',value)
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'write',value)
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'write',value)
@@ -559,6 +563,7 @@ class BootBus:
                 if (value >> 8) & 0xFF != 0x3C:
                     raise BootStop('invalid_peripheral_write','SYSCR2 requires 0x3C upper write key',address=off,width=2,access='write',value=value)
                 self.syscr2=value & 0xFF
+                if self.syscr2&1:self.ubc.reset_module()
                 self.peripheral_trace.append({'register':'SYSCR2','access':'write','value':self.syscr2,'write_word':f'0x{value:04X}'})
                 return
             if width == 2 and off == 0xFFFFF726:

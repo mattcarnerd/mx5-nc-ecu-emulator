@@ -340,3 +340,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b96-no-clock-unknown.json and b96-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 430 tests pass. All16 targets, partial bit0 knowledge, guarded consumer and delay-slot coverage. Explicit RAM0/phi16/PC0/PBPD0 orFFFF investigations now reach58566/58564 attempts at FFFFEC00 long write7FFFFFFF, PCBD9C/op2342;0 firmware IRQs. Need identify next hardware register before implementation. Defaults unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B97/#104
+
+B97: implement inactive UBC configuration with atomic big-endian accesses.
+
+Validation: Ran 433 tests in 6.342s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b97-no-clock-unknown.json and b97-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 433 tests pass. Rev3 table8.1/8.2-8.3 support UBAR/UBAMR/UBBR/UBCR storage only with proveninactive breakconditions. Module stop resets UBC, unknown manual/clock state guarded; reserved writes/combined accesses atomic. Experimental PBPD0/FFFF reaches58571/58569 attempts at UBBR E8 enabling data-write breakconditions, PCBDA6/op2011,0 IRQs. Next examine active UBC semantics rather than ignoring debug interrupts. Strict and CAN gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
