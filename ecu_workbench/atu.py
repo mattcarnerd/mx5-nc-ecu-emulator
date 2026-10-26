@@ -9,12 +9,15 @@ TCR1B=0xFFFFF45C
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
+TRGMDR=0xFFFFF466
+TCNR=0xFFFFF662
+OTR=0xFFFFF664
 ITVRR=(0xFFFFF424,0xFFFFF426,0xFFFFF428)
 DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -25,7 +28,7 @@ class Atu1A:
         self.event_sink=None;self.explicit_input_events=0
         self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
-    def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR)
+    def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR)
 
     def fail(self,kind,detail,a=None,width=None,access=None):
         raise self.stop_type(kind,detail,address=a,width=width,access=access)
@@ -58,6 +61,12 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a in (TCNR,OTR) and value:
+            self.fail('unsupported_peripheral_mode','Channel8 trigger connection/termination outside subset',a,width,'write')
+        if a==TRGMDR:
+            if value&0x7F:self.fail('invalid_peripheral_write','TRGMDR reserved bits6..0 require zero',a,width,'write')
+            if any(self.known(control)!=0 for control in (DSTR,TCNR,OTR)):
+                self.fail('unsupported_peripheral_mode','TRGMDR subset requires channel8 stopped and triggers disconnected',a,width,'write')
         if a==TCR1B:
             if value&0xC0:self.fail('invalid_peripheral_write','TCR1B reserved bits7..6 require zero',a,width,'write')
             if value&0xF not in range(8):self.fail('unsupported_peripheral_mode','TCR1B AGCK/AGCKM clock outside subset',a,width,'write')

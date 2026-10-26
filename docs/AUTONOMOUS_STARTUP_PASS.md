@@ -424,3 +424,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b103-no-clock-unknown.json and b103-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 445 tests pass. Launcher --explore-startup explicitly imports module into packagedEXE; full priorRAM/phi/B/C/D assumptions checked by actual generated-ROM Windows smoke. Local downloadedEXE verification remains required before closing#110. Strict behavior and firmware progress unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B104/#111
+
+B104: add TRGMDR only with disabled channel8 trigger connections.
+
+Validation: Ran 447 tests in 5.205s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b104-no-clock-unknown.json and b104-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 447 tests pass. Rev3 11.2.8/12/13: TRGMDR0/80 stored only with known DSTR/TCNR/OTR0; TCNR/OTR word0 disables connections; unknown/active/reserved/width writes rejected. No pulses or IRQs invented. PBPD0/FFFF experiments reach58614/58612 attempts at TCR2A FFFFF62B byte4, PCBE64/op2250. Next stopped TCR2A/Bclockconfig from same verified section11.2.3. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
