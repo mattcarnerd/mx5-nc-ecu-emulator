@@ -694,3 +694,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b125-no-clock-unknown.json and b125-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All three ROMs explicitly assign R5=3; SLEIGH inspects57/57/54 observed events and no intervening writers including delay slots. Stale R5 input is excluded on those paths; earlier control-flow decisions remain emulator-derived, so controller behavior/earlier-profile gate stays open. No hardware value or mode conversion invented. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B126/#133
+
+B126: independently execute caller conditions and targets with symbolic SLEIGH state
+
+Validation: Ran 519 tests in 14.753s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b126-no-clock-unknown.json and b126-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All three supplied-entry caller paths match57/57/54 events with two conditional decisions and one call target each; ambiguous branches reject and observed choices are not forced. Reset-to-caller entry state is not independently verified yet. Next extend independent CPU execution earlier under explicit peripheral inputs; physical011 behavior stays unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

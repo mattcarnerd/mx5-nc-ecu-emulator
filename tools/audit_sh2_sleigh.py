@@ -156,6 +156,7 @@ def main():
     parser.add_argument('--rom',action='append',default=[])
     parser.add_argument('--synthetic',action='store_true')
     parser.add_argument('--caller',action='store_true')
+    parser.add_argument('--path',action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     if not args.synthetic and not args.rom:parser.error('Select --synthetic or --rom')
@@ -165,6 +166,11 @@ def main():
         from tools.audit_sh2_callers import generated_caller_audit,audit_rom_caller
         result['caller_synthetic']=generated_caller_audit() if args.synthetic else None
         result['rom_callers']=[audit_rom_caller(p) for p in args.rom]
+    if args.path:
+        from tools.audit_sh2_path import generated_path_audit,audit_rom_path,Z3_PIN
+        result['z3_solver_version']=Z3_PIN
+        result['path_synthetic']=generated_path_audit() if args.synthetic else None
+        result['rom_paths']=[audit_rom_path(p) for p in args.rom]
     args.output.write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows'],'caller_synthetic':result.get('caller_synthetic'),'rom_callers':result.get('rom_callers')}))
+    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows'],'caller_synthetic':result.get('caller_synthetic'),'rom_callers':result.get('rom_callers'),'path_synthetic':result.get('path_synthetic'),'rom_paths':result.get('rom_paths')}))
 if __name__=='__main__':main()

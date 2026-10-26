@@ -55,3 +55,7 @@ The user requested another ROM from ROMDrop. Full LFNPEA and LF4XEC issue attach
 ## B125 independent caller provenance
 
 SLEIGH confirms an unconditional full-register literal3 assignment at caller PC1E2 (LF9VEB/LFNPEA) or21A (LF4XEC), requiring no incoming R5 value. Across57/57/54 observed instruction events to the low-byte consumer, no later R5 writer exists, including lifted branch delay slots. Stale incoming R5 is therefore ruled out on those paths. Branch/path selection still comes from our emulator and has not been independently executed from reset; controller011 behavior remains unknown. See the extended INDEPENDENT_SH2_AUDIT.md and reduced B125 report.
+
+## B126 caller branch/target execution
+
+The SLEIGH/symbolic evaluator now independently selects the same57/57/54 caller-path instruction events, including two conditional decisions and one call target per image, without forcing observed outcomes. Unknown entry bits and initial mailbox masks remain symbolic; ambiguous branches stop. Entry state before the caller still comes from our emulator. This excludes the checked caller-segment branch/target semantics as the observed discrepancy under that entry state, not earlier reset/profile mistakes or physical CAN behavior. See INDEPENDENT_SH2_AUDIT.md and evidence/b126-symbolic-caller-paths.json.
