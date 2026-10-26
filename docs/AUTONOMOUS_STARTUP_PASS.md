@@ -254,3 +254,17 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b89-no-clock-unknown.json and b89-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 406 tests pass. All16 receive flags including mailbox0, partial/manual/reset masks, W1C and bank/channel isolation verified with no CAN frames or IRQs synthesized. Isolated investigation reaches1248 at IRR0 word write FFFFD008=FFFF, PC250/op23E1. Strict mode and unresolved marker remain unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+26 October continuation: B88-B90 add documented acknowledgement/receive/remote/overrun W1C status banks and IRR/IMR. CPU writes clear only documented bits; derived IRQ bits clear only when their entire source status group is proven zero. No transmit/receive/abort/timer event is fabricated. The reset-status-isolated recording investigation reaches1651/1650 at a read of unwritten reset RAM FFFFBFFC (PC68E/op6022). Strict and earlier scenarios remain distinct; this is not initialization/interrupt milestone completion.
+
+## B90/#97
+
+B90: model CAN IRR/IMR W1C, derived clears and software mask latches.
+
+Validation: Ran 410 tests in 4.971s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b90-no-clock-unknown.json and b90-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 410 tests pass. Read-only derived bits ignore direct writes and clear only with proven source-bank clears; unknown manual/processing states retained. No CAN events synthesized. Separate isolated investigation reaches1651 at unwritten reset RAM FFFFBFFC, PC68E/op6022; strict mailbox-mode gate remains unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

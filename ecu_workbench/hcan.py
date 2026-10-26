@@ -6,6 +6,10 @@ invented. MCR reserved-bit6 readback is explicitly not guaranteed by the manual.
 """
 MCR_ADDRESSES=(0xFFFFD000,0xFFFFD800)
 GSR_ADDRESSES=(0xFFFFD002,0xFFFFD802)
+IRR_ADDRESSES=(0xFFFFD008,0xFFFFD808)
+IMR_ADDRESSES=(0xFFFFD00A,0xFFFFD80A)
+IRR_DERIVED=0x0306
+IRR_WRITABLE=0xFFFF ^ IRR_DERIVED
 ACK_FIXED={base+offset:(1 if offset&2 else 0) for base in MCR_ADDRESSES for offset in (0x30,0x32,0x38,0x3A)}
 RECEIVE_FIXED={base+offset:0 for base in MCR_ADDRESSES for offset in (0x40,0x42,0x48,0x4A,0x58,0x5A)}
 STATUS_FIXED={**ACK_FIXED,**RECEIVE_FIXED}
@@ -33,6 +37,8 @@ class HcanResetCommands:
         self.gsr=[KnownBits(0xC,0x3F) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
         self.mailbox_flags={a:KnownBits(0,0xFFFF if power_on else fixed) for a,fixed in STATUS_FIXED.items()}
         self.ack=self.mailbox_flags  # internal compatibility for earlier ACK tests
+        self.irr=[KnownBits(1,0xFFFF) if power_on else KnownBits(0,0) for _ in MCR_ADDRESSES]
+        self.imr=[0xFFFF if power_on else None for _ in MCR_ADDRESSES]
         self.mbimr={a:0xFFFF if power_on else None for a in MBIMR_ADDRESSES}
         self.bcr={a:KnownBits(0,mask) if power_on else KnownBits(0,0) for a,mask in BCR_MASKS.items()}
         self.mailbox_writes={};self.mailbox_data_writes={}
@@ -56,6 +62,7 @@ class HcanResetCommands:
         if value==1:
             self.software_reset_requests[channel]=True
             self.invalidate_mailbox_flags(channel)
+            self.irr[channel]=KnownBits(0,0);self.imr[channel]=None
             for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=None
             for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):self.bcr[address]=KnownBits(0,0)
         self.trace.append({'register':f'MCR_{channel}','access':'write','width':2,'value':value,
@@ -74,11 +81,50 @@ class HcanResetCommands:
             address=address,width=width,access='read')
 
     def complete_reset_subset(self,channel):
+        self.irr[channel]=KnownBits(1,0xFFFF);self.imr[channel]=0xFFFF
         for a in STATUS_FIXED:
             if int(a>=0xFFFFD800)==channel:self.mailbox_flags[a]=KnownBits(0,0xFFFF)
         for a in MBIMR_ADDRESSES[2*channel:2*channel+2]:self.mbimr[a]=0xFFFF
         for address in (MCR_ADDRESSES[channel]+4,MCR_ADDRESSES[channel]+6):
             self.bcr[address]=KnownBits(0,BCR_MASKS[address])
+
+    def _refresh_derived_irq_clears(self,channel):
+        base=MCR_ADDRESSES[channel]
+        groups={1:(0x40,0x42),2:(0x48,0x4A),8:(0x30,0x32,0x38,0x3A),9:(0x58,0x5A)}
+        bits=self.irr[channel]
+        for bit,offsets in groups.items():
+            if all(self.mailbox_flags[base+o].mask==0xFFFF and self.mailbox_flags[base+o].value==0 for o in offsets):
+                flag=1<<bit
+                bits=KnownBits(bits.value&~flag,bits.mask|flag)
+        self.irr[channel]=bits
+
+    def irq_control(self,address,width,access,value=None,typed=False):
+        addresses=IRR_ADDRESSES if address in IRR_ADDRESSES else IMR_ADDRESSES
+        if width!=2 or address not in addresses:
+            raise self.stop_type('unsupported_access_size','HCAN IRR/IMR requires aligned word access',
+                                 address=address,width=width,access=access)
+        channel=addresses.index(address)
+        if addresses is IMR_ADDRESSES:
+            if access=='write':self.imr[channel]=value&0xFFFF
+            result=self.imr[channel]
+            if result is None:
+                raise self.stop_type('unknown_peripheral_reset_state','CAN IMR prior/processing state unknown',
+                                     address=address,width=width,access=access)
+            bits=KnownBits(result,0xFFFF)
+        else:
+            if access=='write':
+                old=self.irr[channel];clear=value&IRR_WRITABLE
+                self.irr[channel]=KnownBits(old.value&~clear,(old.mask|clear)&0xFFFF)
+            self._refresh_derived_irq_clears(channel);bits=self.irr[channel]
+        self.trace.append({'register':f'{"IRR" if addresses is IRR_ADDRESSES else "IMR"}_{channel}',
+                           'access':access,'width':2,'known_value':bits.value,'known_mask':bits.mask,
+                           'scope':'interrupt_flags_and_masks_only_no_can_events'})
+        if access=='write':return
+        if typed:return bits
+        if bits.mask!=0xFFFF:
+            raise self.stop_type('unknown_peripheral_reset_state','CAN interrupt flags contain unknown bits',
+                                 address=address,width=width,access=access)
+        return bits.value
 
     def invalidate_mailbox_flags(self,channel):
         for address,fixed in STATUS_FIXED.items():
@@ -231,6 +277,7 @@ class HcanResetCommands:
     def record_unresolved_mailbox(self,address,width,value,reason):
         channel=int(address>=0xFFFFD900)
         self.effect_unknown_channels[channel]=True
+        self.irr[channel]=KnownBits(0,0)
         self.invalidate_mailbox_flags(channel)
         prior=self.gsr[channel]
         self.gsr[channel]=KnownBits(prior.value&8,prior.mask&8) if self.preserve_supplied_reset_status else KnownBits(0,0)

@@ -28,7 +28,7 @@ from .sh2_memory import execute_mov_indexed
 from .sh2_autoindex import execute_pre_post
 from .sh2_logic import execute_logic
 from .sh2_compare import execute_compare_carry
-from .hcan import HcanResetCommands, MCR_ADDRESSES, GSR_ADDRESSES, BCR_MASKS, MBIMR_ADDRESSES, STATUS_FIXED
+from .hcan import HcanResetCommands, MCR_ADDRESSES, GSR_ADDRESSES, BCR_MASKS, MBIMR_ADDRESSES, STATUS_FIXED, IRR_ADDRESSES, IMR_ADDRESSES
 from .virtual_clock import InstructionClock
 from .execution_harness import ExecutionCoverage
 from .sh2_exception import execute_exception
@@ -428,6 +428,7 @@ class BootBus:
                 # Bits above the transferred operand are not part of the read.
                 mask|=0xFFFFFFFF ^ ((1<<(8*width))-1)
                 return KnownBits(int.from_bytes(self.ram[off:off+width],'big'),mask)
+            if width==2 and address in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(address,2,'read',typed=True)
             if width==2 and address in STATUS_FIXED:return self.hcan.flag_access(address,2,'read',typed=True)
             if width==2 and address in BCR_MASKS:return self.hcan.read_bcr_known(address)
             if width==2 and address in GSR_ADDRESSES:return self.hcan.read_gsr_known(address)
@@ -441,6 +442,7 @@ class BootBus:
         return self.read_cpu_value(address,2)
 
     def _read(self, a: int, width: int) -> int:
+        if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'read')
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'read')
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'read')
         if a in BCR_MASKS or a-1 in BCR_MASKS:return self.hcan.read_bcr(a,width)
@@ -521,6 +523,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'write',value)
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'write',value)
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'write',value)
         if a in BCR_MASKS or a-1 in BCR_MASKS:return self.hcan.write_bcr(a,width,value)
