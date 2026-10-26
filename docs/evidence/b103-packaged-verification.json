@@ -1,0 +1,23 @@
+{
+  "release": "v0.2.0-dev.169.1",
+  "sha256": "725fad5c090676fd1e2599867a9af0508ed7bd15376b9090305f93afea7cd6eb",
+  "checksum_verified_before_execution": true,
+  "runs": [
+    {
+      "mode": "strict",
+      "seconds": 3.88,
+      "attempted": 188,
+      "completed": 187,
+      "stop": "unknown_peripheral_reset_state",
+      "assumptions_retained": true
+    },
+    {
+      "mode": "exploration",
+      "seconds": 6.31,
+      "attempted": 58612,
+      "completed": 58611,
+      "stop": "unmodelled_peripheral",
+      "assumptions_retained": true
+    }
+  ]
+}
