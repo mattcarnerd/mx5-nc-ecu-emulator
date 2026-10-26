@@ -536,3 +536,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b111-no-clock-unknown.json and b111-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 464 tests pass. TCNT0 long32reset0; independent1B/2A/2B/3/4/5/11 wordsreset0 and6/7 wordsreset1. Per-counter start/read/write/width/manual guards. No alias/counting/events invented; existing1Amodel unchanged. Explicit PBPD0/FFFF runs reach58669/58667 attempts at TSTR1 FFFFF401 bytewrite, PCBED2/op2340. Need exact requestedstartset and declaredtimerclocks before runtime implementation. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B112/#119
+
+B112: audit TSTR1 FF runtime dependencies and preserve rejected command evidence.
+
+Validation: Ran 465 tests in 10.239s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b112-no-clock-unknown.json and b112-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 465 tests pass. Generated exactFF request rejects atomically withvalue retained,0completed/ticks/events/IRQs. Source audit enumerates simultaneous0/1/2/3/4/5/10 starts; no silentmask/frozenruntime. Next TCNT0 explicitPphi/moduleflags, then sharedvector80/OVI0routes, then othergroup/clocks/trigger models. Originalexplicitbranch58669/58667 attempts unchanged; strict/CANgates unresolved. Backlog currentruntime dependency updated. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

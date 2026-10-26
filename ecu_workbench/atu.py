@@ -56,8 +56,8 @@ class Atu1A:
     def handles(self,a):return (a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR)
         or any(base<a<base+spec[0] for base,spec in STOPPED_COUNTERS.items()))
 
-    def fail(self,kind,detail,a=None,width=None,access=None):
-        raise self.stop_type(kind,detail,address=a,width=width,access=access)
+    def fail(self,kind,detail,a=None,width=None,access=None,value=None):
+        raise self.stop_type(kind,detail,address=a,width=width,access=access,value=value)
 
     def known(self,a):
         if self.regs[a] is None:self.fail('unknown_peripheral_reset_state','ATU manual prior state unknown',a,WIDTHS[a],'read')
@@ -134,7 +134,7 @@ class Atu1A:
                 self.fail('unsupported_peripheral_mode','Configure common prescaler only with all counters stopped',a,width,'write')
         allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
-            self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write')
+            self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write',value)
         if a in (TCR,PSCR) and value!=self.regs[a]:
             if self.clock_mode is not None or self.known(TSTR)&2:
                 self.fail('unsupported_peripheral_mode','Configure clock before running/binding fixture; phase changes outside subset',a,width,'write')
