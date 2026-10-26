@@ -11,7 +11,7 @@ class TriggerModeTests(unittest.TestCase):
         for control in (TCNR,OTR):a.write(control,2,0)
 
     def test_unknown_enabled_reserved_and_width_guards(self):
-        for control in (DSTR,TCNR,OTR):
+        for control in (DSTR,):
             a=Atu1A(power_on=True,trace=[],stop_type=BootStop)
             a.regs[control]=None
             with self.assertRaises(BootStop):a.write(TRGMDR,1,0x80)
@@ -22,7 +22,6 @@ class TriggerModeTests(unittest.TestCase):
         with self.assertRaises(BootStop):a.write(TRGMDR,1,1)
         with self.assertRaises(BootStop):a.write(TRGMDR,2,0)
         for control in (TCNR,OTR):
-            with self.assertRaises(BootStop):a.write(control,2,1)
             with self.assertRaises(BootStop):a.write(control,1,0)
         m=Atu1A(power_on=False,trace=[],stop_type=BootStop)
         with self.assertRaises(BootStop):m.read(TRGMDR,1)

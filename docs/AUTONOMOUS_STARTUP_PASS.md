@@ -488,3 +488,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b107-no-clock-unknown.json and b107-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 455 tests now pass; missing PMDR edit corrected and rerun before issueclosure. Clockfield and PMDR0 stop/mode guards verified. Updated exploration reports record nextstop. No PWM/counter/IRQ claim; strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B108/#115
+
+B108: accept trigger connections only with proven zero downcounters/no reload.
+
+Validation: Ran 457 tests in 8.223s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b108-no-clock-unknown.json and b108-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 457 tests pass. Documented power DCNT8A..P0 and no reload tracked; manualunknown/nonzero/running/reloadpossible states reject nonzero connectionchanges. TCNR/OTR zero disables retained; TRGMDR requiresquiescence. No downcounter/pulse/IRQ generated. PBPD0/FFFF exploration reaches58644/58642 attempts at TCR8 FFFFF668 byte44, PCBEA0/op2360. Next exact TCR8 fields, source11.2.3. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

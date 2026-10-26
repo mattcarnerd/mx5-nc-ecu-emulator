@@ -32,6 +32,11 @@ class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
         self.trace,self.stop_type=trace,stop_type
         self.regs={a:(0xFFFF if a in (GR,GRB) else 0) if power_on else None for a in WIDTHS}
+        # Rev3 table11.3/11.2.11: no channel8 counter/reload writes are
+        # supported yet. Retain documented power state, unknown on manual reset.
+        self.channel8_counters=[0 if power_on else None for _ in range(16)]
+        self.channel8_reload_value=0 if power_on else None
+        self.channel8_reload_enabled=False if power_on else None
         self.read_flags=0;self.ticks=0;self.clock_supplied=False;self.pin=None;self.pin_b=None
         self.events=[]
         self.event_sink=None;self.explicit_input_events=0
@@ -79,12 +84,12 @@ class Atu1A:
         if a==TMDR:
             if value&0xF8:self.fail('invalid_peripheral_write','TMDR reserved bits7..3 require zero',a,width,'write')
             if value or self.known(TSTR)&0x70:self.fail('unsupported_peripheral_mode','TMDR subset supports stopped channels3..5 and PWM disabled only',a,width,'write')
-        if a in (TCNR,OTR) and value:
-            self.fail('unsupported_peripheral_mode','Channel8 trigger connection/termination outside subset',a,width,'write')
+        if a in (TCNR,OTR) and value and not self.channel8_quiescent():
+            self.fail('unsupported_peripheral_mode','Channel8 configuration requires proven zero downcounters and unavailable reload',a,width,'write')
         if a==TRGMDR:
             if value&0x7F:self.fail('invalid_peripheral_write','TRGMDR reserved bits6..0 require zero',a,width,'write')
-            if any(self.known(control)!=0 for control in (DSTR,TCNR,OTR)):
-                self.fail('unsupported_peripheral_mode','TRGMDR subset requires channel8 stopped and triggers disconnected',a,width,'write')
+            if not self.channel8_quiescent():
+                self.fail('unsupported_peripheral_mode','TRGMDR subset requires proven quiescent channel8',a,width,'write')
         if a in EXTRA_TCR_STOP:
             if value&0xC0:self.fail('invalid_peripheral_write','TCR reserved bits7..6 require zero',a,width,'write')
             if value&0xF not in range(8):self.fail('unsupported_peripheral_mode','TCR AGCK/AGCKM clock outside subset',a,width,'write')
@@ -116,6 +121,10 @@ class Atu1A:
         if a in (GR,GRB) and ((self.known(TIOR)>>(4 if a==GRB else 0))&4):self.fail('read_only_peripheral','GR1A cannot be written in capture mode',a,width,'write')
         self.regs[a]=value
         self.trace.append({'register':f'ATU1A_{a:08X}','access':'write','width':width,'value':value})
+
+    def channel8_quiescent(self):
+        return (self.regs[DSTR]==0 and all(v==0 for v in self.channel8_counters)
+                and (self.channel8_reload_enabled is False or self.channel8_reload_value==0))
 
     def begin_clock_fixture(self,*,phase):
         if type(phase) is not int or phase!=0:raise ValueError('Only explicitly declared zero phase fixture supported')
