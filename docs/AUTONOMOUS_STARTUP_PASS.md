@@ -512,3 +512,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b109-no-clock-unknown.json and b109-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 460 tests pass. TCR8 divisorfields and quiescence guards; RLDENR0 disablesreload without changing known/unknowncounter contents. Otherreload/clock/states remainexplicitstops. Nextstop in b109-exploration; no firmwareIRQ/init claim. Strict hardware gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B110/#117
+
+B110: add stopped TCR11 clock configuration with exact reserved-bit3 rule.
+
+Validation: Ran 462 tests in 5.542s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b110-no-clock-unknown.json and b110-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 462 tests pass. TCR11 fields/stop/reserved/unknownmanual/width checks; no counter11execution. Explicit PBPD0/FFFF experiments reach58650/58648 attempts at TCNT0 FFFFF430 long0, PCBEAC/op2342. Next stopped-counter initialization from Rev3 11.2.15/table11.3; strict/CAN gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

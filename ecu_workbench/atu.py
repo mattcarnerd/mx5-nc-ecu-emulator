@@ -17,6 +17,7 @@ TSR=0xFFFFF45E
 TIER=0xFFFFF462
 PWM_TCR_STOP={0xFFFFF521:0x03,0xFFFFF520:0x0C,0xFFFFF5A1:0x30,0xFFFFF5A0:0xC0}
 PMDR=0xFFFFF526
+TCR11=0xFFFFF5C8
 RLDENR=0xFFFFF66E
 TCR8=0xFFFFF668
 TMDR=0xFFFFF484
@@ -28,7 +29,7 @@ DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={TCR11:1,RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -77,6 +78,9 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a==TCR11:
+            if value&0xC8:self.fail('invalid_peripheral_write','TCR11 reserved bits7/6/3 require zero',a,width,'write')
+            if self.known(TSTR3)&1:self.fail('unsupported_peripheral_mode','TCR11 configuration requires stopped counter11',a,width,'write')
         if a==RLDENR:
             if value&0x7F:self.fail('invalid_peripheral_write','RLDENR reserved bits6..0 require zero',a,width,'write')
             if value:self.fail('unsupported_peripheral_mode','Channel8 auto-reload generation outside subset',a,width,'write')
