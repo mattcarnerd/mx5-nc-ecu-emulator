@@ -8,10 +8,11 @@ TIOR=0xFFFFF459
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
+DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -22,7 +23,7 @@ class Atu1A:
         self.event_sink=None;self.explicit_input_events=0
         self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
-    def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER)
+    def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR)
 
     def fail(self,kind,detail,a=None,width=None,access=None):
         raise self.stop_type(kind,detail,address=a,width=width,access=access)
@@ -55,6 +56,12 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a==DSTR:
+            if value:self.fail('unsupported_peripheral_mode','DSTR one-bit starts need unmodelled channel8 downcounters/triggers',a,width,'write')
+            # Rev3 11.2.11: only1 can be written. Zero leaves all bits,
+            # including retained unknown manual state, untouched.
+            self.trace.append({'register':'DSTR','access':'write','width':2,'value':0,'scope':'write_zero_no_operation'})
+            return
         if a in (TSTR2,TSTR3) and value!=0:
             self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write')
         if a in PSCR_EXTRA:
