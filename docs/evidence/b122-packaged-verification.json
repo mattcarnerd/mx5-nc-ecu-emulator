@@ -1,0 +1,78 @@
+{
+  "release": "v0.2.0-dev.189.1",
+  "sha256": "d8db4f2a20204fff554efe07e07c7574b80c38ae4745a47befcdd7384e7c954e",
+  "checksum_verified_before_execution": true,
+  "runs": [
+    {
+      "mode": "strict",
+      "seconds": 2.75,
+      "attempted": 188,
+      "completed": 187,
+      "stop": "unknown_peripheral_reset_state",
+      "assumptions_retained": true
+    },
+    {
+      "mode": "exploration",
+      "seconds": 4.34,
+      "attempted": 58714,
+      "completed": 58713,
+      "stop": "unknown_register",
+      "assumptions_retained": true
+    }
+  ],
+  "schema": "nc-ecu-packaged-rom-verification-v1",
+  "release_url": "https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.189.1",
+  "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+  "initialization_verified": false,
+  "original_firmware_interrupt_entries": 0,
+  "exploration_assumptions": {
+    "prior_ram_words": [
+      {
+        "address": "0xFFFFBFFC",
+        "width": 4,
+        "value": "0x00000000"
+      }
+    ],
+    "port_b_pins": "0x0000",
+    "port_c_pins": "0x0000",
+    "port_d_pins": "0x0000",
+    "startup_timer_fixture": {
+      "p_phi_cycles_per_instruction": 16,
+      "channel10_initial_candidates": {
+        "A": 1,
+        "C": 1,
+        "F": 1
+      },
+      "zero_reload_policy": "experimental-wrap16"
+    },
+    "experimental_wdt_ordered_stop": true,
+    "nmi_high": true,
+    "hudi_scenario": "trst-reset",
+    "phi_cycles_per_instruction": 16,
+    "experimental_mcr_bit6": 0,
+    "hcan_fixture": {
+      "reset_completion_ticks": 1,
+      "recessive_bus_ticks": 64,
+      "defer_mailbox_effects": true,
+      "preserve_supplied_reset_status": true
+    }
+  },
+  "exploration_wdt_ordered_stop_count": 1,
+  "exploration_timer_binding": {
+    "fixture": {
+      "p_phi_cycles_per_instruction": 16,
+      "channel10_initial_candidates": {
+        "A": 1,
+        "C": 1,
+        "F": 1
+      },
+      "zero_reload_policy": "experimental-wrap16"
+    },
+    "bound_tick": 58668,
+    "completed_packets": 45,
+    "phase_origin": 0,
+    "bind_on": "first_nonzero_TSTR1_write",
+    "packet_order": "scheduled_completed_instruction_before_watchdog_phi",
+    "correction_order": "old-state_Pphi_tick"
+  }
+}
