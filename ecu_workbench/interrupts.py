@@ -36,8 +36,8 @@ def routed_requests(cpu):
     ]
     if t.counter0.enabled:
         requests.extend([
-            ('ATU0_interval',80,0xFFFFED04,4,t.counter0.interval_pending,False),
-            ('OVI0',92,IPRD_ADDRESS,8,t.counter0.overflow_pending,False)])
+            ('ATU0_interval',80,0xFFFFED04,4,t.counter0.interval_pending,True),
+            ('OVI0',92,IPRD_ADDRESS,8,t.counter0.overflow_pending,True)])
     return requests
 
 

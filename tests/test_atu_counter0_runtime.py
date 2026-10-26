@@ -48,12 +48,13 @@ class Counter0RuntimeTests(unittest.TestCase):
         m=Atu1A(power_on=False,trace=[],stop_type=BootStop)
         with self.assertRaises(BootStop):m.begin_counter0_clock_fixture(phase=0)
 
-    def test_unimplemented_cpu_route_stops_when_unmasked(self):
+    def test_module_request_stays_pending_at_priority_zero(self):
         from test_sh2_branch import program
         c=program(0x0009);a=c.bus.atu
         a.begin_counter0_clock_fixture(phase=0);a.write(ITVRR[0],1,1)
         a.write(TSTR,1,1);a.advance_phi_cycles(64)
-        c.bus.ipr[0xFFFFED04]=0xF0;c.known_sr_mask|=0xF0;c.known_sr_value&=~0xF0
+        c.bus.ipr[0xFFFFED04]=0;c.known_sr_mask|=0xF0;c.known_sr_value&=~0xF0
         r=c.run(1)
-        self.assertEqual(r['stop']['reason'],'unsupported_interrupt_source')
-        self.assertEqual(r['completed_instructions'],0);self.assertEqual(r['interrupt_entries'],0)
+        self.assertEqual(r['stop']['reason'],'instruction_limit')
+        self.assertEqual(r['completed_instructions'],1);self.assertEqual(r['interrupt_entries'],0)
+        self.assertTrue(a.counter0.interval_pending)

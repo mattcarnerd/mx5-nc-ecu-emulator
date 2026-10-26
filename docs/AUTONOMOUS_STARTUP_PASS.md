@@ -560,3 +560,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b113-no-clock-unknown.json and b113-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 470 tests pass. Zero-phase explicitPphi/PSCR1 counting,32bitwrap, repeatedintervalrises and sharedflags, read-before-zero clear, OVE0 request; no ADCtrigger/capture/otherstart accepted. Unmasked configured newrequests stop explicitly as unsupportedCPUroute, ratherthan disappearing. ActualTSTRFF remainsblocked; no originalfirmware IRQ/init claim. Next verify table7.3 routes/generated recurringhandlers. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B114/#121
+
+B114: route ATU0 interval/overflow to CPU and verify recurring generated handlers.
+
+Validation: Ran 474 tests in 5.822s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b114-no-clock-unknown.json and b114-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 474 tests pass. Sharedvector80/IPRC7:4 and OVI0vector92/IPRD11:8 verified priority/mask/ack/RTE/stack/SR/held/delay-slot paths. Generated firmware handles3 repeated interval entries; no originalfirmware IRQ/initclaim. Othercounter/ADC/capture/FFstarts remainguarded. Next remaining timer runtime groups/channel10; currentbacklog updated. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
