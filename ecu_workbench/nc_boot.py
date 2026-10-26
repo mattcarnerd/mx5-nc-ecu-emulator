@@ -730,6 +730,9 @@ class NCBootDiagnostic:
         if (op&0xF0FF)==0x4010:  # DT Rn, SH-2E section7.2.21
             result=(self.reg(n)-1)&0xFFFFFFFF
             self.r[n]=result;self.t=(result==0);return None
+        if (op&0xF0FF)==0x0029:  # MOVT Rn; SH-2E Rev2 section7.2.35
+            self.r[n]=KnownBits(0,0xFFFFFFFE) if self.t is None else int(self.t)
+            return None
         if (op&0xF00F)==0x3008:  # SUB Rm,Rn, SH-2E Rev2 section7.2.60
             left,right=self.reg(n),self.reg(m)
             self.r[n]=(left-right)&0xFFFFFFFF  # T unchanged, including unknown T
