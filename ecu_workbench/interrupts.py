@@ -27,13 +27,18 @@ def enabled_flag_request(flag,enable,bit):
 def routed_requests(cpu):
     from .atu import TSR,TIER
     t=cpu.bus.atu
-    return [
+    requests=[
         ('IMI1A',IMI1A_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],1),True),
         ('IMI1B',IMI1B_VECTOR,IPRD_ADDRESS,4,enabled_flag_request(t.regs[TSR],t.regs[TIER],2),True),
         ('OVI1A',OVI1A_VECTOR,IPRE_ADDRESS,12,enabled_flag_request(t.regs[TSR],t.regs[TIER],0x100),True),
         ('ADI0',ADI0_VECTOR,IPRJ_ADDRESS,8,cpu.bus.adc.interrupt_pending,True),
         ('ITI',ITI_VECTOR,IPRL_ADDRESS,4,cpu.interval_request,True),
     ]
+    if t.counter0.enabled:
+        requests.extend([
+            ('ATU0_interval',80,0xFFFFED04,4,t.counter0.interval_pending,False),
+            ('OVI0',92,IPRD_ADDRESS,8,t.counter0.overflow_pending,False)])
+    return requests
 
 
 def service_interrupt_requests(cpu):

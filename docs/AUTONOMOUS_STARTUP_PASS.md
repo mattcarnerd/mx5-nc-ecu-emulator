@@ -548,3 +548,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b112-no-clock-unknown.json and b112-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 465 tests pass. Generated exactFF request rejects atomically withvalue retained,0completed/ticks/events/IRQs. Source audit enumerates simultaneous0/1/2/3/4/5/10 starts; no silentmask/frozenruntime. Next TCNT0 explicitPphi/moduleflags, then sharedvector80/OVI0routes, then othergroup/clocks/trigger models. Originalexplicitbranch58669/58667 attempts unchanged; strict/CANgates unresolved. Backlog currentruntime dependency updated. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B113/#120
+
+B113: add separately bound TCNT0 Pphi runtime and interval/overflow requests.
+
+Validation: Ran 470 tests in 7.232s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b113-no-clock-unknown.json and b113-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 470 tests pass. Zero-phase explicitPphi/PSCR1 counting,32bitwrap, repeatedintervalrises and sharedflags, read-before-zero clear, OVE0 request; no ADCtrigger/capture/otherstart accepted. Unmasked configured newrequests stop explicitly as unsupportedCPUroute, ratherthan disappearing. ActualTSTRFF remainsblocked; no originalfirmware IRQ/init claim. Next verify table7.3 routes/generated recurringhandlers. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

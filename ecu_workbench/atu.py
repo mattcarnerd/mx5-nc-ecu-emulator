@@ -1,4 +1,5 @@
 """ATU-II channel1A/GR1A subset; explicit selected-counter-clock ticks only."""
+from .atu_counter0 import Counter0Runtime,TCNT0,TSR0,TIER0
 TSTR=0xFFFFF401
 PSCR=0xFFFFF404
 TCNT=0xFFFFF440
@@ -37,7 +38,7 @@ STOPPED_COUNTERS={
     0xFFFFF4E0:(2,TSTR,0x40,0),0xFFFFF5C0:(2,TSTR3,1,0),
     **{0xFFFFF500+2*i:(2,TSTR2,1<<i,1) for i in range(4)},
     **{0xFFFFF580+2*i:(2,TSTR2,0x10<<i,1) for i in range(4)}}
-WIDTHS={**{a:c[0] for a,c in STOPPED_COUNTERS.items()},TCR11:1,RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={TSR0:2,TIER0:2,**{a:c[0] for a,c in STOPPED_COUNTERS.items()},TCR11:1,RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -45,6 +46,7 @@ class Atu1A:
         self.regs={a:(STOPPED_COUNTERS[a][3] if a in STOPPED_COUNTERS else (0xFFFF if a in (GR,GRB) else 0)) if power_on else None for a in WIDTHS}
         # Rev3 table11.3/11.2.11: no channel8 counter/reload writes are
         # supported yet. Retain documented power state, unknown on manual reset.
+        self.counter0=Counter0Runtime(self)
         self.channel8_counters=[0 if power_on else None for _ in range(16)]
         self.channel8_reload_value=0 if power_on else None
         self.channel8_reload_enabled=False if power_on else None
@@ -53,7 +55,7 @@ class Atu1A:
         self.event_sink=None;self.explicit_input_events=0
         self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
-    def handles(self,a):return (a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR)
+    def handles(self,a):return (a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR,TSR0,TIER0)
         or any(base<a<base+spec[0] for base,spec in STOPPED_COUNTERS.items()))
 
     def fail(self,kind,detail,a=None,width=None,access=None,value=None):
@@ -83,11 +85,24 @@ class Atu1A:
         if a==TCNT and self.known(TSTR)&2 and not self.clock_supplied:
             self.fail('missing_input','Running ATU counter needs explicit selected-clock ticks',a,width,'read')
         value=self.known(a)
+        if a==TSR0:self.counter0.read_flags|=value
         if a==TSR:self.read_flags|=value
         return value
 
     def write(self,a,width,value):
         self.guard(a,width,'write');self.guard_stopped_counter(a,width,'write');value &= (1<<(8*width))-1
+        if a==TSR0:
+            if value&0xFF00:self.fail('invalid_peripheral_write','TSR0 reserved bits15..8 require zero',a,width,'write',value)
+            self.regs[a]=self.known(a)&~(self.counter0.read_flags&~value&0xFF)
+            self.counter0.read_flags=0;return
+        if a==TIER0:
+            if value&~0x1F:self.fail('invalid_peripheral_write','TIER0 reserved bits15..5 require zero',a,width,'write',value)
+            if value&0xF:self.fail('unsupported_peripheral_mode','TCNT0 capture interrupt enables outside subset',a,width,'write',value)
+        if a in ITVRR and self.counter0.enabled and value&0xF0:
+            self.fail('unsupported_peripheral_mode','TCNT0 ADC interval triggers outside subset',a,width,'write',value)
+        if a==TSTR and self.counter0.enabled:
+            if value not in (0,1):self.fail('unsupported_peripheral_mode','Counter0 fixture supports only TCNT0 start; other channel runtimes unmodelled',a,width,'write',value)
+            if value:self.counter0.guard_start()
         if a==TCR11:
             if value&0xC8:self.fail('invalid_peripheral_write','TCR11 reserved bits7/6/3 require zero',a,width,'write')
             if self.known(TSTR3)&1:self.fail('unsupported_peripheral_mode','TCR11 configuration requires stopped counter11',a,width,'write')
@@ -118,7 +133,7 @@ class Atu1A:
             if value&0xC0:self.fail('invalid_peripheral_write','TCR reserved bits7..6 require zero',a,width,'write')
             if value&0xF not in range(8):self.fail('unsupported_peripheral_mode','TCR AGCK/AGCKM clock outside subset',a,width,'write')
             if self.known(TSTR)&EXTRA_TCR_STOP[a]:self.fail('unsupported_peripheral_mode','TCR configuration requires its counter stopped',a,width,'write')
-        if a in ITVRR and value and self.known(TSTR)&1:
+        if a in ITVRR and value and self.known(TSTR)&1 and not self.counter0.enabled:
             self.fail('unsupported_peripheral_mode','Interval/ADC trigger generation requires unmodelled TCNT0 execution',a,width,'write')
         if a==DSTR:
             if value:self.fail('unsupported_peripheral_mode','DSTR one-bit starts need unmodelled channel8 downcounters/triggers',a,width,'write')
@@ -132,7 +147,7 @@ class Atu1A:
             if value&0xE0:self.fail('invalid_peripheral_write','PSCR reserved bits7..5 require zero',a,width,'write')
             if any(self.known(start)!=0 for start in (TSTR,TSTR2,TSTR3)):
                 self.fail('unsupported_peripheral_mode','Configure common prescaler only with all counters stopped',a,width,'write')
-        allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
+        allowed={TSTR:((0,1) if self.counter0.enabled else (0,2)),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
             self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write',value)
         if a in (TCR,PSCR) and value!=self.regs[a]:
@@ -149,12 +164,16 @@ class Atu1A:
     def guard_stopped_counter(self,a,width,operation):
         if a in STOPPED_COUNTERS:
             _,start,bit,_=STOPPED_COUNTERS[a]
+            if a==TCNT0 and self.counter0.enabled:return
             if self.known(start)&bit:
                 self.fail('unsupported_peripheral_mode','Counter execution outside stopped-register subset',a,width,operation)
 
     def channel8_quiescent(self):
         return (self.regs[DSTR]==0 and all(v==0 for v in self.channel8_counters)
                 and (self.channel8_reload_enabled is False or self.channel8_reload_value==0))
+
+    def begin_counter0_clock_fixture(self,*,phase):
+        self.counter0.bind(phase=phase)
 
     def begin_clock_fixture(self,*,phase):
         if type(phase) is not int or phase!=0:raise ValueError('Only explicitly declared zero phase fixture supported')
@@ -182,7 +201,7 @@ class Atu1A:
         self.clock_pins[pin]=level
 
     def clock_report(self):
-        return {'source':self.clock_mode,'fixture_phase_origin':self.fixture_phase,
+        return {'source':self.clock_mode,'counter0_fixture':self.counter0.enabled,'counter0_selected_ticks':self.counter0.counter_ticks,'fixture_phase_origin':self.fixture_phase,
                 'supplied_phi_cycles':self.phi_cycles,'selected_counter_ticks':self.ticks,
                 'frequency_hz':None,'physical_timing_verified':False}
 
@@ -193,6 +212,7 @@ class Atu1A:
         if select not in range(6):self.fail('unsupported_peripheral_mode','Internal clock packet requires internal selection')
         divisor=(self.known(PSCR)+1)*(1<<select)
         pulses=(self.phi_cycles+count)//divisor-self.phi_cycles//divisor
+        self.counter0.advance_phi(count)
         self._advance_counter_ticks(pulses)
         self.phi_cycles+=count
 
