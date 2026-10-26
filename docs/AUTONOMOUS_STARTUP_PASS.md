@@ -474,3 +474,17 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b107-no-clock-unknown.json and b107-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 455 tests pass. Paired divisorfields0..5 /reservedbits validate atomically, perTSTR2stopguard; PMDR0 only with timer6stopped. No PWM/counters/IRQs invented. Next stop recorded in b107-exploration; strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+B107 correction before issue closure: a local relative-path edit failed while the later test command succeeded. The first B107 publication therefore contained clockfields only (454tests), despite its appended decision text anticipating PMDR. Applied the missing PMDR edit in the correct repository directory, added its test and reran the full suite/scenarios before final publication. The corrected checkpoint below supersedes that incomplete scope/count; no initialization claim follows.
+
+## B107/#114
+
+B107 corrected: complete stopped timer6/7 clocks and PMDR0 initialization.
+
+Validation: Ran 455 tests in 6.783s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b107-no-clock-unknown.json and b107-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 455 tests now pass; missing PMDR edit corrected and rerun before issueclosure. Clockfield and PMDR0 stop/mode guards verified. Updated exploration reports record nextstop. No PWM/counter/IRQ claim; strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

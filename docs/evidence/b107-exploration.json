@@ -31,13 +31,6 @@
       "interrupt_entries": 0,
       "watchdog_overflows": 7,
       "recent_pc_frequency": {
-        "0x0000C3D4": 1,
-        "0x0000C3D6": 1,
-        "0x0000C3D8": 1,
-        "0x0000C3DA": 1,
-        "0x0000C3DC": 1,
-        "0x0000C3DE": 1,
-        "0x0000C3E0": 1,
         "0x0000C3E2": 1,
         "0x0000C3E4": 1,
         "0x0000C3E8": 1,
@@ -130,7 +123,14 @@
         "0x0000BE82": 1,
         "0x0000BE84": 1,
         "0x0000BE86": 1,
-        "0x0000BE88": 1
+        "0x0000BE88": 1,
+        "0x0000BE8A": 1,
+        "0x0000BE8C": 1,
+        "0x0000BE8E": 1,
+        "0x0000BE90": 1,
+        "0x0000BE92": 1,
+        "0x0000BE94": 1,
+        "0x0000BE96": 1
       },
       "diagnostic": {
         "schema_version": 1,
@@ -181,27 +181,25 @@
         },
         "unresolved_hcan_command_count": 6,
         "unresolved_hcan_effects": true,
-        "executed_instructions": 58632,
-        "completed_instructions": 58631,
-        "pc_at_stop": "0x0000BE8A",
+        "executed_instructions": 58639,
+        "completed_instructions": 58638,
+        "pc_at_stop": "0x0000BE98",
         "stop": {
-          "reason": "unmodelled_peripheral",
+          "reason": "unsupported_peripheral_mode",
           "memory_access": {
-            "address": "0xFFFFF526",
-            "value": "0x00000000",
+            "address": "0xFFFFF662",
             "access": "write",
-            "width": 1
+            "width": 2
           }
         },
         "next_dependency": {
-          "category": "unmodelled_hardware_register",
-          "instruction_pc": "0x0000BE88",
-          "opcode": "2140",
+          "category": "unsupported_hardware_access",
+          "instruction_pc": "0x0000BE96",
+          "opcode": "2011",
           "memory_access": {
-            "address": "0xFFFFF526",
-            "value": "0x00000000",
+            "address": "0xFFFFF662",
             "access": "write",
-            "width": 1
+            "width": 2
           }
         },
         "pedr_word_write_ffff_in_peripheral_trace": true,
@@ -246,13 +244,6 @@
       "interrupt_entries": 0,
       "watchdog_overflows": 7,
       "recent_pc_frequency": {
-        "0x0000C3D0": 1,
-        "0x0000C3D2": 1,
-        "0x0000C3D4": 1,
-        "0x0000C3D6": 1,
-        "0x0000C3D8": 1,
-        "0x0000C3DA": 1,
-        "0x0000C3DC": 1,
         "0x0000C3DE": 1,
         "0x0000C3E6": 1,
         "0x0000C3E8": 1,
@@ -345,7 +336,14 @@
         "0x0000BE82": 1,
         "0x0000BE84": 1,
         "0x0000BE86": 1,
-        "0x0000BE88": 1
+        "0x0000BE88": 1,
+        "0x0000BE8A": 1,
+        "0x0000BE8C": 1,
+        "0x0000BE8E": 1,
+        "0x0000BE90": 1,
+        "0x0000BE92": 1,
+        "0x0000BE94": 1,
+        "0x0000BE96": 1
       },
       "diagnostic": {
         "schema_version": 1,
@@ -396,27 +394,25 @@
         },
         "unresolved_hcan_command_count": 6,
         "unresolved_hcan_effects": true,
-        "executed_instructions": 58630,
-        "completed_instructions": 58629,
-        "pc_at_stop": "0x0000BE8A",
+        "executed_instructions": 58637,
+        "completed_instructions": 58636,
+        "pc_at_stop": "0x0000BE98",
         "stop": {
-          "reason": "unmodelled_peripheral",
+          "reason": "unsupported_peripheral_mode",
           "memory_access": {
-            "address": "0xFFFFF526",
-            "value": "0x00000000",
+            "address": "0xFFFFF662",
             "access": "write",
-            "width": 1
+            "width": 2
           }
         },
         "next_dependency": {
-          "category": "unmodelled_hardware_register",
-          "instruction_pc": "0x0000BE88",
-          "opcode": "2140",
+          "category": "unsupported_hardware_access",
+          "instruction_pc": "0x0000BE96",
+          "opcode": "2011",
           "memory_access": {
-            "address": "0xFFFFF526",
-            "value": "0x00000000",
+            "address": "0xFFFFF662",
             "access": "write",
-            "width": 1
+            "width": 2
           }
         },
         "pedr_word_write_ffff_in_peripheral_trace": true,

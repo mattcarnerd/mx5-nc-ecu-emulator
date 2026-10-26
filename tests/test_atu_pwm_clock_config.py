@@ -24,3 +24,14 @@ class PwmClockConfigurationTests(unittest.TestCase):
             m=Atu1A(power_on=False,trace=[],stop_type=BootStop)
             with self.assertRaises(BootStop):m.read(address,1)
             with self.assertRaises(BootStop):m.write(address,1,0x44)
+
+    def test_pmdr_zero_only_with_timer6_stopped(self):
+        from ecu_workbench.atu import PMDR
+        a=Atu1A(power_on=True,trace=[],stop_type=BootStop)
+        a.write(PMDR,1,0);self.assertEqual(a.read(PMDR,1),0)
+        with self.assertRaises(BootStop):a.write(PMDR,1,1)
+        a.regs[TSTR2]=1
+        with self.assertRaises(BootStop):a.write(PMDR,1,0)
+        m=Atu1A(power_on=False,trace=[],stop_type=BootStop)
+        with self.assertRaises(BootStop):m.write(PMDR,1,0)
+        self.assertEqual(a.events,[])
