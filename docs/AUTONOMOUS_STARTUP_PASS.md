@@ -316,3 +316,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b94-no-clock-unknown.json and b94-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 425 tests pass. Corrected FFFFF708 identification to SYSCR1 (not SCI), source Rev3 table25.3/25.2.2. Only byte1 when RAME already known1 accepted; reserved/clock/AUD/RAM-disable transitions rejected atomically. Conflicting AUDSRST initial descriptions and unsupplied OSCSTOP preserved unknown. New experiment reaches58527/58526 then unknown physical Port D FFFFF746 word at PCC3C8/op6031,0 IRQs. Strict/CAN gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B95/#102
+
+B95: preserve explicit Port C/D hypotheses in separate exploration.
+
+Validation: Ran 427 tests in 9.428s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b95-no-clock-unknown.json and b95-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 427 tests pass. Missing pins stay unknown; explicit values validated and recorded. Paired PB/PD0 orFFFF with PC0/RAM0/phi16 reaches58532/58531 at MOVT R0 opcode0029/PCC3D2. All assumptions remain hypotheses;0 IRQs, strict/CAN gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
