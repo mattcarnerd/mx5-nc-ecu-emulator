@@ -1,0 +1,442 @@
+{
+  "schema": "nc-ecu-independent-sh2-audit-v1",
+  "tool": {
+    "engine": "Ghidra SLEIGH via pypcode",
+    "pypcode_version": "4.0.1",
+    "language": "SuperH:BE:32:SH-2",
+    "sla_sha256": "e69e099854e5b6c9e8f4d6b2deae1c038f87abfbc99484ca733e84cbdb897390",
+    "scope": "straight_line_integer_lift_with_supplied_entry_state_not_full_CPU_or_hardware"
+  },
+  "synthetic": {
+    "generated_vectors": 864,
+    "all_matched": true,
+    "covers": [
+      "EXTU.B byte alias",
+      "SHLL8",
+      "ADD modulo32",
+      "MOV.W scaled displacement",
+      "big_endian_word_store",
+      "T_unchanged"
+    ],
+    "physical_timing_verified": false
+  },
+  "rom_windows": [
+    {
+      "calibration": "LF9VEB",
+      "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+      "entry_state_source": "captured_local_emulator_state_not_independent_full_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "window_start": "0x00000E60",
+      "window_end": "0x00000E70",
+      "instructions": 9,
+      "stores_compared": 1,
+      "all_matched": true,
+      "store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x2308"
+      },
+      "mode": 3,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    },
+    {
+      "calibration": "LFNPEA",
+      "rom_sha256": "590111ace660ef6257572dd1ec45948558a7741f3c6aa505fa432a698d1f15f7",
+      "entry_state_source": "captured_local_emulator_state_not_independent_full_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "window_start": "0x00000E60",
+      "window_end": "0x00000E70",
+      "instructions": 9,
+      "stores_compared": 1,
+      "all_matched": true,
+      "store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x2308"
+      },
+      "mode": 3,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    },
+    {
+      "calibration": "LF4XEC",
+      "rom_sha256": "ca9ecd4bf0556dc66712341d303c171c220be104060e61bc4cbe32f4b4f1adcf",
+      "entry_state_source": "captured_local_emulator_state_not_independent_full_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "window_start": "0x00000CAC",
+      "window_end": "0x00000CBC",
+      "instructions": 9,
+      "stores_compared": 3,
+      "all_matched": true,
+      "store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x0308"
+      },
+      "mode": 3,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    }
+  ],
+  "caller_synthetic": {
+    "positive_paths": 3,
+    "negative_paths_rejected": 4,
+    "all_matched": true,
+    "full_control_flow_verified": false
+  },
+  "rom_callers": [
+    {
+      "calibration": "LF9VEB",
+      "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+      "literal_pc": "0x000001E2",
+      "consumer_pc": "0x00000E64",
+      "proof": {
+        "literal_value": 3,
+        "entry_register_seeds_required": false,
+        "observed_instruction_events": 57,
+        "nonliteral_pcode_operations_inspected": 155,
+        "intervening_mode_writes": 0,
+        "delay_slot_effects_included": true,
+        "consumer_low_byte": 3,
+        "branch_decisions_independently_verified": false
+      },
+      "path_source": "local_emulator_observed_not_independent_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    },
+    {
+      "calibration": "LFNPEA",
+      "rom_sha256": "590111ace660ef6257572dd1ec45948558a7741f3c6aa505fa432a698d1f15f7",
+      "literal_pc": "0x000001E2",
+      "consumer_pc": "0x00000E64",
+      "proof": {
+        "literal_value": 3,
+        "entry_register_seeds_required": false,
+        "observed_instruction_events": 57,
+        "nonliteral_pcode_operations_inspected": 155,
+        "intervening_mode_writes": 0,
+        "delay_slot_effects_included": true,
+        "consumer_low_byte": 3,
+        "branch_decisions_independently_verified": false
+      },
+      "path_source": "local_emulator_observed_not_independent_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    },
+    {
+      "calibration": "LF4XEC",
+      "rom_sha256": "ca9ecd4bf0556dc66712341d303c171c220be104060e61bc4cbe32f4b4f1adcf",
+      "literal_pc": "0x0000021A",
+      "consumer_pc": "0x00000CB4",
+      "proof": {
+        "literal_value": 3,
+        "entry_register_seeds_required": false,
+        "observed_instruction_events": 54,
+        "nonliteral_pcode_operations_inspected": 146,
+        "intervening_mode_writes": 0,
+        "delay_slot_effects_included": true,
+        "consumer_low_byte": 3,
+        "branch_decisions_independently_verified": false
+      },
+      "path_source": "local_emulator_observed_not_independent_reset_trace",
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      },
+      "hardware_behavior_verified": false,
+      "initialization_verified": false
+    }
+  ],
+  "z3_solver_version": "5.3.2.0",
+  "path_synthetic": {
+    "positive_paths": 3,
+    "negative_paths_rejected": 3,
+    "all_matched": true,
+    "unknown_branch_values_selected": false,
+    "observed_outcomes_forced": false
+  },
+  "rom_paths": [
+    {
+      "calibration": "LF9VEB",
+      "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+      "literal_pc": "0x000001E2",
+      "consumer_pc": "0x00000E64",
+      "result": {
+        "instruction_events": 57,
+        "control_transfers": 3,
+        "conditional_decisions": 2,
+        "call_targets": 1,
+        "stores": 12,
+        "r5_low_byte": 3
+      },
+      "all_path_events_matched": true,
+      "z3_solver_version": "5.3.2.0",
+      "mask_register_entry_values": "unconstrained_symbolic",
+      "entry_state": "emulator_snapshot_with_unknown_bits_symbolic_R5_unseeded",
+      "branch_choices_forced_from_observation": false,
+      "full_reset_trace_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    },
+    {
+      "calibration": "LFNPEA",
+      "rom_sha256": "590111ace660ef6257572dd1ec45948558a7741f3c6aa505fa432a698d1f15f7",
+      "literal_pc": "0x000001E2",
+      "consumer_pc": "0x00000E64",
+      "result": {
+        "instruction_events": 57,
+        "control_transfers": 3,
+        "conditional_decisions": 2,
+        "call_targets": 1,
+        "stores": 12,
+        "r5_low_byte": 3
+      },
+      "all_path_events_matched": true,
+      "z3_solver_version": "5.3.2.0",
+      "mask_register_entry_values": "unconstrained_symbolic",
+      "entry_state": "emulator_snapshot_with_unknown_bits_symbolic_R5_unseeded",
+      "branch_choices_forced_from_observation": false,
+      "full_reset_trace_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    },
+    {
+      "calibration": "LF4XEC",
+      "rom_sha256": "ca9ecd4bf0556dc66712341d303c171c220be104060e61bc4cbe32f4b4f1adcf",
+      "literal_pc": "0x0000021A",
+      "consumer_pc": "0x00000CB4",
+      "result": {
+        "instruction_events": 54,
+        "control_transfers": 3,
+        "conditional_decisions": 2,
+        "call_targets": 1,
+        "stores": 11,
+        "r5_low_byte": 3
+      },
+      "all_path_events_matched": true,
+      "z3_solver_version": "5.3.2.0",
+      "mask_register_entry_values": "unconstrained_symbolic",
+      "entry_state": "emulator_snapshot_with_unknown_bits_symbolic_R5_unseeded",
+      "branch_choices_forced_from_observation": false,
+      "full_reset_trace_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    }
+  ],
+  "reset_synthetic": {
+    "positive_programs": 3,
+    "negative_transcripts_rejected": 4,
+    "all_matched": true,
+    "unknown_input_selected": false,
+    "physical_hardware_verified": false
+  },
+  "rom_resets": [
+    {
+      "calibration": "LF9VEB",
+      "rom_sha256": "bfd0965a0f51f60a951d8cd3ef8fe77e5a37fbc326ddb723edf0ede4b1640fbf",
+      "z3_solver_version": "5.3.2.0",
+      "result": {
+        "instruction_events": 1057,
+        "control_transfers": 92,
+        "conditional_decisions": 70,
+        "call_targets": 12,
+        "peripheral_events": 407,
+        "peripheral_transcript_consumed": true
+      },
+      "all_instruction_events_matched": true,
+      "reset_register_inputs": "ROM_vector_PC_SP_and_documented_SR_mask_F0_other_bits_symbolic",
+      "ram_initial_values_selected": false,
+      "peripheral_input_source": "emulator_generated_transcript_not_hardware",
+      "branch_choices_forced_from_observation": false,
+      "physical_timing_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "terminal_write_is_attempt_not_completed": true,
+      "terminal_store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x00002308"
+      },
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    },
+    {
+      "calibration": "LFNPEA",
+      "rom_sha256": "590111ace660ef6257572dd1ec45948558a7741f3c6aa505fa432a698d1f15f7",
+      "z3_solver_version": "5.3.2.0",
+      "result": {
+        "instruction_events": 1057,
+        "control_transfers": 92,
+        "conditional_decisions": 70,
+        "call_targets": 12,
+        "peripheral_events": 407,
+        "peripheral_transcript_consumed": true
+      },
+      "all_instruction_events_matched": true,
+      "reset_register_inputs": "ROM_vector_PC_SP_and_documented_SR_mask_F0_other_bits_symbolic",
+      "ram_initial_values_selected": false,
+      "peripheral_input_source": "emulator_generated_transcript_not_hardware",
+      "branch_choices_forced_from_observation": false,
+      "physical_timing_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "terminal_write_is_attempt_not_completed": true,
+      "terminal_store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x00002308"
+      },
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    },
+    {
+      "calibration": "LF4XEC",
+      "rom_sha256": "ca9ecd4bf0556dc66712341d303c171c220be104060e61bc4cbe32f4b4f1adcf",
+      "z3_solver_version": "5.3.2.0",
+      "result": {
+        "instruction_events": 278,
+        "control_transfers": 17,
+        "conditional_decisions": 4,
+        "call_targets": 8,
+        "peripheral_events": 77,
+        "peripheral_transcript_consumed": true
+      },
+      "all_instruction_events_matched": true,
+      "reset_register_inputs": "ROM_vector_PC_SP_and_documented_SR_mask_F0_other_bits_symbolic",
+      "ram_initial_values_selected": false,
+      "peripheral_input_source": "emulator_generated_transcript_not_hardware",
+      "branch_choices_forced_from_observation": false,
+      "physical_timing_verified": false,
+      "hardware_behavior_verified": false,
+      "initialization_verified": false,
+      "terminal_write_is_attempt_not_completed": true,
+      "terminal_store": {
+        "address": "0xFFFFD104",
+        "width": 2,
+        "value": "0x00000308"
+      },
+      "assumptions": {
+        "reset": "power",
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 1,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64
+        }
+      }
+    }
+  ]
+}

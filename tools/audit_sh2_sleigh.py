@@ -157,6 +157,7 @@ def main():
     parser.add_argument('--synthetic',action='store_true')
     parser.add_argument('--caller',action='store_true')
     parser.add_argument('--path',action='store_true')
+    parser.add_argument('--reset-replay',action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     if not args.synthetic and not args.rom:parser.error('Select --synthetic or --rom')
@@ -171,6 +172,10 @@ def main():
         result['z3_solver_version']=Z3_PIN
         result['path_synthetic']=generated_path_audit() if args.synthetic else None
         result['rom_paths']=[audit_rom_path(p) for p in args.rom]
+    if args.reset_replay:
+        from tools.audit_sh2_reset import generated_reset_audit,audit_rom_reset
+        result['reset_synthetic']=generated_reset_audit() if args.synthetic else None
+        result['rom_resets']=[audit_rom_reset(p) for p in args.rom]
     args.output.write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows'],'caller_synthetic':result.get('caller_synthetic'),'rom_callers':result.get('rom_callers'),'path_synthetic':result.get('path_synthetic'),'rom_paths':result.get('rom_paths')}))
+    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows'],'caller_synthetic':result.get('caller_synthetic'),'rom_callers':result.get('rom_callers'),'path_synthetic':result.get('path_synthetic'),'rom_paths':result.get('rom_paths'),'reset_synthetic':result.get('reset_synthetic'),'rom_resets':result.get('rom_resets')}))
 if __name__=='__main__':main()

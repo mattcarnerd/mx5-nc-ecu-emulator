@@ -59,3 +59,7 @@ SLEIGH confirms an unconditional full-register literal3 assignment at caller PC1
 ## B126 caller branch/target execution
 
 The SLEIGH/symbolic evaluator now independently selects the same57/57/54 caller-path instruction events, including two conditional decisions and one call target per image, without forcing observed outcomes. Unknown entry bits and initial mailbox masks remain symbolic; ambiguous branches stop. Entry state before the caller still comes from our emulator. This excludes the checked caller-segment branch/target semantics as the observed discrepancy under that entry state, not earlier reset/profile mistakes or physical CAN behavior. See INDEPENDENT_SH2_AUDIT.md and evidence/b126-symbolic-caller-paths.json.
+
+## B127 independent CPU execution from reset
+
+SLEIGH plus symbolic state now independently selects all1057/1057/278 attempted instruction events from power-reset vectors under explicitly emulator-generated peripheral input transcripts. It validates407/407/77 I/O requests and outputs; undefined registers/RAM remain symbolic, and no observed branch outcome is forced. The same2308/2308/0308 attempted control writes result. This finds no earlier CPU-path discrepancy under those inputs. It does not establish physical input/profile correctness or defined011 behavior, and does not complete the terminal write or firmware initialization. See the extended INDEPENDENT_SH2_AUDIT.md and evidence/b127-independent-reset-replay.json.

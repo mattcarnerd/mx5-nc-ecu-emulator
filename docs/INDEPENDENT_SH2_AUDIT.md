@@ -71,3 +71,23 @@ For each image, independent execution begins at the caller literal with the othe
 The independently selected instruction events match57/57/54 for LF9VEB/LFNPEA/LF4XEC. Each includes two conditional decisions and one call target. This extends B125 beyond merely examining a supplied path. Generated positive cases exercise both conditional outcomes and a delayed indirect call whose slot overwrites the source register. Negative cases reject an unresolved symbolic branch, an incorrect observed path and unsupported hardware input. Tests also cover signed/unsigned comparison, zero masking of unknown values and symbolic unwritten RAM.
 
 Reproduce with `--path` in addition to `--synthetic --caller`. CI requires all generated checks. [Reduced three-ROM results](evidence/b126-symbolic-caller-paths.json) retain the entry-snapshot limitation and scenario assumptions. This is independently evaluated caller control flow conditional on that entry snapshot, not an independent reset-to-caller or hardware trace. The earlier reset path and physical011 behavior remain unresolved; no runtime default/guard changed and no initialization milestone is claimed.
+
+## B127/#134 reset-to-CAN CPU replay
+
+The independent SLEIGH/symbolic CPU now starts at the actual power-reset vector, with SP from the second vector word and the documented known SR mask F0. Other register bits and unwritten RAM remain symbolic; no caller snapshot or guessed register/RAM values are supplied. It derives branches, direct/indirect targets, calls and delay-slot effects itself. The full instruction-event list is compared after execution, never used to constrain branch choices.
+
+Peripheral inputs come from an explicitly labelled **emulator-generated I/O transcript**, not hardware. The reference requests must match address, width and access order. Read values keep only the supplied known bits; unknown bits become fresh symbolic input. Output values must independently satisfy the recorded known bits; mismatches or unresolved values reject the audit. RAM/ROM are handled independently, with read-only ROM and symbolic unwritten RAM. The reference stops on the final attempted peripheral store rather than applying an invented controller effect. The full transcript and instruction stream stay local/in memory; only counts and the terminal control access are published.
+
+| Image | Attempted instruction events matched | Conditional decisions | Calls | Peripheral accesses matched | Final attempted word |
+|---|---|---|---|---|---|
+| LF9VEB |1057|70|12|407|2308 at FFFFD104|
+| LFNPEA |1057|70|12|407|2308 at FFFFD104|
+| LF4XEC |278|4|8|77|0308 at FFFFD104|
+
+This is stronger CPU-path evidence than B124/B125 entry-window checks: under these explicit peripheral inputs, no earlier CPU path/arithmetic/addressing discrepancy was found from reset to the disputed write. It is still not independent physical peripheral/profile validation, instruction timing validation, successful completion of the prohibited write, sustained initialization or recurring firmware IRQ evidence. The final control-store event is attempted, not completed. The normal emulator's guard remains intact.
+
+Generated programs test both input-driven branch outcomes, terminal writes and rejection of wrong output value, width, input address/order, exhausted input, and unknown branch input. An expected final output cannot force an ambiguous earlier branch: the reference stops when that ambiguity is encountered. CI requires these generated reset replays alongside the earlier audits. Local private-ROM regressions are skipped in public CI.
+
+Use `--reset-replay` with the existing audit command. [Reduced three-image results](evidence/b127-independent-reset-replay.json) contain hashes, assumptions, counts, terminal access and explicit input-source limitations, with no OEM bytes, raw trace, local paths or full peripheral transcript.
+
+The remaining practical gate is applicable controller/profile evidence explaining the prohibited command under actual hardware inputs. These checks provide no justification to convert011 to010, invent reserved-bit readback, patch firmware or claim boot. An independent hardware or applicable primary reference can still reveal that our supplied peripheral/profile assumptions differ from the target.

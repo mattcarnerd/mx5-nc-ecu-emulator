@@ -706,3 +706,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b126-no-clock-unknown.json and b126-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All three supplied-entry caller paths match57/57/54 events with two conditional decisions and one call target each; ambiguous branches reject and observed choices are not forced. Reset-to-caller entry state is not independently verified yet. Next extend independent CPU execution earlier under explicit peripheral inputs; physical011 behavior stays unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B127/#134
+
+B127: independently replay CPU reset paths under labelled peripheral input transcripts
+
+Validation: Ran 524 tests in 11.398s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b127-no-clock-unknown.json and b127-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All1057/1057/278 attempted instruction events and407/407/77 peripheral accesses match; undefined registers/RAM remain symbolic. No earlier CPU discrepancy found under the emulator-generated inputs, which are not physical evidence. Same prohibited stores remain attempted, not completed; actual controller/profile behavior is the remaining evidence gate. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
