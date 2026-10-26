@@ -8,11 +8,12 @@ TIOR=0xFFFFF459
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
+ITVRR=(0xFFFFF424,0xFFFFF426,0xFFFFF428)
 DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -56,6 +57,8 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a in ITVRR and value and self.known(TSTR)&1:
+            self.fail('unsupported_peripheral_mode','Interval/ADC trigger generation requires unmodelled TCNT0 execution',a,width,'write')
         if a==DSTR:
             if value:self.fail('unsupported_peripheral_mode','DSTR one-bit starts need unmodelled channel8 downcounters/triggers',a,width,'write')
             # Rev3 11.2.11: only1 can be written. Zero leaves all bits,

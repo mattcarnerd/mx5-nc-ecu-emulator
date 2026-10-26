@@ -6,7 +6,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Verified current position
 
-- **440 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Autonomous startup pass B72-B82 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
+- **442 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Autonomous startup pass B72-B82 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
 - Previously downloaded and checksum-verified application baseline: [v0.2.0-dev.136.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.136.1). Latest implementation/release evidence is linked from [B82/#89](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/89) and [pass report](docs/AUTONOMOUS_STARTUP_PASS.md).
 - **Default reference:** original LF9VEB SHA-256, power reset, NMI high, 300-instruction budget, no supplied physical pins, H-UDI/clock unknown. Stops at **188 attempted instructions**, reading SDSR at `0xFFFFF7C2`, PC `0x00000EF8`, opcode `6321`: unknown H-UDI state.
 - **Separate conditional investigation:** explicit H-UDI assumption plus artificial phi-per-completed-instruction=1 and a **10,000** budget stops at **592 attempts / 591 completed**, PC `0x000007B6`, opcode `2301`, word store to MCR0 `0xFFFFD000`. The written value still contains unknown reserved bit6 after read/OR1. No concrete value or reset side effect is selected. The same conditional run with a 300 budget reaches only the instruction limit.
@@ -33,6 +33,12 @@ There are **three open parent workstreams**. The current autonomous milestone is
 | P3 | Validate supported hardware/ROM families | Obtain authorized representative ROMs/board evidence and run identical declared scenarios; publish per-family support and failures. One LF9VEB regression does not establish all NC compatibility. | [Hardware #1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/1), [Peripherals #3](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/3) |
 
 **Next dependency:** the declared reset1/bus64 or256 experiment reaches1057/1056, PCE70/op81C2, mailbox0 control2308 (prohibited MBC011). Check applicable primary behavior evidence or independent CPU/profile correction before accepting it; current reviewed manuals and technical update prohibit it. See [audit and evidence needed](docs/MAILBOX_MODE_AUDIT.md). No silent mode conversion, ignored write, firmware patch or guessed bus response. The user has no matching ECU; a public technical reference/trace or another suitably identified ROM can supply evidence without purchasing hardware.
+
+## 26 October autonomous investigation checkpoint
+
+Strict reference defaults still stop at H-UDI after187 completed instructions; the declared CAN reset-completion scenario still stops on prohibited MBC011. These evidence gates remain unresolved. A separate exploration envelope now records prior RAM, clock, H-UDI/CAN hypotheses and optional pin levels. It reaches58608 completed instructions (PB/PD0, PC0, prior RAM0, phi16), then unmodelled TCR1B FFFFF45C byte4 at PCBE5A. There are zero firmware CPU interrupt entries. Configuration/readback progress does not establish initialization or recurring interrupts.
+
+The next implementation task is stopped TCR1B configuration from Rev3, followed only by registers/instructions actually reached. Continue to preserve unknown physical states and strict defaults. The user has no physical ECU and need not buy one: public source comparison, primary documentation and explicitly hypothetical simulations remain useful. See [exploration method](docs/STARTUP_EXPLORATION.md), [current evidence](docs/evidence/b101-exploration.json), and [autonomous pass](docs/AUTONOMOUS_STARTUP_PASS.md).
 
 ## Completed bounded capabilities and their limits
 
@@ -195,3 +201,5 @@ B98/#105 completed scope/test review: see [autonomous startup pass](docs/AUTONOM
 B99/#106 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 438 tests pass. Source Rev3 table11.3/11.2.1/11.2.2. Only byte stop0 commands and stopped-counter fivebitprescaler config accepted; other channel starts/combined widths guarded. No other timer clock/events modelled. PBPD0/FFFF experiments reach58590/58588 attempts at FFFFF666 word0, PCBE34/op2141,0IRQs; next identify required timer register. Strict gates unchanged.
 
 B100/#107 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 440 tests pass. Rev3 11.2.11 permits only1writes; zero preserves reset/retained/seeded state, no downcounterstart or physicalpulse fabricated. Incorrectwidth/onebitstart remains guarded. PBPD0/FFFF experiments reach58601/58599 attempts at ITVRR1 FFFFF424 byte0, PCBE4A/op2240,0 IRQs. Strict hardware gates remainopen.
+
+B101/#108 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 442 tests pass. Rev3 11.2.7 defines8bit R/W ITVRR1/2A/2B; no interval/ADC event without TCNT0 execution. Unknown manual/width guards retained; explicit zero disables controls. PBPD0/FFFF experiments reach58609/58607 attempts at TCR1B FFFFF45C byte4, PCBE5A/op2150,0IRQs. Backlog current checkpoint updated; next stopped TCR1B config. Strict gates unchanged.

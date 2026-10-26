@@ -388,3 +388,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b100-no-clock-unknown.json and b100-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 440 tests pass. Rev3 11.2.11 permits only1writes; zero preserves reset/retained/seeded state, no downcounterstart or physicalpulse fabricated. Incorrectwidth/onebitstart remains guarded. PBPD0/FFFF experiments reach58601/58599 attempts at ITVRR1 FFFFF424 byte0, PCBE4A/op2240,0 IRQs. Strict hardware gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B101/#108
+
+B101: add stopped TCNT0 interval/ADC trigger configuration controls.
+
+Validation: Ran 442 tests in 6.327s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b101-no-clock-unknown.json and b101-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 442 tests pass. Rev3 11.2.7 defines8bit R/W ITVRR1/2A/2B; no interval/ADC event without TCNT0 execution. Unknown manual/width guards retained; explicit zero disables controls. PBPD0/FFFF experiments reach58609/58607 attempts at TCR1B FFFFF45C byte4, PCBE5A/op2150,0IRQs. Backlog current checkpoint updated; next stopped TCR1B config. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
