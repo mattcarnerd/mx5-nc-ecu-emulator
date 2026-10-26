@@ -10,6 +10,7 @@ import hashlib
 from typing import Optional
 from .core import ROMImage
 from .known_bits import KnownBits
+from .syscr1 import SystemControl1, ADDRESS as SYSCR1_ADDRESS
 from .fpu import FpuState,execute_fpu
 from .atu import Atu1A
 from .adc import Adc0
@@ -135,6 +136,7 @@ class BootBus:
         # SYSCR2 clock/source control: write word with 0x3C key, read byte.
         # SH7058 manual sect. 5.1.3 & 5.2.3: power-on initial 0x01.
         self.syscr2 = 0x01 if power_on else None
+        self.syscr1=SystemControl1(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         # SH7058 section 7.1.4: IPRx power-on reset to 0; ICR bit 15
         # reads the physical NMI pin state and is not faked by this model.
         self.ipr = {0xFFFFED00 + 2*i: (0 if power_on else None) for i in range(12)}
@@ -420,6 +422,7 @@ class BootBus:
     def read_cpu_value(self,address,width):
         if width not in (1,2,4):raise ValueError('Unsupported width')
         try:
+            if address==SYSCR1_ADDRESS:return self.syscr1.access(width,'read',typed=True)
             if RAM_BASE<=address and address+width<=RAM_LIMIT:
                 _,off=self._region(address,width,'read')
                 if not all(self.ram_valid[off:off+width]):
@@ -442,6 +445,7 @@ class BootBus:
         return self.read_cpu_value(address,2)
 
     def _read(self, a: int, width: int) -> int:
+        if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'read')
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'read')
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'read')
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'read')
@@ -523,6 +527,7 @@ class BootBus:
             raise
 
     def _write(self, a:int,width:int,value:int):
+        if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'write',value)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'write',value)
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'write',value)
         if a in MBIMR_ADDRESSES or a-1 in MBIMR_ADDRESSES:return self.hcan.mask_access(a,width,'write',value)
