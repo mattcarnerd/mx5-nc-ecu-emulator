@@ -10,7 +10,9 @@ from .share_report import make_shareable_blocker_report
 TAIL_WORD=0xFFFFBFFC
 
 def explore_startup(rom, *, prior_ram_word, phi_cycles_per_instruction,
-                    max_steps=100000, port_b_pins=None, port_c_pins=None, port_d_pins=None):
+                    max_steps=100000, port_b_pins=None, port_c_pins=None, port_d_pins=None, startup_timer_fixture=None):
+    from .startup_timer_fixture import normalize_startup_timer_fixture,bind_startup_timer_fixture
+    timer_fixture=normalize_startup_timer_fixture(startup_timer_fixture)
     if type(phi_cycles_per_instruction) is not int or not 1<=phi_cycles_per_instruction<=1000000:
         raise ValueError('Explicit artificial phi ratio must be1..1000000')
     if type(prior_ram_word) is not int or not 0<=prior_ram_word<=0xFFFFFFFF:
@@ -26,6 +28,7 @@ def explore_startup(rom, *, prior_ram_word, phi_cycles_per_instruction,
         phi_cycles_per_instruction=phi_cycles_per_instruction,
         experimental_mcr_bit6=0,hcan_fixture=fixture,port_b_pin_values=port_b_pins,
         port_c_pin_values=port_c_pins,port_d_pin_values=port_d_pins)
+    timer_state=bind_startup_timer_fixture(cpu,timer_fixture)
     cpu.bus.write(TAIL_WORD,4,prior_ram_word)
     result=cpu.run(max_steps)
     settings={'reset':'power','nmi':'high','max_steps':max_steps,
@@ -44,9 +47,12 @@ def explore_startup(rom, *, prior_ram_word, phi_cycles_per_instruction,
             'port_b_pins':None if port_b_pins is None else f'0x{port_b_pins:04X}',
             'port_c_pins':None if port_c_pins is None else f'0x{port_c_pins:04X}',
             'port_d_pins':None if port_d_pins is None else f'0x{port_d_pins:04X}',
+            'startup_timer_fixture':timer_fixture,
             'nmi_high':True,'hudi_scenario':'trst-reset',
             'phi_cycles_per_instruction':phi_cycles_per_instruction,
             'experimental_mcr_bit6':0,'hcan_fixture':fixture},
+        'startup_timer_binding':timer_state,
+        'atu_clock_fixture':result['atu_clock_fixture'],
         'interrupt_entries':result['interrupt_entries'],
         'watchdog_overflows':cpu.bus.watchdog.overflow_count,
         'recent_pc_frequency':dict(Counter(t['pc'] for t in result['trace'] if 'pc' in t)),
@@ -65,12 +71,26 @@ def main(argv=None):
     parser.add_argument('--port-b-pins',type=lambda x:int(x,0))
     parser.add_argument('--port-c-pins',type=lambda x:int(x,0))
     parser.add_argument('--port-d-pins',type=lambda x:int(x,0))
+    parser.add_argument('--startup-timer-p-phi',type=int)
+    parser.add_argument('--channel10-initial-a',type=int,choices=(0,1))
+    parser.add_argument('--channel10-initial-c',type=int,choices=(0,1))
+    parser.add_argument('--channel10-initial-f',type=int,choices=(0,1))
+    parser.add_argument('--experimental-channel10-wrap16',action='store_true')
     parser.add_argument('--report',required=True)
     args=parser.parse_args(argv)
+    candidates=(args.channel10_initial_a,args.channel10_initial_c,args.channel10_initial_f)
+    timer_fixture=None
+    if args.startup_timer_p_phi is not None:
+        if any(v is None for v in candidates):parser.error('Startup timers require all three channel10 initial candidates')
+        timer_fixture={'p_phi_cycles_per_instruction':args.startup_timer_p_phi,
+            'channel10_initial_candidates':dict(zip(('A','C','F'),candidates)),
+            'zero_reload_policy':'experimental-wrap16' if args.experimental_channel10_wrap16 else None}
+    elif any(v is not None for v in candidates) or args.experimental_channel10_wrap16:
+        parser.error('Channel10 assumptions require --startup-timer-p-phi')
     try:
         result=explore_startup(ROMImage.from_file(args.rom),prior_ram_word=args.prior_ram_word,
             phi_cycles_per_instruction=args.phi_cycles_per_instruction,max_steps=args.steps,
-            port_b_pins=args.port_b_pins,port_c_pins=args.port_c_pins,port_d_pins=args.port_d_pins)
+            port_b_pins=args.port_b_pins,port_c_pins=args.port_c_pins,port_d_pins=args.port_d_pins,startup_timer_fixture=timer_fixture)
     except ValueError as error:parser.error(str(error))
     Path(args.report).write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
     return 0

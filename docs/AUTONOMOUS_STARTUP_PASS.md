@@ -596,3 +596,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b116-no-clock-unknown.json and b116-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 483 tests pass. Default A/C/F ambiguity and zero reload remain unknown/guarded; explicitcandidate and experimentalwrap policies retained in clockreport. Nonzeroreload/AGCK1/E/G/F arithmetic, packetpartition and atomic unsupportedboundary tested, noexternalinput/pulse/IRQ fabricated. New API canacceptFF only withstartupfixture; source-ROMexploration doesnotenableit yet. Next explicitenvelope/clockbinding investigation withallpoliciesretained. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B117/#124
+
+B117: expose fully declared startup timer hypotheses and lazy first-start clock binding.
+
+Validation: Ran 488 tests in 6.035s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b117-no-clock-unknown.json and b117-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 488 tests pass. Fixture validation/envelope/defaultoptout/atomic startvalidation/failedpacket ordering and generated first-start ROM verified. WindowsEXEsmoke nowalsoactivatesactualtimerfixture. SourceROMmatrix defaultzero-policy blocksfirstpacket; experimentalwrap proceedsonepacket thenTSTR2FF F400 atPCBED4,58670/58668attempts,0IRQs. All Pphi/reset/policy/order assumptions retained; originalfirmware milestone remainsunachieved. Next bounded timer6/7runtime before PWMstart. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

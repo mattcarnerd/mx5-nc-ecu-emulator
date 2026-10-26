@@ -17,3 +17,17 @@ B93 matrix: prior words0/FFFFFFFF with phi1 complete100000 instructions without 
 B95 adds optional `--port-c-pins` (PC4..0) and `--port-d-pins` (16-bit physical input fixture), both unknown when omitted. Exact values remain in the outer assumptions. With prior RAM0/phi16/PC0 and paired PB/PD0 orFFFF, both runs reach MOVT R0 opcode0029 at PCC3D2 after58531 completed instructions. These input choices exercise paths; neither is a real ECU profile. See evidence/b95-exploration.json.
 
 The Windows executable exposes the same separate investigation through `MX5-NC-ECU-Emulator.exe --explore-startup` followed by the arguments above. This route emits the exploration envelope, never a reset baseline. CI runs the actual packaged executable against a generated ROM on both ordinary diagnostic and exploration routes and verifies retained assumptions.
+
+## Optional startup timer clock investigation (B117)
+
+Additional arguments explicitly choose an artificial peripheral Pphi ratio and the three ambiguous channel10 initial candidates:
+
+```powershell
+python -m ecu_workbench.startup_exploration --rom <local-ROM> --prior-ram-word 0 --phi-cycles-per-instruction 16 --port-b-pins 0 --port-c-pins 0 --port-d-pins 0 --startup-timer-p-phi 16 --channel10-initial-a 1 --channel10-initial-c 1 --channel10-initial-f 1 --experimental-channel10-wrap16 --report timer-exploration.json
+```
+
+Omit the timer arguments to retain the earlier simultaneous-start stop. All three candidate values are required when choosing startup timers. Omitting the final experimental-wrap flag retains the default stop on zero reload. The same arguments work after the EXE's `--explore-startup` option. These are declared hypotheses and model policies, not measured clock rates/reset contents or a verified hardware profile.
+
+The peripheral clock binds with zero phase at the first nonzero TSTR1 write, after firmware setup. Scheduled packets run after each completed instruction before the existing watchdog phi packet. This event ordering and old-state-Pphi correction order are retained in the envelope, alongside candidate values, zero-reload policy, binding tick, completed packet count and clock report. Unsupported start modes are validated before clock binding/scheduling. A rejected clock packet leaves all timer counters/events untouched; the CPU instruction that preceded it can already have completed.
+
+The B117 matrix contains four source-ROM runs. With PB/PD0 (orFFFF), candidates1/1/1 and Pphi16, unspecified zero reload stops after58669 (58667) completed instructions before applying any timer packet. The experimental-wrap16 policy applies one packet and then stops on TSTR2 FFFFF400 byteFF at PCBED4,58670 (58668) attempts and58669 (58667) completed. Zero original-firmware IRQs are observed in every case. See evidence/b117-timer-exploration.json. Windows CI executes generated NOP and first-start ROMs through the actual EXE and validates both provenance and lazy binding.

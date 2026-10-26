@@ -33,7 +33,9 @@ def smoke(executable):
         process=subprocess.run([str(executable),'--explore-startup','--rom',str(image),
             '--prior-ram-word','0xFFFFFFFF','--phi-cycles-per-instruction','16',
             '--port-b-pins','0','--port-c-pins','0x1F','--port-d-pins','0xFFFF',
-            '--steps','1','--report',str(exploration)],
+            '--startup-timer-p-phi','16','--channel10-initial-a','1',
+            '--channel10-initial-c','1','--channel10-initial-f','1',
+            '--experimental-channel10-wrap16','--steps','1','--report',str(exploration)],
             timeout=90,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
         if process.returncode!=0:raise RuntimeError('Packaged exploration returned nonzero exit')
         experiment=json.loads(exploration.read_text(encoding='utf-8'))
@@ -42,8 +44,27 @@ def smoke(executable):
             raise RuntimeError('Packaged exploration missing prior RAM provenance')
         if (assumptions['port_b_pins'],assumptions['port_c_pins'],assumptions['port_d_pins'])!=('0x0000','0x001F','0xFFFF'):
             raise RuntimeError('Packaged exploration missing pin provenance')
+        timer=assumptions['startup_timer_fixture']
+        if timer!={'p_phi_cycles_per_instruction':16,'channel10_initial_candidates':{'A':1,'C':1,'F':1},'zero_reload_policy':'experimental-wrap16'}:
+            raise RuntimeError('Packaged exploration missing startup timer policies')
+        if experiment['startup_timer_binding']['bound_tick'] is not None:
+            raise RuntimeError('NOP synthetic ROM must not start timers')
         if experiment['diagnostic']['completed_instructions']!=1 or experiment['initialization_verified'] or experiment['recurring_interrupts_verified']:
             raise RuntimeError('Packaged exploration has invalid execution claims')
+        # Exercise lazy first-start binding and runtime inside the actual EXE.
+        for index,word in enumerate((0x9304,0xE4FF,0x2340,0x0009,0x0009,0x0009,0xF401)):
+            data[256+2*index:258+2*index]=word.to_bytes(2,'big')
+        image.write_bytes(data);timer_report=root/'timer-start.json'
+        process=subprocess.run([str(executable),'--explore-startup','--rom',str(image),
+            '--prior-ram-word','0','--phi-cycles-per-instruction','16',
+            '--startup-timer-p-phi','16','--channel10-initial-a','1',
+            '--channel10-initial-c','1','--channel10-initial-f','1',
+            '--experimental-channel10-wrap16','--steps','4','--report',str(timer_report)],
+            timeout=90,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if process.returncode!=0:raise RuntimeError('Packaged timer-start exploration returned nonzero exit')
+        timer_result=json.loads(timer_report.read_text(encoding='utf-8'))
+        if timer_result['diagnostic']['completed_instructions']!=4 or timer_result['startup_timer_binding']['bound_tick']!=2 or timer_result['startup_timer_binding']['completed_packets']!=2:
+            raise RuntimeError('Packaged timer fixture did not bind/count at the declared start')
         print('Packaged Windows diagnostic smoke test passed: generated ROM, one instruction, explicit fixture provenance.')
 
 if __name__=='__main__':smoke(sys.argv[1])

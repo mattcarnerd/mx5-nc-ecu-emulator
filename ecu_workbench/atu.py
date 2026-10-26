@@ -48,6 +48,7 @@ class Atu1A:
         self.regs={a:(STOPPED_COUNTERS[a][3] if a in STOPPED_COUNTERS else (0xFFFF if a in (GR,GRB) else 0)) if power_on else None for a in WIDTHS}
         # Rev3 table11.3/11.2.11: no channel8 counter/reload writes are
         # supported yet. Retain documented power state, unknown on manual reset.
+        self.on_start=None
         self.counter0=Counter0Runtime(self)
         self.upcounter_bank=UpcounterBankRuntime(self,power_on=power_on)
         self.channel10=Channel10InitialRuntime(self,power_on=power_on)
@@ -97,6 +98,7 @@ class Atu1A:
     def write(self,a,width,value):
         if self.channel10.handles(a):return self.channel10.write(a,width,value)
         self.guard(a,width,'write');self.guard_stopped_counter(a,width,'write');value &= (1<<(8*width))-1
+        if a==TSTR and value and self.on_start is not None:self.on_start(value)
         if a==TSR0:
             if value&0xFF00:self.fail('invalid_peripheral_write','TSR0 reserved bits15..8 require zero',a,width,'write',value)
             self.regs[a]=self.known(a)&~(self.counter0.read_flags&~value&0xFF)
@@ -152,7 +154,7 @@ class Atu1A:
             self.trace.append({'register':'DSTR','access':'write','width':2,'value':0,'scope':'write_zero_no_operation'})
             return
         if a in (TSTR2,TSTR3) and value!=0:
-            self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write')
+            self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write',value)
         if a in PSCR_EXTRA:
             if a==0xFFFFF40A and self.channel10.enabled and value!=self.regs[a]:
                 self.fail('unsupported_peripheral_mode','Channel10 clock changes after binding require phase handling',a,width,'write',value)
