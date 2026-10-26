@@ -524,3 +524,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b110-no-clock-unknown.json and b110-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 462 tests pass. TCR11 fields/stop/reserved/unknownmanual/width checks; no counter11execution. Explicit PBPD0/FFFF experiments reach58650/58648 attempts at TCNT0 FFFFF430 long0, PCBEAC/op2342. Next stopped-counter initialization from Rev3 11.2.15/table11.3; strict/CAN gates remainopen. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B111/#118
+
+B111: implement documented stopped TCNT initialization with distinct widths/reset values.
+
+Validation: Ran 464 tests in 5.489s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b111-no-clock-unknown.json and b111-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 464 tests pass. TCNT0 long32reset0; independent1B/2A/2B/3/4/5/11 wordsreset0 and6/7 wordsreset1. Per-counter start/read/write/width/manual guards. No alias/counting/events invented; existing1Amodel unchanged. Explicit PBPD0/FFFF runs reach58669/58667 attempts at TSTR1 FFFFF401 bytewrite, PCBED2/op2340. Need exact requestedstartset and declaredtimerclocks before runtime implementation. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

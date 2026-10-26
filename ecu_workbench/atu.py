@@ -29,12 +29,20 @@ DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={TCR11:1,RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+# Rev3 table11.3 and11.2.15: width, start register, start bit, reset.
+STOPPED_COUNTERS={
+    0xFFFFF430:(4,TSTR,1,0),0xFFFFF442:(2,TSTR,8,0),
+    0xFFFFF600:(2,TSTR,4,0),0xFFFFF602:(2,TSTR,8,0),
+    0xFFFFF4A0:(2,TSTR,0x10,0),0xFFFFF4C0:(2,TSTR,0x20,0),
+    0xFFFFF4E0:(2,TSTR,0x40,0),0xFFFFF5C0:(2,TSTR3,1,0),
+    **{0xFFFFF500+2*i:(2,TSTR2,1<<i,1) for i in range(4)},
+    **{0xFFFFF580+2*i:(2,TSTR2,0x10<<i,1) for i in range(4)}}
+WIDTHS={**{a:c[0] for a,c in STOPPED_COUNTERS.items()},TCR11:1,RLDENR:1,TCR8:1,PMDR:1,**{a:1 for a in PWM_TCR_STOP},TCR3:1,TCR4:1,TCR5:1,TMDR:1,TCR2A:1,TCR2B:1,TRGMDR:1,TCNR:2,OTR:2,TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
         self.trace,self.stop_type=trace,stop_type
-        self.regs={a:(0xFFFF if a in (GR,GRB) else 0) if power_on else None for a in WIDTHS}
+        self.regs={a:(STOPPED_COUNTERS[a][3] if a in STOPPED_COUNTERS else (0xFFFF if a in (GR,GRB) else 0)) if power_on else None for a in WIDTHS}
         # Rev3 table11.3/11.2.11: no channel8 counter/reload writes are
         # supported yet. Retain documented power state, unknown on manual reset.
         self.channel8_counters=[0 if power_on else None for _ in range(16)]
@@ -45,7 +53,8 @@ class Atu1A:
         self.event_sink=None;self.explicit_input_events=0
         self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
-    def handles(self,a):return a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR)
+    def handles(self,a):return (a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR)
+        or any(base<a<base+spec[0] for base,spec in STOPPED_COUNTERS.items()))
 
     def fail(self,kind,detail,a=None,width=None,access=None):
         raise self.stop_type(kind,detail,address=a,width=width,access=access)
@@ -70,6 +79,7 @@ class Atu1A:
 
     def read(self,a,width):
         self.guard(a,width,'read')
+        self.guard_stopped_counter(a,width,'read')
         if a==TCNT and self.known(TSTR)&2 and not self.clock_supplied:
             self.fail('missing_input','Running ATU counter needs explicit selected-clock ticks',a,width,'read')
         value=self.known(a)
@@ -77,7 +87,7 @@ class Atu1A:
         return value
 
     def write(self,a,width,value):
-        self.guard(a,width,'write');value &= (1<<(8*width))-1
+        self.guard(a,width,'write');self.guard_stopped_counter(a,width,'write');value &= (1<<(8*width))-1
         if a==TCR11:
             if value&0xC8:self.fail('invalid_peripheral_write','TCR11 reserved bits7/6/3 require zero',a,width,'write')
             if self.known(TSTR3)&1:self.fail('unsupported_peripheral_mode','TCR11 configuration requires stopped counter11',a,width,'write')
@@ -135,6 +145,12 @@ class Atu1A:
         if a in (GR,GRB) and ((self.known(TIOR)>>(4 if a==GRB else 0))&4):self.fail('read_only_peripheral','GR1A cannot be written in capture mode',a,width,'write')
         self.regs[a]=value
         self.trace.append({'register':f'ATU1A_{a:08X}','access':'write','width':width,'value':value})
+
+    def guard_stopped_counter(self,a,width,operation):
+        if a in STOPPED_COUNTERS:
+            _,start,bit,_=STOPPED_COUNTERS[a]
+            if self.known(start)&bit:
+                self.fail('unsupported_peripheral_mode','Counter execution outside stopped-register subset',a,width,operation)
 
     def channel8_quiescent(self):
         return (self.regs[DSTR]==0 and all(v==0 for v in self.channel8_counters)
