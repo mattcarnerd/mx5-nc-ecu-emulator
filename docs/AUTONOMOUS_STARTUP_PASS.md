@@ -620,3 +620,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b118-no-clock-unknown.json and b118-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 492 tests pass. Independentcounter reset/divisor/startphase/partition and atomiccrossbankeventstop verified; compare/PWM/APC/overflow effects remainexplicitstops. Allclock/mode/activewrite/unknown guards retained. Experimentalwrap sourceROM nowapplies18timerpackets and reaches58687/58685 attempts at WDT TCSR A518/FFFFEC10, PCC00C/op2021,0IRQs. Defaultzero-policy stillguarded. Next verify watchdogstop/clock-change semantics againstmanual beforecorrecting. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B119/#126
+
+B119: add opt-in ordered watchdog-stop experiment with explicit provenance
+
+Validation: Ran 497 tests in 6.213s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b119-no-clock-unknown.json and b119-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Normal watchdog guard retained. Optional ordering reaches FFFFF000 byte80 at PCC01E,58695/58693 completed with prior timer/RAM/pin hypotheses; zero firmware IRQs. Next identify that register from Rev.3; initialization remains unverified. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

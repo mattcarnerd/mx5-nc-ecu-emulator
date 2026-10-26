@@ -95,6 +95,8 @@ def capture_boot_baseline(
             "next_dependency": run.get("next_dependency"),
             "first_unsupported_peripheral": unsupported,
             "trace_tail": trace[-TRACE_TAIL_LENGTH:],
+            "experimental_wdt_ordered_stop":run.get("experimental_wdt_ordered_stop",False),
+            "wdt_ordered_stop_count":run.get("wdt_ordered_stop_count",0),
             "unresolved_hcan_command_count":run.get("unresolved_hcan_command_count",0),
             "unresolved_hcan_effects":run.get("unresolved_hcan_effects",False),
             "boot_complete": False,

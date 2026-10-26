@@ -6,7 +6,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Verified current position
 
-- **492 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Autonomous startup pass B72-B82 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
+- **497 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. Autonomous startup pass B72-B82 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
 - Previously downloaded and checksum-verified application baseline: [v0.2.0-dev.136.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.136.1). Latest implementation/release evidence is linked from [B82/#89](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/89) and [pass report](docs/AUTONOMOUS_STARTUP_PASS.md).
 - **Default reference:** original LF9VEB SHA-256, power reset, NMI high, 300-instruction budget, no supplied physical pins, H-UDI/clock unknown. Stops at **188 attempted instructions**, reading SDSR at `0xFFFFF7C2`, PC `0x00000EF8`, opcode `6321`: unknown H-UDI state.
 - **Separate conditional investigation:** explicit H-UDI assumption plus artificial phi-per-completed-instruction=1 and a **10,000** budget stops at **592 attempts / 591 completed**, PC `0x000007B6`, opcode `2301`, word store to MCR0 `0xFFFFD000`. The written value still contains unknown reserved bit6 after read/OR1. No concrete value or reset side effect is selected. The same conditional run with a 300 budget reaches only the instruction limit.
@@ -34,9 +34,9 @@ There are **three open parent workstreams**. The current autonomous milestone is
 
 **Next dependency:** the declared reset1/bus64 or256 experiment reaches1057/1056, PCE70/op81C2, mailbox0 control2308 (prohibited MBC011). Check applicable primary behavior evidence or independent CPU/profile correction before accepting it; current reviewed manuals and technical update prohibit it. See [audit and evidence needed](docs/MAILBOX_MODE_AUDIT.md). No silent mode conversion, ignored write, firmware patch or guessed bus response. The user has no matching ECU; a public technical reference/trace or another suitably identified ROM can supply evidence without purchasing hardware.
 
-## Current runtime dependency after B112
+## Current runtime dependency after B119
 
-The declared exploration reaches TSTR1 byteFF at PCBED2 after58668 completed instructions (PB/PD0;58666 with PB/PDFFFF), with zero original-firmware IRQs. It starts timer groups0/1/2/3/4/5/10 together. Stopped-register initialization is implemented; simultaneous execution is not. B113-B114 now provide explicit-Pphi TCNT0 module runtime and verified shared interval/overflow CPU routes with recurring generated handlers. Next: remaining timer groups and channel10 clock/trigger interactions before accepting simultaneousFF. See [runtime audit](docs/SIMULTANEOUS_TIMER_START.md). Earlier checkpoints below are historical. Strict H-UDI/CAN evidence gates remain unresolved, and no physical input/timing value has been established.
+Optional explicit-Pphi runtime now covers the simultaneous timer start, including guarded channels6/7/11. Generated shared interval/overflow handlers recur; the original ROM has still produced zero CPU IRQ entries. The separate ordered-watchdog-stop experiment reaches byte80 at FFFFF000, PCC01E, after58695/58693 completed instructions (PB/PD0/FFFF). Its assumed ordering, channel10 initial111/wrap16, priorRAM0, supplied clock and pin hypotheses remain recorded; the normal model retains the disputed watchdog-write guard. Next: identify and implement only the reached register semantics from Rev.3. Strict H-UDI/CAN gates remain unresolved. Earlier checkpoints below are historical.
 
 ## 26 October autonomous investigation checkpoint
 
@@ -73,7 +73,7 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 
 **24 October 2026 audit:** compared all open parent issue bodies, current source and eight-task evidence. Found stale P0/P1 introductions, completed tasks presented in a priority queue, an incorrect implication that FPSCR reset was unknown, and an obsolete B28 stop line that did not enumerate further work. Replaced the mixed queue with the active work packages above; retained the three existing parents, with no duplicate issues or fabricated task estimate. Updated parent status/next milestones. This is a planning/documentation correction; no emulator behavior or support claim changed.
 
-- [Historical backlog and original review entries](docs/BACKLOG_HISTORY_2026-10-24.md) — historical priorities only.
+- [Historical backlog and original review entries](docs/BACKLOG_HISTORY_2026-10-24.md) â€” historical priorities only.
 - [Third five-task pass](docs/THIRD_FIVE_TASK_PASS.md)
 - [Fourth five-task pass](docs/FOURTH_FIVE_TASK_PASS.md)
 - [Eight-task completion evidence](docs/EIGHT_TASK_COMPLETION.md)
@@ -243,3 +243,5 @@ B116/#123 completed scope/test review: see [autonomous startup pass](docs/AUTONO
 B117/#124 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 488 tests pass. Fixture validation/envelope/defaultoptout/atomic startvalidation/failedpacket ordering and generated first-start ROM verified. WindowsEXEsmoke nowalsoactivatesactualtimerfixture. SourceROMmatrix defaultzero-policy blocksfirstpacket; experimentalwrap proceedsonepacket thenTSTR2FF F400 atPCBED4,58670/58668attempts,0IRQs. All Pphi/reset/policy/order assumptions retained; originalfirmware milestone remainsunachieved. Next bounded timer6/7runtime before PWMstart.
 
 B118/#125 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 492 tests pass. Independentcounter reset/divisor/startphase/partition and atomiccrossbankeventstop verified; compare/PWM/APC/overflow effects remainexplicitstops. Allclock/mode/activewrite/unknown guards retained. Experimentalwrap sourceROM nowapplies18timerpackets and reaches58687/58685 attempts at WDT TCSR A518/FFFFEC10, PCC00C/op2021,0IRQs. Defaultzero-policy stillguarded. Next verify watchdogstop/clock-change semantics againstmanual beforecorrecting.
+
+B119/#126 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). Normal watchdog guard retained. Optional ordering reaches FFFFF000 byte80 at PCC01E,58695/58693 completed with prior timer/RAM/pin hypotheses; zero firmware IRQs. Next identify that register from Rev.3; initialization remains unverified.

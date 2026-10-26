@@ -86,6 +86,14 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
 
     hudi_scenario=settings.get("hudi_scenario", boot.get("hudi_scenario", "unknown"))
     phi=settings.get("phi_cycles_per_instruction",boot.get("phi_cycles_per_instruction"))
+    ordered=boot.get('experimental_wdt_ordered_stop',False)
+    ordered_count=boot.get('wdt_ordered_stop_count',0)
+    if type(ordered) is not bool or type(ordered_count) is not int or ordered_count<0:
+        raise ValueError('Invalid watchdog experiment metadata')
+    if (ordered_count and not ordered) or (ordered and phi is None):
+        raise ValueError('Watchdog experiment requires explicit phi and policy')
+    if settings.get('experimental_wdt_ordered_stop',ordered) is not ordered:
+        raise ValueError('Watchdog policy mismatch')
     fixture=normalize_adc_fixture(settings.get('adc_fixture',boot.get('adc_fixture')))
     if normalize_adc_fixture(boot.get('adc_fixture'))!=fixture:
         raise ValueError('ADC fixture mismatch in diagnostic')
@@ -178,7 +186,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         and a.get("value") == 0x3FFF for a in accesses
     )
     same_reference = (sha == LF9VEB_SHA256 and reset == "power" and nmi == "high"
-                      and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"] and interrupt_requests==0 and scheduled_events==0 and not peripheral_injected)
+                      and not ordered and limit == 300 and provided is False and not scenario["conditional_hardware_scenario"] and interrupt_requests==0 and scheduled_events==0 and not peripheral_injected)
     dependency = boot.get("next_dependency")
     if not isinstance(dependency, dict):
         dependency = {}
@@ -201,6 +209,8 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "schema_version": 1,
         "kind": "nc_sh7058_shareable_blocker",
         **scenario,
+        "experimental_wdt_ordered_stop":ordered,
+        "wdt_ordered_stop_count":ordered_count,
         "explicit_interrupt_requests":interrupt_requests,
         "injected_interrupt_scenario":interrupt_requests>0 or scheduled_events>0,
         "injected_peripheral_scenario":peripheral_injected,
@@ -211,6 +221,7 @@ def make_shareable_blocker_report(diagnostic: dict) -> dict:
         "reference_lf9veb_scenario": same_reference,
         "settings": {
             "reset": reset, "nmi": nmi, "max_steps": limit,
+            "experimental_wdt_ordered_stop":ordered,
             "explicit_pin_values": provided, "hudi_scenario": hudi_scenario, "phi_cycles_per_instruction": phi, "adc_fixture":fixture, "experimental_mcr_bit6":bit, "hcan_fixture":hcan,
         },
         "unresolved_hcan_command_count":unresolved,

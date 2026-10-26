@@ -57,6 +57,8 @@ class WatchdogTimer:
         if type(clock_supplied) is not bool:raise ValueError('clock_supplied must be boolean')
         if request_interval is not None and not callable(request_interval):raise TypeError('Invalid ITI callback')
         self.clock_supplied=clock_supplied
+        self.experimental_ordered_stop=False
+        self.ordered_stop_count=0
         self.request_interval=request_interval
         self.phi_cycles=0  # explicit fixture origin/phase, not measured board timing
         self.overflow_count=0
@@ -99,7 +101,11 @@ class WatchdogTimer:
             if self.tcsr is None:
                 raise self.stop_type('unknown_peripheral_reset_state','TCSR overflow state unknown',
                                      address=address,width=width,access='write',value=value)
-            if self.tcsr & 0x20 and (self.tcsr ^ low) & 0x47:
+            ordered_stop=(self.experimental_ordered_stop and self.clock_supplied
+                and bool(self.tcsr & 0x20) and not bool(low & 0x20)
+                and not bool((self.tcsr ^ low) & 0x40)
+                and bool((self.tcsr ^ low) & 7))
+            if self.tcsr & 0x20 and (self.tcsr ^ low) & 0x47 and not ordered_stop:
                 raise self.stop_type('invalid_peripheral_write','Stop WDT before changing clock or mode',
                                      address=address,width=width,access='write',value=value)
             flag=self.tcsr & 0x80
@@ -108,6 +114,10 @@ class WatchdogTimer:
             self.tcsr=flag | (low & 0x67) | 0x18
             if not low & 0x20:self.tcnt=0
             self._update_request()
+            if ordered_stop:
+                self.ordered_stop_count+=1
+                self.trace.append({'experiment':'ordered_wdt_stop_before_clock_update',
+                    'physical_timing_verified':False,'t3_collision_modelled':False})
             name='TCSR'
         else:
             raise self.stop_type('invalid_peripheral_write','WDT requires 5A counter or A5 control key',

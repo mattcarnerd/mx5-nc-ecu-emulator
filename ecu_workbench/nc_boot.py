@@ -840,6 +840,8 @@ class NCBootDiagnostic:
             'engine':'SH7058 reset diagnostic (partial SH-2 integer instruction subset)',
             **run_scenario_metadata(self.bus.hudi.scenario,self.phi_cycles_per_instruction,self.adc_fixture,self.bus.hcan.experimental_mcr_bit6,self.hcan_fixture),
             'supplied_phi_cycles':self.bus.watchdog.phi_cycles,
+            'experimental_wdt_ordered_stop':self.bus.watchdog.experimental_ordered_stop,
+            'wdt_ordered_stop_count':self.bus.watchdog.ordered_stop_count,
             'rom_sha256':hashlib.sha256(self.bus.image.data).hexdigest(),
             'rom_size_bytes':len(self.bus.image.data),
             'profile':'sh7058-1m-readonly',

@@ -65,6 +65,22 @@ def smoke(executable):
         timer_result=json.loads(timer_report.read_text(encoding='utf-8'))
         if timer_result['diagnostic']['completed_instructions']!=4 or timer_result['startup_timer_binding']['bound_tick']!=2 or timer_result['startup_timer_binding']['completed_packets']!=2:
             raise RuntimeError('Packaged timer fixture did not bind/count at the declared start')
+        # Exercise the explicitly selected stop/clock ordering inside the EXE.
+        words=[0x930E,0x940E,0x2341,0x940D,0x2341,0x0009]+[0x0009]*10+[0xEC10,0xA53C,0xA518]
+        for index,word in enumerate(words):
+            data[256+2*index:258+2*index]=word.to_bytes(2,'big')
+        image.write_bytes(data);wdt_report=root/'wdt-stop.json'
+        process=subprocess.run([str(executable),'--explore-startup','--rom',str(image),
+            '--prior-ram-word','0','--phi-cycles-per-instruction','16',
+            '--experimental-wdt-ordered-stop','--steps','6','--report',str(wdt_report)],
+            timeout=90,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if process.returncode!=0:raise RuntimeError('Packaged watchdog experiment returned nonzero exit')
+        wdt_result=json.loads(wdt_report.read_text(encoding='utf-8'))
+        if (wdt_result['diagnostic']['completed_instructions']!=6 or
+            wdt_result['wdt_ordered_stop_count']!=1 or
+            wdt_result['assumptions']['experimental_wdt_ordered_stop'] is not True or
+            wdt_result['diagnostic']['experimental_wdt_ordered_stop'] is not True):
+            raise RuntimeError('Packaged watchdog ordering or provenance missing')
         print('Packaged Windows diagnostic smoke test passed: generated ROM, one instruction, explicit fixture provenance.')
 
 if __name__=='__main__':smoke(sys.argv[1])
