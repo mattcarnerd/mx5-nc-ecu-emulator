@@ -242,3 +242,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b88-no-clock-unknown.json and b88-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 403 tests pass. Reset/manual/processing masks, low-word fixed mailbox0 bit, partial clear knowledge, widths/channels verified. No transmit/abort event synthesized. Isolated investigation reaches1236 at RXPR0_0 write FFFFD042=FFFF, PC238/op23E1. Strict prohibited-mode gate and unresolved marker remain. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B89/#96
+
+B89: model receive/remote/overrun W1C mailbox status banks.
+
+Validation: Ran 406 tests in 26.392s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b89-no-clock-unknown.json and b89-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 406 tests pass. All16 receive flags including mailbox0, partial/manual/reset masks, W1C and bank/channel isolation verified with no CAN frames or IRQs synthesized. Isolated investigation reaches1248 at IRR0 word write FFFFD008=FFFF, PC250/op23E1. Strict mode and unresolved marker remain unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
