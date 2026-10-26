@@ -412,3 +412,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b102-no-clock-unknown.json and b102-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 444 tests pass. Rev3 11.2.3 internal/TCLKA/B selection stored only with knownstopped TCNT1B; otherclocks/reserved/paired widths rejected. Existing1A counter/IRQs unaffected. Explicit PBPD0/FFFF experiments reach58612/58610 attempts at TRGMDR FFFFF466 byte80, PCBE60/op2030,0IRQs. Next inspect trigger effects from manual before accepting. Strict/CAN gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B103/#110
+
+B103: package explicit exploration route and verify both executable modes in Windows CI.
+
+Validation: Ran 445 tests in 5.153s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b103-no-clock-unknown.json and b103-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 445 tests pass. Launcher --explore-startup explicitly imports module into packagedEXE; full priorRAM/phi/B/C/D assumptions checked by actual generated-ROM Windows smoke. Local downloadedEXE verification remains required before closing#110. Strict behavior and firmware progress unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

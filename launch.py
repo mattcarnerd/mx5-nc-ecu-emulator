@@ -2,6 +2,9 @@
 import sys
 
 def main():
+    if len(sys.argv)>1 and sys.argv[1]=='--explore-startup':
+        from ecu_workbench.startup_exploration import main as explore_main
+        return explore_main(sys.argv[2:])
     if len(sys.argv)>1:
         from ecu_workbench.cli import main as diagnostic_main
         return diagnostic_main()

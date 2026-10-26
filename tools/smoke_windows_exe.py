@@ -29,6 +29,21 @@ def smoke(executable):
             raise RuntimeError('Packaged completion provenance missing')
         if not boot['conditional_hardware_scenario'] or boot['experimental_mcr_bit6']!=0:
             raise RuntimeError('Packaged scenario markers missing')
+        exploration=root/'exploration.json'
+        process=subprocess.run([str(executable),'--explore-startup','--rom',str(image),
+            '--prior-ram-word','0xFFFFFFFF','--phi-cycles-per-instruction','16',
+            '--port-b-pins','0','--port-c-pins','0x1F','--port-d-pins','0xFFFF',
+            '--steps','1','--report',str(exploration)],
+            timeout=90,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+        if process.returncode!=0:raise RuntimeError('Packaged exploration returned nonzero exit')
+        experiment=json.loads(exploration.read_text(encoding='utf-8'))
+        assumptions=experiment['assumptions']
+        if experiment['schema']!='nc-ecu-startup-exploration-v1' or assumptions['prior_ram_words'][0]['value']!='0xFFFFFFFF':
+            raise RuntimeError('Packaged exploration missing prior RAM provenance')
+        if (assumptions['port_b_pins'],assumptions['port_c_pins'],assumptions['port_d_pins'])!=('0x0000','0x001F','0xFFFF'):
+            raise RuntimeError('Packaged exploration missing pin provenance')
+        if experiment['diagnostic']['completed_instructions']!=1 or experiment['initialization_verified'] or experiment['recurring_interrupts_verified']:
+            raise RuntimeError('Packaged exploration has invalid execution claims')
         print('Packaged Windows diagnostic smoke test passed: generated ROM, one instruction, explicit fixture provenance.')
 
 if __name__=='__main__':smoke(sys.argv[1])
