@@ -8,7 +8,10 @@ TIOR=0xFFFFF459
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
-WIDTHS={PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+TSTR2=0xFFFFF400
+TSTR3=0xFFFFF402
+PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
+WIDTHS={TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -52,6 +55,12 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a in (TSTR2,TSTR3) and value!=0:
+            self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write')
+        if a in PSCR_EXTRA:
+            if value&0xE0:self.fail('invalid_peripheral_write','PSCR reserved bits7..5 require zero',a,width,'write')
+            if any(self.known(start)!=0 for start in (TSTR,TSTR2,TSTR3)):
+                self.fail('unsupported_peripheral_mode','Configure common prescaler only with all counters stopped',a,width,'write')
         allowed={TSTR:(0,2),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
             self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write')

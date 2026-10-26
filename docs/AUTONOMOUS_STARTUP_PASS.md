@@ -364,3 +364,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b98-no-clock-unknown.json and b98-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 435 tests pass. Address-mask/size matching guards concrete/partial stores before any sideeffect; unsupported read/fetch/unknown matching rejects setup. No UBC IRQ or trigger timing fabricated. PBPD0/FFFF experiments now reach58586/58584 attempts at FFFFF400 byte0, PCBE2C/op2740,0 IRQs. Next identify ATU control register. Strict/CAN gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B99/#106
+
+B99: add stopped TSTR2/TSTR3 and PSCR2-4 common-control subset.
+
+Validation: Ran 438 tests in 5.997s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b99-no-clock-unknown.json and b99-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 438 tests pass. Source Rev3 table11.3/11.2.1/11.2.2. Only byte stop0 commands and stopped-counter fivebitprescaler config accepted; other channel starts/combined widths guarded. No other timer clock/events modelled. PBPD0/FFFF experiments reach58590/58588 attempts at FFFFF666 word0, PCBE34/op2141,0IRQs; next identify required timer register. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
