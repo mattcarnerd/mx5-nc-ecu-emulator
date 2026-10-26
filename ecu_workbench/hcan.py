@@ -288,6 +288,25 @@ class HcanResetCommands:
         self.unresolved_commands.append(event);self.unresolved_commands[:]=self.unresolved_commands[-100:]
         self.trace.append(dict(event))
 
+    @classmethod
+    def mailbox_control_address(cls,address):
+        if not cls.mailbox_region(address):return False
+        base=0xFFFFD100 if address<0xFFFFD900 else 0xFFFFD900
+        return (address-base)%32 in (4,5)
+
+    def mailbox_control_known(self,address,width):
+        base=0xFFFFD100 if address<0xFFFFD900 else 0xFFFFD900
+        offset=(address-base)%32
+        if not self.mailbox_control_address(address) or not (width==1 or (width==2 and offset==4)):
+            raise self.stop_type('unsupported_access_size','Mailbox control supports aligned byte/word reads',
+                address=address,width=width,access='read')
+        # No command shadow is evidence of receive-side, reserved or prohibited-
+        # mode readback. Transport uncertainty until the CPU actually needs it.
+        bits=KnownBits(0,0xFFFFFFFF ^ ((1<<(8*width))-1))
+        self.trace.append({'register':'mailbox_control','access':'read','address':f'0x{address:08X}',
+            'width':width,'known_value':0,'known_mask':0,'scope':'symbolic_unknown_no_command_readback_assumed'})
+        return bits
+
     def mailbox_read(self,address,width):
         raise self.stop_type('unknown_peripheral_reset_state',
             'Mailbox readback and CAN receive state are outside initialization-only support',

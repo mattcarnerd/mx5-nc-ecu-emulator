@@ -427,6 +427,7 @@ class BootBus:
     def read_cpu_value(self,address,width):
         if width not in (1,2,4):raise ValueError('Unsupported width')
         try:
+            if self.hcan.mailbox_control_address(address):return self.hcan.mailbox_control_known(address,width)
             if address==SYSCR1_ADDRESS:return self.syscr1.access(width,'read',typed=True)
             if RAM_BASE<=address and address+width<=RAM_LIMIT:
                 _,off=self._region(address,width,'read')

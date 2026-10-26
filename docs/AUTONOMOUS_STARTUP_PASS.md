@@ -644,3 +644,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b120-no-clock-unknown.json and b120-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Original exploration reaches unknown mailbox control read FFFFD104 at PCC07C,58709/58707 completed, zero IRQs. Audit software-owned readback against unresolved CAN effects next; hardware gates remain unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B121/#128
+
+B121: preserve unknown mailbox control through typed CPU reads
+
+Validation: Ran 505 tests in 5.661s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b121-no-clock-unknown.json and b121-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Read-mask-store audit reaches FFFFD104 at PCC084 with unknown written mask070F (MBC/DLC);58713/58711 completed, zero IRQs. This reconnects exploration to the prohibited-mode evidence gate. Next verify the current packaged application on original ROM and record precise evidence needed; no command-shadow readback invented. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
