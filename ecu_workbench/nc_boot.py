@@ -725,6 +725,10 @@ class NCBootDiagnostic:
         if (op&0xF0FF)==0x4010:  # DT Rn, SH-2E section7.2.21
             result=(self.reg(n)-1)&0xFFFFFFFF
             self.r[n]=result;self.t=(result==0);return None
+        if (op&0xF00F)==0x3008:  # SUB Rm,Rn, SH-2E Rev2 section7.2.60
+            left,right=self.reg(n),self.reg(m)
+            self.r[n]=(left-right)&0xFFFFFFFF  # T unchanged, including unknown T
+            return None
         if (op&0xF00F)==0x300C:  # ADD Rm,Rn, modulo32, T unchanged
             self.r[n]=(self.reg(n)+self.reg(m))&0xFFFFFFFF;return None
         if (op&0xF000)==0xE000:  # mov #imm,Rn

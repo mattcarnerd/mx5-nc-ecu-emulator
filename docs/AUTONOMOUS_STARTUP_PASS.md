@@ -280,3 +280,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b91-no-clock-unknown.json and b91-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 413 tests pass, including all16 target registers, signed boundaries, unknown operand preservation and branch delay-slot execution. Strict scenarios unchanged. Separate local RAM-word experiments0/FFFFFFFF (explicit synthetic prior contents, never physical reset defaults) now reach1744/1743 at SUB R2,R4 opcode3428/PC562; neither is a baseline or boot claim. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B92/#99
+
+B92: implement documented SUB and CMP/PZ for firmware delay-loop path.
+
+Validation: Ran 418 tests in 5.900s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b92-no-clock-unknown.json and b92-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 418 tests pass. Source SH-2E Rev2 sections7.2.60 and7.2.15. Experimental RAM0/FFFFFFFF investigation now completes100000 instructions with zero IRQ entries, looping in startup; no sustained initialization claim. Strict188 and conditional hardware gates unchanged. Next examine repeated control flow and timing inputs, with assumptions explicit. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
