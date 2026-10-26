@@ -436,3 +436,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b104-no-clock-unknown.json and b104-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 447 tests pass. Rev3 11.2.8/12/13: TRGMDR0/80 stored only with known DSTR/TCNR/OTR0; TCNR/OTR word0 disables connections; unknown/active/reserved/width writes rejected. No pulses or IRQs invented. PBPD0/FFFF experiments reach58614/58612 attempts at TCR2A FFFFF62B byte4, PCBE64/op2250. Next stopped TCR2A/Bclockconfig from same verified section11.2.3. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B105/#112
+
+B105: add separate stopped TCR2A/TCR2B clock-selection latches.
+
+Validation: Ran 449 tests in 5.138s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b105-no-clock-unknown.json and b105-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 449 tests pass. Rev3 11.2.3/table11.3 stopguard perSTR2A/STR1B2B, reserved/AGCK/paired widths guarded. No counteralias or IRQ generation. PBPD0/FFFF investigations reach58618/58616 attempts at TMDR FFFFF484 byte0, PCBE6C/op2140. Strict/CAN gates remainopen; next timer mode initialization. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
