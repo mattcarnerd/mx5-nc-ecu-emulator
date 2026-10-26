@@ -292,3 +292,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b92-no-clock-unknown.json and b92-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 418 tests pass. Source SH-2E Rev2 sections7.2.60 and7.2.15. Experimental RAM0/FFFFFFFF investigation now completes100000 instructions with zero IRQ entries, looping in startup; no sustained initialization claim. Strict188 and conditional hardware gates unchanged. Next examine repeated control flow and timing inputs, with assumptions explicit. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B93/#100
+
+B93: add reproducible startup investigation with explicit prior-RAM, clock and optional pin hypotheses.
+
+Validation: Ran 422 tests in 4.980s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b93-no-clock-unknown.json and b93-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 422 tests pass. Exploration envelope is separate from baseline and rejected by baseline reviewer; explicit hypotheses preserved, no physical reset RAM asserted. Matrix of8 cases distinguishes instruction-limit/delay/external-input stops. Phi16 +RAM0+PortB0/FFFF reaches58525/58524 at FFFFF708 byte write1, PCC3C4/op2010,7 watchdog overflows,0 firmware IRQs. Next identify SCI register from Rev3; strict and CAN-prohibition gates remain open. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
