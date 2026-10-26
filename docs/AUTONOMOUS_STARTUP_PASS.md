@@ -682,3 +682,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b124-no-clock-unknown.json and b124-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 864 generated vectors and all three reached nine-instruction windows match. Entry state is emulator-supplied, so full earlier reset/caller behavior is not independently certified. Primary SH7058S profile retains the same register layout/prohibition; hardware mode behavior remains unresolved. No default/guard relaxed; next evidence is earlier CPU/profile discrepancy or applicable011 behavior. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B125/#132
+
+B125: independently verify seed-free caller literal and register preservation
+
+Validation: Ran 514 tests in 9.707s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b125-no-clock-unknown.json and b125-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. All three ROMs explicitly assign R5=3; SLEIGH inspects57/57/54 observed events and no intervening writers including delay slots. Stale R5 input is excluded on those paths; earlier control-flow decisions remain emulator-derived, so controller behavior/earlier-profile gate stays open. No hardware value or mode conversion invented. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

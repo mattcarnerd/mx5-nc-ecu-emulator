@@ -6,7 +6,7 @@ The goal is a virtual NC ECU executing supported firmware and interacting with a
 
 ## Verified current position
 
-- **509 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. B119-B121 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
+- **514 local tests passed** in the last implementation pass, including locally supplied original-hash regressions. Public CI passed; private ROM-dependent cases are skipped there. B119-B121 reran the full suite and strict/conditional scenario matrix; hardware evidence gates remain unresolved.
 - Downloaded Windows EXE [v0.2.0-dev.189.1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/releases/tag/v0.2.0-dev.189.1) was checksum-verified before execution against the original ROM: strict188/187, fully labelled exploration58714/58713. See [packaged evidence](docs/evidence/b122-packaged-verification.json).
 - **Default reference:** original LF9VEB SHA-256, power reset, NMI high, 300-instruction budget, no supplied physical pins, H-UDI/clock unknown. Stops at **188 attempted instructions**, reading SDSR at `0xFFFFF7C2`, PC `0x00000EF8`, opcode `6321`: unknown H-UDI state.
 - **Separate conditional investigation:** explicit H-UDI assumption plus artificial phi-per-completed-instruction=1 and a **10,000** budget stops at **592 attempts / 591 completed**, PC `0x000007B6`, opcode `2301`, word store to MCR0 `0xFFFFD000`. The written value still contains unknown reserved bit6 after read/OR1. No concrete value or reset side effect is selected. The same conditional run with a 300 budget reaches only the instruction limit.
@@ -33,6 +33,10 @@ There are **three open parent workstreams**. The current autonomous milestone is
 | P3 | Validate supported hardware/ROM families | Obtain authorized representative ROMs/board evidence and run identical declared scenarios; publish per-family support and failures. One LF9VEB regression does not establish all NC compatibility. | [Hardware #1](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/1), [Peripherals #3](https://github.com/mattcarnerd/mx5-nc-ecu-emulator/issues/3) |
 
 **Next dependency:** the declared reset1/bus64 or256 experiment reaches1057/1056, PCE70/op81C2, mailbox0 control2308 (prohibited MBC011). Check applicable primary behavior evidence or independent CPU/profile correction before accepting it; current reviewed manuals and technical update prohibit it. See [audit and evidence needed](docs/MAILBOX_MODE_AUDIT.md). No silent mode conversion, ignored write, firmware patch or guessed bus response. The user has no matching ECU; a public technical reference/trace or another suitably identified ROM can supply evidence without purchasing hardware.
+
+## Independent caller provenance — B125/#132
+
+The external SLEIGH engine verifies the caller's full R5 literal3 without entry-register seeds, then finds no intervening R5 writers across57/57/54 observed instruction events in LF9VEB/LFNPEA/LF4XEC. Delay-slot effects are inspected; opaque operations fail. Stale R5 input is excluded on these observed paths. Earlier branch/path choice is still emulator-derived, and physical011 behavior remains unresolved. Next useful evidence is an independently executed earlier control-flow/profile discrepancy or applicable controller behavior evidence. [Scope and report](docs/INDEPENDENT_SH2_AUDIT.md).
 
 ## Independent instruction/profile check — B124/#131
 
@@ -259,3 +263,5 @@ B120/#127 completed scope/test review: see [autonomous startup pass](docs/AUTONO
 B121/#128 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). Read-mask-store audit reaches FFFFD104 at PCC084 with unknown written mask070F (MBC/DLC);58713/58711 completed, zero IRQs. This reconnects exploration to the prohibited-mode evidence gate. Next verify the current packaged application on original ROM and record precise evidence needed; no command-shadow readback invented.
 
 B124/#131 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). 864 generated vectors and all three reached nine-instruction windows match. Entry state is emulator-supplied, so full earlier reset/caller behavior is not independently certified. Primary SH7058S profile retains the same register layout/prohibition; hardware mode behavior remains unresolved. No default/guard relaxed; next evidence is earlier CPU/profile discrepancy or applicable011 behavior.
+
+B125/#132 completed scope/test review: see [autonomous startup pass](docs/AUTONOMOUS_STARTUP_PASS.md). All three ROMs explicitly assign R5=3; SLEIGH inspects57/57/54 observed events and no intervening writers including delay slots. Stale R5 input is excluded on those paths; earlier control-flow decisions remain emulator-derived, so controller behavior/earlier-profile gate stays open. No hardware value or mode conversion invented.

@@ -51,3 +51,7 @@ The user requested another ROM from ROMDrop. Full LFNPEA and LF4XEC issue attach
 ## B124 independent semantic check
 
 [Ghidra SLEIGH/pypcode audit](INDEPENDENT_SH2_AUDIT.md) now independently decodes and evaluates the three reached nine-instruction windows and matches864 generated vectors. Every window store and final R0 agree, including final2308/0308 to FFFFD104. This narrows the checked arithmetic/addressing issue but is not an independent full-reset trace: entry registers come from our emulator. SH7058S Rev5 uses the same control address/MBC bits and prohibition. Exact silicon remains unverified; no hardware behavior exception or mode conversion is inferred. The gate remains unresolved.
+
+## B125 independent caller provenance
+
+SLEIGH confirms an unconditional full-register literal3 assignment at caller PC1E2 (LF9VEB/LFNPEA) or21A (LF4XEC), requiring no incoming R5 value. Across57/57/54 observed instruction events to the low-byte consumer, no later R5 writer exists, including lifted branch delay slots. Stale incoming R5 is therefore ruled out on those paths. Branch/path selection still comes from our emulator and has not been independently executed from reset; controller011 behavior remains unknown. See the extended INDEPENDENT_SH2_AUDIT.md and reduced B125 report.

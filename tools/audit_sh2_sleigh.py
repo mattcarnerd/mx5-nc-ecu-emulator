@@ -155,11 +155,16 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rom',action='append',default=[])
     parser.add_argument('--synthetic',action='store_true')
+    parser.add_argument('--caller',action='store_true')
     parser.add_argument('--output',type=Path,required=True)
     args=parser.parse_args()
     if not args.synthetic and not args.rom:parser.error('Select --synthetic or --rom')
     result={'schema':'nc-ecu-independent-sh2-audit-v1','tool':metadata(),
         'synthetic':synthetic_audit() if args.synthetic else None,'rom_windows':[audit_rom(p) for p in args.rom]}
+    if args.caller:
+        from tools.audit_sh2_callers import generated_caller_audit,audit_rom_caller
+        result['caller_synthetic']=generated_caller_audit() if args.synthetic else None
+        result['rom_callers']=[audit_rom_caller(p) for p in args.rom]
     args.output.write_text(json.dumps(result,indent=2)+'\n',encoding='utf-8')
-    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows']}))
+    print(json.dumps({'synthetic':result['synthetic'],'rom_windows':result['rom_windows'],'caller_synthetic':result.get('caller_synthetic'),'rom_callers':result.get('rom_callers')}))
 if __name__=='__main__':main()

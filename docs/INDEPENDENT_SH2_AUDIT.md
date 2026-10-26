@@ -45,3 +45,19 @@ python tools/audit_sh2_sleigh.py --rom PATH_TO_AUTHORIZED_ROM --output local-aud
 The local-ROM command accepts only the three reviewed image hashes/windows. Outputs contain hashes, assumptions, window addresses and derived control stores, not ROM bytes or filesystem paths. Public CI installs the pinned dependency and requires the generated audit before the test suite; the Windows application does not import this dependency.
 
 Next evidence needed: an independent reset/caller trace demonstrating an earlier CPU/profile discrepancy, or applicable controller behavior evidence explaining011. The audit has not selected between those possibilities. Original-firmware sustained initialization and recurring interrupts remain unverified; generated recurring interrupt tests remain a separate result.
+
+## B125/#132 caller argument provenance extension
+
+The earlier nine-instruction replay used entry registers from our emulator. A second check now starts at each actual caller literal: LF9VEB/LFNPEA PC1E2 and LF4XEC PC21A. The external SLEIGH translation is exactly a constant3 copy to the whole R5 register, requiring no prior register seed. It then examines every p-code register destination on the observed path to the R5-byte consumer (E64 or CB4), including writes in branch delay slots. Opaque/unreviewed operations and alternate address spaces reject the proof.
+
+| Image | Caller literal | Consumer | Observed instruction events before consumer | Intervening R5 writers |
+|---|---|---|---|---|
+| LF9VEB |1E2|E64|57|0|
+| LFNPEA |1E2|E64|57|0|
+| LF4XEC |21A|CB4|54|0|
+
+Thus stale reset/prior R5 contents cannot explain the mode3 value on these observed paths. This is a seed-free literal/noninterference check, not an independent execution of branch decisions: path addresses still come from the local emulator, and no interrupts occurred during the measured run. It does not establish why the caller path was chosen, certify earlier reset control flow, or define prohibited-mode hardware behavior. No guard/default is relaxed.
+
+Generated cases verify preserved literals, unrelated writes and a branch with a benign delay slot. Negative cases reject a different literal, subsequent R5 write, delay-slot overwrite and opaque operation. Regression coverage also rejects an idempotent R5 rewrite: observing no value change is not substituted for independently inspecting register destinations.
+
+Use `--caller` with the previous audit command. CI requires generated caller checks in addition to the existing864 arithmetic/addressing vectors. The local three-ROM report is [b125-independent-caller-audit.json](evidence/b125-independent-caller-audit.json), containing only hashes, assumptions, boundary PCs, counts and conclusions. No raw instruction stream is published.
