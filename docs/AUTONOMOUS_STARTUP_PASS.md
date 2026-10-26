@@ -400,3 +400,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b101-no-clock-unknown.json and b101-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 442 tests pass. Rev3 11.2.7 defines8bit R/W ITVRR1/2A/2B; no interval/ADC event without TCNT0 execution. Unknown manual/width guards retained; explicit zero disables controls. PBPD0/FFFF experiments reach58609/58607 attempts at TCR1B FFFFF45C byte4, PCBE5A/op2150,0IRQs. Backlog current checkpoint updated; next stopped TCR1B config. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B102/#109
+
+B102: add stopped TCR1B clock-selection configuration without counter aliasing.
+
+Validation: Ran 444 tests in 5.794s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b102-no-clock-unknown.json and b102-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 444 tests pass. Rev3 11.2.3 internal/TCLKA/B selection stored only with knownstopped TCNT1B; otherclocks/reserved/paired widths rejected. Existing1A counter/IRQs unaffected. Explicit PBPD0/FFFF experiments reach58612/58610 attempts at TRGMDR FFFFF466 byte80, PCBE60/op2030,0IRQs. Next inspect trigger effects from manual before accepting. Strict/CAN gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

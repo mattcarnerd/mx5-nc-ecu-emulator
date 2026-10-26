@@ -5,6 +5,7 @@ TCNT=0xFFFFF440
 GR=0xFFFFF444
 GRB=0xFFFFF446
 TIOR=0xFFFFF459
+TCR1B=0xFFFFF45C
 TCR=0xFFFFF45D
 TSR=0xFFFFF45E
 TIER=0xFFFFF462
@@ -13,7 +14,7 @@ DSTR=0xFFFFF666
 TSTR2=0xFFFFF400
 TSTR3=0xFFFFF402
 PSCR_EXTRA=(0xFFFFF406,0xFFFFF408,0xFFFFF40A)
-WIDTHS={**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
+WIDTHS={TCR1B:1,**{a:1 for a in ITVRR},DSTR:2,TSTR2:1,TSTR3:1,**{a:1 for a in PSCR_EXTRA},PSCR:1,TSTR:1,TCNT:2,GR:2,GRB:2,TIOR:1,TCR:1,TSR:2,TIER:2}
 
 class Atu1A:
     def __init__(self,*,power_on,trace,stop_type):
@@ -57,6 +58,10 @@ class Atu1A:
 
     def write(self,a,width,value):
         self.guard(a,width,'write');value &= (1<<(8*width))-1
+        if a==TCR1B:
+            if value&0xC0:self.fail('invalid_peripheral_write','TCR1B reserved bits7..6 require zero',a,width,'write')
+            if value&0xF not in range(8):self.fail('unsupported_peripheral_mode','TCR1B AGCK/AGCKM clock outside subset',a,width,'write')
+            if self.known(TSTR)&8:self.fail('unsupported_peripheral_mode','TCR1B configuration requires stopped TCNT1B',a,width,'write')
         if a in ITVRR and value and self.known(TSTR)&1:
             self.fail('unsupported_peripheral_mode','Interval/ADC trigger generation requires unmodelled TCNT0 execution',a,width,'write')
         if a==DSTR:
