@@ -43,3 +43,9 @@ The outer assumptions and reduced diagnostic both retain this policy, and the co
 Rev.3 table15.2 and sections15.2.5/.6/.8 (printed466-475,480) identify FFFFF000 as SMR0. SMR/BRR/SCR power-on values are00/FF/00, retained on manual reset. The five SCI banks are independent at eight-byte strides. This subset supports byte SMR/BRR programming, the aligned big-endian SMR+BRR word, and SCR byte00 disabling. Any nonzero SCR still stops before unsupported enable/interrupt/clock effects. No physical baud rate, serial data or SCI IRQ is inferred.
 
 With all B119 hypotheses retained, original-ROM exploration reaches an unknown CAN mailbox control read at FFFFD104, PCC07C/op6241:58710/58708 attempted,58709/58707 completed,41 timer packets, zero CPU IRQs. No initialization milestone is claimed. See evidence/b120-timer-exploration.json.
+
+## SCI stopped configuration (B120)
+
+Rev.3 table15.2 and sections15.2.5/.6/.8 (printed466-475,480) identify FFFFF000 as SMR0. SMR/BRR/SCR power-on values are00/FF/00, retained on manual reset. Five independent banks use eight-byte strides. This subset supports byte SMR/BRR programming, the aligned big-endian SMR+BRR word, and SCR byte00 disabling. Any nonzero SCR stops before unsupported enable/interrupt/clock effects. No physical baud rate, serial data or SCI IRQ is inferred.
+
+With all B119 hypotheses retained, exploration reaches an unknown CAN mailbox control read at FFFFD104, PCC07C/op6241:58710/58708 attempted,58709/58707 completed,41 timer packets, zero CPU IRQs. No initialization milestone is claimed. See evidence/b120-timer-exploration.json.

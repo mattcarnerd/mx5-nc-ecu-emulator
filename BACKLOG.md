@@ -34,9 +34,9 @@ There are **three open parent workstreams**. The current autonomous milestone is
 
 **Next dependency:** the declared reset1/bus64 or256 experiment reaches1057/1056, PCE70/op81C2, mailbox0 control2308 (prohibited MBC011). Check applicable primary behavior evidence or independent CPU/profile correction before accepting it; current reviewed manuals and technical update prohibit it. See [audit and evidence needed](docs/MAILBOX_MODE_AUDIT.md). No silent mode conversion, ignored write, firmware patch or guessed bus response. The user has no matching ECU; a public technical reference/trace or another suitably identified ROM can supply evidence without purchasing hardware.
 
-## Current runtime dependency after B119
+## Current runtime dependency after B120
 
-Optional explicit-Pphi runtime now covers the simultaneous timer start, including guarded channels6/7/11. Generated shared interval/overflow handlers recur; the original ROM has still produced zero CPU IRQ entries. The separate ordered-watchdog-stop experiment reaches byte80 at FFFFF000, PCC01E, after58695/58693 completed instructions (PB/PD0/FFFF). Its assumed ordering, channel10 initial111/wrap16, priorRAM0, supplied clock and pin hypotheses remain recorded; the normal model retains the disputed watchdog-write guard. Next: identify and implement only the reached register semantics from Rev.3. Strict H-UDI/CAN gates remain unresolved. Earlier checkpoints below are historical.
+Optional explicit-Pphi runtime now covers the simultaneous timer start, including guarded channels6/7/11. Generated shared interval/overflow handlers recur; the original ROM has still produced zero CPU IRQ entries. The separate ordered-watchdog-stop experiment reaches byte80 at FFFFF000, PCC01E, after58695/58693 completed instructions (PB/PD0/FFFF). Its assumed ordering, channel10 initial111/wrap16, priorRAM0, supplied clock and pin hypotheses remain recorded; the normal model retains the disputed watchdog-write guard. B120 adds stopped SCI mode/bit-rate configuration and reaches mailbox control read FFFFD104 at PCC07C after58709/58707 completed instructions, still zero IRQs. Next: audit software-owned mailbox readback versus unresolved recorded CAN effects using Rev.3; do not fabricate a receive state. Strict H-UDI/CAN gates remain unresolved. Earlier checkpoints below are historical.
 
 ## 26 October autonomous investigation checkpoint
 
@@ -73,7 +73,7 @@ Earlier closed tasks cover bounded reset, memory/integer instructions, GPIO, ITI
 
 **24 October 2026 audit:** compared all open parent issue bodies, current source and eight-task evidence. Found stale P0/P1 introductions, completed tasks presented in a priority queue, an incorrect implication that FPSCR reset was unknown, and an obsolete B28 stop line that did not enumerate further work. Replaced the mixed queue with the active work packages above; retained the three existing parents, with no duplicate issues or fabricated task estimate. Updated parent status/next milestones. This is a planning/documentation correction; no emulator behavior or support claim changed.
 
-- [Historical backlog and original review entries](docs/BACKLOG_HISTORY_2026-10-24.md) â€” historical priorities only.
+- [Historical backlog and original review entries](docs/BACKLOG_HISTORY_2026-10-24.md) — historical priorities only.
 - [Third five-task pass](docs/THIRD_FIVE_TASK_PASS.md)
 - [Fourth five-task pass](docs/FOURTH_FIVE_TASK_PASS.md)
 - [Eight-task completion evidence](docs/EIGHT_TASK_COMPLETION.md)
