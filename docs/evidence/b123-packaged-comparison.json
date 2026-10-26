@@ -1,0 +1,163 @@
+{
+  "schema": "nc-ecu-packaged-cross-rom-verification-v1",
+  "cases": [
+    {
+      "calibration": "LFNPEA",
+      "rom_sha256": "590111ace660ef6257572dd1ec45948558a7741f3c6aa505fa432a698d1f15f7",
+      "packaged_verification": {
+        "release": "v0.2.0-dev.190.1",
+        "sha256": "a0f97012cdaec1209d5fb49ced0cec6edc5237aa1f927a122149ac847aa01e27",
+        "checksum_verified_before_execution": true,
+        "runs": [
+          {
+            "mode": "strict",
+            "seconds": 2.78,
+            "attempted": 188,
+            "completed": 187,
+            "stop": "unknown_peripheral_reset_state",
+            "assumptions_retained": true
+          },
+          {
+            "mode": "exploration",
+            "seconds": 4.5,
+            "attempted": 58714,
+            "completed": 58713,
+            "stop": "unknown_register",
+            "assumptions_retained": true
+          }
+        ]
+      },
+      "exploration_assumptions": {
+        "prior_ram_words": [
+          {
+            "address": "0xFFFFBFFC",
+            "width": 4,
+            "value": "0x00000000"
+          }
+        ],
+        "port_b_pins": "0x0000",
+        "port_c_pins": "0x0000",
+        "port_d_pins": "0x0000",
+        "startup_timer_fixture": {
+          "p_phi_cycles_per_instruction": 16,
+          "channel10_initial_candidates": {
+            "A": 1,
+            "C": 1,
+            "F": 1
+          },
+          "zero_reload_policy": "experimental-wrap16"
+        },
+        "experimental_wdt_ordered_stop": true,
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 16,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64,
+          "defer_mailbox_effects": true,
+          "preserve_supplied_reset_status": true
+        }
+      },
+      "interrupt_entries": 0,
+      "initialization_verified": false,
+      "startup_timer_binding": {
+        "fixture": {
+          "p_phi_cycles_per_instruction": 16,
+          "channel10_initial_candidates": {
+            "A": 1,
+            "C": 1,
+            "F": 1
+          },
+          "zero_reload_policy": "experimental-wrap16"
+        },
+        "bound_tick": 58668,
+        "completed_packets": 45,
+        "phase_origin": 0,
+        "bind_on": "first_nonzero_TSTR1_write",
+        "packet_order": "scheduled_completed_instruction_before_watchdog_phi",
+        "correction_order": "old-state_Pphi_tick"
+      },
+      "wdt_ordered_stop_count": 1
+    },
+    {
+      "calibration": "LF4XEC",
+      "rom_sha256": "ca9ecd4bf0556dc66712341d303c171c220be104060e61bc4cbe32f4b4f1adcf",
+      "packaged_verification": {
+        "release": "v0.2.0-dev.190.1",
+        "sha256": "a0f97012cdaec1209d5fb49ced0cec6edc5237aa1f927a122149ac847aa01e27",
+        "checksum_verified_before_execution": true,
+        "runs": [
+          {
+            "mode": "strict",
+            "seconds": 2.95,
+            "attempted": 151,
+            "completed": 150,
+            "stop": "unsupported_peripheral_mode",
+            "assumptions_retained": true
+          },
+          {
+            "mode": "exploration",
+            "seconds": 3.45,
+            "attempted": 14044,
+            "completed": 14043,
+            "stop": "unknown_status",
+            "assumptions_retained": true
+          }
+        ]
+      },
+      "exploration_assumptions": {
+        "prior_ram_words": [
+          {
+            "address": "0xFFFFBFFC",
+            "width": 4,
+            "value": "0x00000000"
+          }
+        ],
+        "port_b_pins": "0x0000",
+        "port_c_pins": "0x0000",
+        "port_d_pins": "0x0000",
+        "startup_timer_fixture": {
+          "p_phi_cycles_per_instruction": 16,
+          "channel10_initial_candidates": {
+            "A": 1,
+            "C": 1,
+            "F": 1
+          },
+          "zero_reload_policy": "experimental-wrap16"
+        },
+        "experimental_wdt_ordered_stop": true,
+        "nmi_high": true,
+        "hudi_scenario": "trst-reset",
+        "phi_cycles_per_instruction": 16,
+        "experimental_mcr_bit6": 0,
+        "hcan_fixture": {
+          "reset_completion_ticks": 1,
+          "recessive_bus_ticks": 64,
+          "defer_mailbox_effects": true,
+          "preserve_supplied_reset_status": true
+        }
+      },
+      "interrupt_entries": 0,
+      "initialization_verified": false,
+      "startup_timer_binding": {
+        "fixture": {
+          "p_phi_cycles_per_instruction": 16,
+          "channel10_initial_candidates": {
+            "A": 1,
+            "C": 1,
+            "F": 1
+          },
+          "zero_reload_policy": "experimental-wrap16"
+        },
+        "bound_tick": null,
+        "completed_packets": 0,
+        "phase_origin": 0,
+        "bind_on": "first_nonzero_TSTR1_write",
+        "packet_order": "scheduled_completed_instruction_before_watchdog_phi",
+        "correction_order": "old-state_Pphi_tick"
+      },
+      "wdt_ordered_stop_count": 0
+    }
+  ]
+}
