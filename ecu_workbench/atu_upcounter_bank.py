@@ -25,7 +25,7 @@ class UpcounterBankRuntime:
 
     def guard_start(self,value):
         a=self.atu
-        if value&~0x7F:a.fail('unsupported_peripheral_mode','Channel10 runtime outside upcounter-bank subset',TSTR,1,'write',value)
+        if value&~(0xFF if a.channel10.enabled else 0x7F):a.fail('unsupported_peripheral_mode','Channel10 runtime outside upcounter-bank subset',TSTR,1,'write',value)
         a.counter0.guard_start()
         if not a.channel8_quiescent():a.fail('unsupported_peripheral_mode','Counter bank requires proven quiescent channel8')
         active=[(address,tcr,comparators) for address,(tcr,bit,comparators) in MEMBERS.items() if value&bit]

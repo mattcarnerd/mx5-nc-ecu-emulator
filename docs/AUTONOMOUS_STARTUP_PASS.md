@@ -584,3 +584,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b115-no-clock-unknown.json and b115-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 478 tests pass. Independentdivisors/packetpartition/stop-resumephase, atomic crossbankeventstop, externalclock/manual/activewrite/phaseguards verified. New0..7FAPIstartfixture stopsbeforeunmodelledGR/OCR/overflow; FF/channel10 rejected. No fakeflags/pulse/IRQs; originalsourceROM stillblocked atFF. Next channel10 initialruntime dependencies or required event models fromprimarysource. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B116/#123
+
+B116: add guarded channel10 internal startup with explicit ambiguous reset and zero-reload policies.
+
+Validation: Ran 483 tests in 6.588s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b116-no-clock-unknown.json and b116-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. 483 tests pass. Default A/C/F ambiguity and zero reload remain unknown/guarded; explicitcandidate and experimentalwrap policies retained in clockreport. Nonzeroreload/AGCK1/E/G/F arithmetic, packetpartition and atomic unsupportedboundary tested, noexternalinput/pulse/IRQ fabricated. New API canacceptFF only withstartupfixture; source-ROMexploration doesnotenableit yet. Next explicitenvelope/clockbinding investigation withallpoliciesretained. Strict gates unchanged. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

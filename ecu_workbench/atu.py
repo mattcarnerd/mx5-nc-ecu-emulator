@@ -1,4 +1,5 @@
 """ATU-II channel1A/GR1A subset; explicit selected-counter-clock ticks only."""
+from .atu_channel10 import Channel10InitialRuntime
 from .atu_counter0 import Counter0Runtime,TCNT0,TSR0,TIER0
 from .atu_upcounter_bank import UpcounterBankRuntime,MEMBERS as BANK_COUNTERS
 TSTR=0xFFFFF401
@@ -49,6 +50,7 @@ class Atu1A:
         # supported yet. Retain documented power state, unknown on manual reset.
         self.counter0=Counter0Runtime(self)
         self.upcounter_bank=UpcounterBankRuntime(self,power_on=power_on)
+        self.channel10=Channel10InitialRuntime(self,power_on=power_on)
         self.channel8_counters=[0 if power_on else None for _ in range(16)]
         self.channel8_reload_value=0 if power_on else None
         self.channel8_reload_enabled=False if power_on else None
@@ -57,7 +59,7 @@ class Atu1A:
         self.event_sink=None;self.explicit_input_events=0
         self.clock_mode=None;self.phi_cycles=0;self.fixture_phase=None;self.clock_pins={'A':None,'B':None}
 
-    def handles(self,a):return (a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR,TSR0,TIER0)
+    def handles(self,a):return (self.channel10.handles(a) or a in WIDTHS or a-1 in (TCNT,GR,GRB,TSR,TIER,DSTR,TCNR,OTR,TSR0,TIER0)
         or any(base<a<base+spec[0] for base,spec in STOPPED_COUNTERS.items()))
 
     def fail(self,kind,detail,a=None,width=None,access=None,value=None):
@@ -82,6 +84,7 @@ class Atu1A:
         if self.event_sink:self.event_sink(dict(self.events[-1]))
 
     def read(self,a,width):
+        if self.channel10.handles(a):return self.channel10.read(a,width)
         self.guard(a,width,'read')
         self.guard_stopped_counter(a,width,'read')
         if a==TCNT and self.known(TSTR)&2 and not self.clock_supplied:
@@ -92,6 +95,7 @@ class Atu1A:
         return value
 
     def write(self,a,width,value):
+        if self.channel10.handles(a):return self.channel10.write(a,width,value)
         self.guard(a,width,'write');self.guard_stopped_counter(a,width,'write');value &= (1<<(8*width))-1
         if a==TSR0:
             if value&0xFF00:self.fail('invalid_peripheral_write','TSR0 reserved bits15..8 require zero',a,width,'write',value)
@@ -150,10 +154,12 @@ class Atu1A:
         if a in (TSTR2,TSTR3) and value!=0:
             self.fail('unsupported_peripheral_mode','Other ATU channel starts outside subset',a,width,'write')
         if a in PSCR_EXTRA:
+            if a==0xFFFFF40A and self.channel10.enabled and value!=self.regs[a]:
+                self.fail('unsupported_peripheral_mode','Channel10 clock changes after binding require phase handling',a,width,'write',value)
             if value&0xE0:self.fail('invalid_peripheral_write','PSCR reserved bits7..5 require zero',a,width,'write')
             if any(self.known(start)!=0 for start in (TSTR,TSTR2,TSTR3)):
                 self.fail('unsupported_peripheral_mode','Configure common prescaler only with all counters stopped',a,width,'write')
-        allowed={TSTR:(tuple(range(128)) if self.upcounter_bank.enabled else ((0,1) if self.counter0.enabled else (0,2))),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
+        allowed={TSTR:(tuple(range(256 if self.channel10.enabled else 128)) if self.upcounter_bank.enabled else ((0,1) if self.counter0.enabled else (0,2))),TIOR:tuple(low|(high<<4) for low in range(8) for high in (0,4,5,6,7)),TCR:tuple(range(6))+tuple(select|(edge<<4) for select in (6,7) for edge in range(4)),PSCR:tuple(range(32)),TIER:(0,1,2,3,0x100,0x101,0x102,0x103)}
         if a in allowed and value not in allowed[a]:
             self.fail('unsupported_peripheral_mode','Other ATU channels/clock modes outside bounded1A subset',a,width,'write',value)
         if a in (TCR,PSCR) and value!=self.regs[a]:
@@ -178,6 +184,11 @@ class Atu1A:
     def channel8_quiescent(self):
         return (self.regs[DSTR]==0 and all(v==0 for v in self.channel8_counters)
                 and (self.channel8_reload_enabled is False or self.channel8_reload_value==0))
+
+    def begin_startup_timer_clock_fixture(self,*,phase):
+        self.channel10.guard_start()
+        self.upcounter_bank.bind(phase=phase)
+        self.channel10.enabled=True
 
     def begin_upcounter_bank_clock_fixture(self,*,phase):
         self.upcounter_bank.bind(phase=phase)
@@ -211,7 +222,11 @@ class Atu1A:
         self.clock_pins[pin]=level
 
     def clock_report(self):
-        return {'source':self.clock_mode,'upcounter_bank_fixture':self.upcounter_bank.enabled,'counter0_fixture':self.counter0.enabled,'counter0_selected_ticks':self.counter0.counter_ticks,'fixture_phase_origin':self.fixture_phase,
+        return {'source':self.clock_mode,'upcounter_bank_fixture':self.upcounter_bank.enabled,
+                'channel10_startup_fixture':self.channel10.enabled,
+                'channel10_initial_candidates':self.channel10.initial_fixture,
+                'channel10_zero_reload_policy':self.channel10.zero_reload_policy,
+                'channel10_correction_order':'old-state_Pphi_tick' if self.channel10.enabled else None,'counter0_fixture':self.counter0.enabled,'counter0_selected_ticks':self.counter0.counter_ticks,'fixture_phase_origin':self.fixture_phase,
                 'supplied_phi_cycles':self.phi_cycles,'selected_counter_ticks':self.ticks,
                 'frequency_hz':None,'physical_timing_verified':False}
 
@@ -222,10 +237,12 @@ class Atu1A:
         if select not in range(6):self.fail('unsupported_peripheral_mode','Internal clock packet requires internal selection')
         divisor=(self.known(PSCR)+1)*(1<<select)
         pulses=(self.phi_cycles+count)//divisor-self.phi_cycles//divisor
+        channel10_plan=self.channel10.prepare(count)
         plan=self.upcounter_bank.prepare(count)
         self.counter0.advance_phi(count)
         self._advance_counter_ticks(pulses)
         self.regs.update(plan)
+        self.channel10.apply(channel10_plan)
         self.phi_cycles+=count
 
     def advance_ticks(self,count):
