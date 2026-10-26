@@ -632,3 +632,15 @@ OK
 Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b119-no-clock-unknown.json and b119-clock1-budget10000-trst-reset.json. Counts do not imply boot.
 
 Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Normal watchdog guard retained. Optional ordering reaches FFFFF000 byte80 at PCC01E,58695/58693 completed with prior timer/RAM/pin hypotheses; zero firmware IRQs. Next identify that register from Rev.3; initialization remains unverified. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.
+
+## B120/#127
+
+B120: model stopped SCI configuration with reset retention and enable guards
+
+Validation: Ran 501 tests in 7.793s
+
+OK
+
+Default300/no-clock H-UDI and explicitly labelled conditional10000 scenarios rerun; see evidence/b120-no-clock-unknown.json and b120-clock1-budget10000-trst-reset.json. Counts do not imply boot.
+
+Mandatory full backlog review: all open issue bodies refreshed/compared and all backlog rows reviewed. Original exploration reaches unknown mailbox control read FFFFD104 at PCC07C,58709/58707 completed, zero IRQs. Audit software-owned readback against unresolved CAN effects next; hardware gates remain unresolved. Physical H-UDI/CAN evidence gates in#1 and broad parents#2/#3 remain open. No duplicate task added; no physical inputs or timing guessed. User authorized autonomous milestone work; research outcomes do not assert hardware resolution and synthetic coverage is distinct from original firmware operation.

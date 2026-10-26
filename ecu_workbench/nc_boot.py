@@ -39,6 +39,7 @@ from .sh2_control import execute_control
 from .sh2_shift import execute_shift
 from .sh2_branch import execute_delayed_branch
 from .hudi import HudiStatus, SDSR_ADDRESS, scenario_metadata, run_scenario_metadata
+from .sci import StoppedSci
 from .watchdog import ResetControl, WatchdogTimer, RSTCSR_WRITE, RSTCSR_READ
 
 ROM_BASE, ROM_LIMIT = 0x00000000, 0x00100000
@@ -129,6 +130,7 @@ class BootBus:
         run_scenario_metadata(hudi_scenario,phi_cycles_per_instruction,experimental_mcr_bit6=experimental_mcr_bit6)
         self.watchdog=WatchdogTimer(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop,
                                     clock_supplied=phi_cycles_per_instruction is not None)
+        self.sci=StoppedSci(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.adc=Adc0(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.atu=Atu1A(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop)
         self.hcan=HcanResetCommands(power_on=power_on,trace=self.peripheral_trace,stop_type=BootStop,experimental_mcr_bit6=experimental_mcr_bit6)
@@ -448,6 +450,7 @@ class BootBus:
         return self.read_cpu_value(address,2)
 
     def _read(self, a: int, width: int) -> int:
+        if self.sci.handles(a):return self.sci.access(a,width,'read')
         if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'read')
         if self.ubc.handles(a):return self.ubc.access(a,width,'read',syscr2=self.syscr2)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'read')
@@ -533,6 +536,7 @@ class BootBus:
     def _write(self, a:int,width:int,value:int):
         self.ubc.guard_cpu_write(a,width,syscr2=self.syscr2)
         if a==SYSCR1_ADDRESS:return self.syscr1.access(width,'write',value)
+        if self.sci.handles(a):return self.sci.access(a,width,'write',value)
         if self.ubc.handles(a):return self.ubc.access(a,width,'write',value,syscr2=self.syscr2)
         if a in IRR_ADDRESSES+IMR_ADDRESSES or a-1 in IRR_ADDRESSES+IMR_ADDRESSES:return self.hcan.irq_control(a,width,'write',value)
         if a in STATUS_FIXED or a-1 in STATUS_FIXED:return self.hcan.flag_access(a,width,'write',value)
